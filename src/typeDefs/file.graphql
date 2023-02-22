@@ -1,0 +1,21 @@
+scalar Upload
+
+type File {
+	_id: ID!
+	filename: String!
+	path: String!
+	createdAt: Float!
+	updatedAt: Float!
+}
+type HomePages {
+	test: String
+}
+type Query {
+	files: [File] @isAuthenticated
+	homePages: HomePages
+}
+
+type Mutation {
+	uploadFile(file: Upload!): File
+	uploadFileLocal(file: Upload!): File
+}
