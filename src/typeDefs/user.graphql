@@ -1,5 +1,4 @@
 enum Gender {
-	UNKNOWN
 	MALE
 	FEMALE
 }
@@ -17,63 +16,76 @@ enum AccountStateType {
 type Users {
 	users: [User!]
 }
-
-union Result = User | File
-union UserResult = User | Users
-
+input AddressInput {
+	city: String!
+	town: String!
+	postalAddress: String!
+	secondAddress: String
+}
+enum VerificationType {
+	CIN
+	PASSPORT
+	PERMIS
+}
+input Verification {
+	type: VerificationType
+	verificationImage: FileInput
+}
 input UserInput {
-	firstName: String
-	lastName: String
-	email: String
-	password: String
-	birthDate: String
-	phoneNumber: String
-	address: String
+	firstName: String!
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	lastName: String!
+	email: String!
+	password: String!
+	birthDate: String!
+	phoneNumber: String!
+	address: AddressInput!
+	termsOfUse: Boolean!
+	verification: Verification
+	gender: Gender!
 }
 
 input FileInput {
 	filename: String
 }
 
-input RecordInput {
-	User: UserInput
-	File: FileInput
-}
-
 input CreateUserInput {
-	firstName: String
-	lastName: String
+	firstName: String!
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	lastName: String!
 	email: String!
-	password: String
-	#gender: Gender
-	birthDate: String
+	password: String!
+	birthDate: String!
 	phoneNumber: String!
-	address: String
+	address: AddressInput!
+	termsOfUse: Boolean!
+	verification: Verification
+	gender: Gender!
 }
 
 input UpdateUserInput {
-	connectedPageId: ID
-	firstName: String
-	lastName: String
-	birthDate: String
-	phoneNumber: String
-	address: String
-	uSubscriptionCost: Float
+	firstName: String!
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	lastName: String!
+	email: String!
+	password: String!
+	birthDate: String!
+	phoneNumber: String!
+	address: AddressInput!
+	termsOfUse: Boolean!
+	verification: Verification
+	gender: Gender!
 }
 
 input LoginUserInput {
 	email: String! @length(max: 7)
 	password: String!
-}
-
-input SearchInput {
-	select: [String!]
-	where: RecordInput
-	start: Float
-	end: Float
-	order: JSONObject
-	skip: Int
-	take: Int
 }
 
 type LoginResponse {
@@ -91,8 +103,8 @@ type Local {
 }
 
 type UserVerificationData {
-	picture: Upload!
-	document: String!
+	verificationImage: Upload
+	type: String
 }
 
 type Google {
@@ -108,10 +120,11 @@ type Facebook {
 	name: String
 	email: String
 }
-
-enum UserType {
-	BASIC # $0
-	PREMIUM # $9.99
+type Address {
+	city: String!
+	town: String!
+	postalAddress: String!
+	secondAddress: String
 }
 
 input UserFilterInput {
@@ -125,24 +138,23 @@ type User {
 	userverificationData: UserVerificationData
 	local: Local!
 	google: Google
-	accountState: AccountStateType
 	facebook: Facebook
 	firstName: String
 	lastName: String
 	avatar: String
-	background: String
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	termsOfUse: Boolean
+	gender: Gender
 	birthDate: String
 	phoneNumber: String!
-	address: String
+	address: Address
 	resetPasswordToken: String
 	resetPasswordExpires: Float
 	fullName: String @upper
 	isVerified: Boolean!
-	isOnline: Boolean!
-	isLocked: Boolean!
-	reason: String!
 	isActive: Boolean!
-	stripeId: String
 	ccLast4: String
 	createdAt: Date!
 	updatedAt: Date!
@@ -150,18 +162,11 @@ type User {
 }
 
 type Query {
-	hello: String!
-		@rateLimit(window: "2s", max: 1, message: "You are doing that too often.")
 	me: User @isAuthenticated
 	users(offset: Int, limit: Int): [User!] @isAuthenticated
 	user(_id: ID!): User #@isAuthenticated
 	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
 	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
-	search(conditions: SearchInput!): [Result]! @isAuthenticated
-	searchUser(userIds: [ID!]): UserResult!
-		@rateLimit(window: "3s", max: 1, message: "You are doing that too often.")
-	# today: Date @date @hasScope(scope: [“read:rating”])
-	today: Date @date
 }
 
 type Mutation {
@@ -169,15 +174,12 @@ type Mutation {
 		input: CreateUserInput! @validate(schema: "createUserRegister")
 	): User
 		@rateLimit(window: "5s", max: 1, message: "You are doing that too often.")
-
-	createUserAuth(input: String!): User @isAuthenticated
-
 	updateUser(
 		_id: ID!
 		input: UpdateUserInput! @validate(schema: "updateUserRegister")
 	): Boolean @isAuthenticated
 	updateUserAvatar(_id: ID!, file: Upload!): Boolean @isAuthenticated
-	updateUserBackgroundAvatar(_id: ID!, file: Upload!): Boolean @isAuthenticated
+
 	updateUserVerificationData(
 		_id: ID!
 		picture: Upload!
@@ -190,7 +192,7 @@ type Mutation {
 		input: LoginUserInput! @validate(schema: "loginUserRegister")
 	): LoginResponse
 	refreshToken(refreshToken: String!): RefreshTokenResponse
-	lockAndUnlockUser(_id: ID!, reason: String!): Boolean @isAuthenticated
+
 	changePassword(
 		_id: ID!
 		currentPassword: String!
@@ -198,13 +200,6 @@ type Mutation {
 	): Boolean @isAuthenticated
 	forgotPassword(email: String!): Boolean
 	resetPassword(resetPasswordToken: String!, password: String!): Boolean
-	createSubscription(source: String!, ccLast4: String!): User @isAuthenticated
-	changeCreditCard(source: String!, ccLast4: String!): User @isAuthenticated
-	# cancelSubscription: User @isAuthenticated
-	validateUser(
-		text: String!
-		input: CreateUserInput! @validate(schema: "createUserRegister")
-	): Boolean
 }
 
 type Subscription {

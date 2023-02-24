@@ -5,8 +5,9 @@ import {
 	Local,
 	Google,
 	Facebook,
-	UserType,
-	AccountStateType
+	AccountStateType,
+	Address,
+	Gender
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -50,7 +51,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	address: string
+	address: Address
 
 	@Expose()
 	@Column()
@@ -58,15 +59,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	accountState: AccountStateType
-
-	@Expose()
-	@Column()
 	avatar: string
-
-	@Expose()
-	@Column()
-	background: string
 
 	@Expose()
 	@Column()
@@ -82,19 +75,19 @@ export class User {
 
 	@Expose()
 	@Column()
-	isOnline: boolean
+	pseudoName: string
 
 	@Expose()
 	@Column()
-	isLocked: boolean
+	secondName: string
 
 	@Expose()
 	@Column()
-	reason: string
+	thirdName: string
 
 	@Expose()
 	@Column()
-	stripeId: string
+	termsOfUse: boolean
 
 	@Expose()
 	@Column()
@@ -102,7 +95,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	type: UserType
+	gender: Gender
 
 	@Expose()
 	@Column()
@@ -131,12 +124,10 @@ export class User {
 					: this.google || this.facebook
 					? true
 					: false
-			this.isOnline = this.isOnline !== undefined ? this.isOnline : false
-			this.isLocked = this.isLocked !== undefined ? this.isLocked : false
-			this.reason = this.reason || ''
+
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-			this.type = this.type || UserType.BASIC
+
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}
