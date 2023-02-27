@@ -1,35 +1,24 @@
-import { INestApplication } from '@nestjs/common'
-import { Test, TestingModule } from '@nestjs/testing'
-import * as request from 'supertest'
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from './../src/app.module';
 
-import { AppModule } from '../src/app.module'
+describe('AppController (e2e)', () => {
+  let app: INestApplication;
 
-import { END_POINT } from '../src/environments'
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-describe('AppModule (e2e)', () => {
-	let app: INestApplication
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
 
-	beforeEach(async () => {
-		const moduleFixture: TestingModule = await Test.createTestingModule({
-			imports: [AppModule]
-		}).compile()
-
-		app = moduleFixture.createNestApplication()
-		await app.init()
-	})
-
-	it('QUERY › hello', () => {
-		return request(app.getHttpServer())
-			.post(`/${END_POINT}`)
-			.send({
-				operationName: null,
-				variables: {},
-				query: '{ hello }'
-			})
-			.expect(200)
-	})
-
-	// afterAll(async () => {
-	// 	await app.close()
-	// })
-})
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+});

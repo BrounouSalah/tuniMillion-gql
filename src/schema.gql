@@ -1,0 +1,89 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateUserInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): User!
+  deleteUser(id: Int!): User!
+  refreshUserToken(refreshTokenInput: RefreshTokenInput!): RefreshTokenResponse!
+  singIn(singInInput: SingInInput!): SignInResponse!
+  singUp(singUpInput: SingUpInput!): SignInResponse!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  veririfyUser(mailToken: VerifMailTokenInput!): VerifMailTokenResponse!
+}
+
+type Query {
+  user(id: Int!): User!
+  users: [User!]!
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+type RefreshTokenResponse {
+  accessToken: String!
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+type SignInResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input SingInInput {
+  email: String!
+  password: String!
+}
+
+input SingUpInput {
+  CIN: String!
+  address: String!
+  birthday: String!
+  email: String!
+  fullName: String!
+  password: String!
+  phone: String!
+}
+
+input UpdateUserInput {
+  _id: ID!
+
+  """Example field (placeholder)"""
+  exampleField: Int
+}
+
+type User {
+  CIN: String!
+  _id: ID!
+  address: String!
+  birthday: String!
+  email: String!
+  favoriteGame: String!
+  fullName: String!
+  isEmailVerified: String!
+  isIdVerified: String!
+  password: String!
+  phone: String!
+  refreshTokenHash: String!
+  role: Role!
+  verifHistory: String!
+}
+
+input VerifMailTokenInput {
+  mailToken: String!
+}
+
+type VerifMailTokenResponse {
+  isVerified: Boolean!
+}

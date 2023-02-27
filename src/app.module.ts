@@ -1,32 +1,28 @@
-import { CacheModule, Module, HttpModule } from '@nestjs/common'
-import { GraphQLModule } from '@nestjs/graphql'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { ScheduleModule } from '@nestjs/schedule'
-
-import { CacheService, GraphqlService, TypeOrmService } from './config'
-import { AppController } from './app.controller'
-
-import { DateScalar } from './config/graphql/scalars/date.scalar'
-import { UploadScalar } from './config/graphql/scalars/upload.scalar'
-
-import * as Resolvers from './resolvers'
-import { AppService } from 'app.service'
+import { Module } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
+import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-	imports: [
-		ScheduleModule.forRoot(),
-		GraphQLModule.forRootAsync({
-			useClass: GraphqlService
-		}),
-		TypeOrmModule.forRootAsync({
-			useClass: TypeOrmService
-		}),
-		CacheModule.registerAsync({
-			useClass: CacheService
-		}),
-		HttpModule
-	],
-	controllers: [AppController],
-	providers: [DateScalar, UploadScalar, ...Object.values(Resolvers), AppService]
+  imports: [
+    MongooseModule.forRoot("mongodb://root:root@localhost:27017/tunimillion?authSource=admin"),
+    ConfigModule.forRoot({ isGlobal: true }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+    }),
+    AuthModule,
+    UserModule
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
