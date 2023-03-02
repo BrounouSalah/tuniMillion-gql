@@ -70,7 +70,7 @@ const NODEMAILER_USER: string = process.env.NODEMAILER_USER || 'xxx'
 const NODEMAILER_PASS: string = process.env.NODEMAILER_PASS || 'xxx'
 const NODEMAILER_HOST: string = process.env.NODEMAILER_HOST || 'xxx'
 const NODEMAILER_PORT: string = process.env.NODEMAILER_PORT || 'xxx'
-const MINECLAP_BASEURL: string = process.env.MINECLAP_BASEURL
+const TUNIMILLION_BASEURL: string = process.env.TUNIMILLION_BASEURL
 
 // cloudinary
 const CLOUDINARY_NAME: string = process.env.CLOUDINARY_NAME || 'chnirt'
@@ -141,7 +141,7 @@ export {
 	NODEMAILER_PASS,
 	NODEMAILER_HOST,
 	NODEMAILER_PORT,
-	MINECLAP_BASEURL,
+	TUNIMILLION_BASEURL,
 	CLOUDINARY_NAME,
 	CLOUDINARY_API_KEY,
 	CLOUDINARY_API_SECRET,

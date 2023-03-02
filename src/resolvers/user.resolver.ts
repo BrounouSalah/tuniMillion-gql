@@ -49,7 +49,10 @@ export class UserResolver {
 		@Inject(forwardRef(() => FileResolver))
 		private fileResolver: FileResolver
 	) {}
-
+	@Query()
+	async me(@Context('currentUser') currentUser: User): Promise<User> {
+		return currentUser
+	}
 	@Query()
 	async users(
 		@Args('offset') offset: number,
@@ -204,7 +207,7 @@ export class UserResolver {
 
 			// await sendSms(input.phoneNumber, emailToken)
 
-			//await sendMail('verifyEmail', createdUser, emailToken)
+			await sendMail('verifyEmail', createdUser, emailToken)
 
 			return createdUser
 		} catch (error) {

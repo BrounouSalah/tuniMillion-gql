@@ -79,7 +79,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	secondName: string
+	secondeName: string
 
 	@Expose()
 	@Column()

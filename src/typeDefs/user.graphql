@@ -154,7 +154,7 @@ type User {
 	resetPasswordExpires: Float
 	fullName: String @upper
 	isVerified: Boolean!
-	isActive: Boolean!
+	isActive: Boolean
 	ccLast4: String
 	createdAt: Date!
 	updatedAt: Date!
