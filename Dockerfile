@@ -1,18 +1,20 @@
-FROM node:12.13.0
+# Use the official Node.js image as the base image
+FROM node:14
 
-# Set working dir in the container to /
+# Set the working directory
 WORKDIR /app
 
-# Copy application to / directory and install dependencies
+# Copy the package.json and package-lock.json files
 COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm i typescript@latest
-RUN npm i ts-node@latest
-RUN npm run gen
-RUN npm run build
-# Expose port 8081 to the outside once the container has launched
-EXPOSE 4040
 
-# what should be executed when the Docker image is launching
-CMD [ "npm", "run", "start" ]
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the project files
+COPY . .
+
+# Build the project
+RUN npm run build
+
+# Set the command to run when the container starts
+CMD [ "npm", "start" ]
