@@ -9,7 +9,7 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
-
+RUN npm install --save-dev @types/ioredis
 # Copy the rest of the project files
 COPY . .
 
