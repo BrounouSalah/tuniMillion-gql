@@ -1,128 +1,26 @@
-version: '3.8'
+version: '3'
 
 services:
-  # #App
-  # app:
-  #   build:
-  #     context: .
-  #   expose:
-  #     - 4040
-  #   volumes:
-  #     - .:/usr/src/app
-  #   working_dir: /app
-  #   restart: always
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   command: npm run start
-  #   ports:
-  #     - 4040:4040
-  # #post microservice
-  # mcs-post:
-  #   build:
-  #     context: ./mcs/minebeat-mcs-post/
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   working_dir: /app
-  #   restart: always
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   environment:
-  #     NODE_ENV: development
-  #     ACCESS_TOKEN_SECRET: minebeat
-  #   command: npm run start
-  # #chat microservice
-  # mcs-chat:
-  #   build:
-  #     context: ./mcs/minebeat-chat/
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   restart: always
-  #   working_dir: /app
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   environment:
-  #     NODE_ENV: development
-  #     ACCESS_TOKEN_SECRET: minebeat
-  #   command: npm run start
-  # #event microservice
-  # mcs-event:
-  #   restart: always
-  #   build:
-  #     context: ./mcs/minebeat-event-microservice/
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   working_dir: /app
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   environment:
-  #     NODE_ENV: development
-  #     ACCESS_TOKEN_SECRET: minebeat
-  #   command: npm run start
-  # #service microservice
-  # mcs-service:
-  #   restart: always
-  #   build:
-  #     context: ./mcs/minebeat-mcs-service/
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   working_dir: /app
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   environment:
-  #     NODE_ENV: development
-  #     ACCESS_TOKEN_SECRET: minebeat
-  #   command: npm run start
-  # mcs-wallet:
-  #  restart: always
-  #  build:
-  #   context: ./mcs/mc-wallet/
-  #  volumes:
-  #   - .:/usr/src/app
-  #   - /usr/src/app/node_modules
-  #  working_dir: /app
-  #  depends_on:
-  #   - rabbitmq
-  #   - mongo
-  #  environment:
-  #    NODE_ENV: development
-  #    ACCESS_TOKEN_SECRET: minebeat
-  #  command: npm run start
-  ##contacct microservice
-  # mcs-contract:
-  #   restart: always
-  #   build:
-  #     context: ./mcs/minebeat-mcs-contract/
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   working_dir: /app
-  #   depends_on:
-  #     - rabbitmq
-  #     - mongo
-  #   environment:
-  #     NODE_ENV: development
-  #     ACCESS_TOKEN_SECRET: minebeat
-  #   command: npm run start
-  ##mongo
-  # mongo:
-  #  image: mongo
-  #  command: mongod --port 27017 --auth
-  #  environment:
-  #   # provide your credentials here
-  #   - MONGO_INITDB_ROOT_USERNAME=root
-  #   - MONGO_INITDB_ROOT_PASSWORD=rootPass
-  #   - MONGO_INITDB_DATABASE=admin
-  #  ports:
-  #   - 27017:27017
-  #  volumes:
-  #   - ./.docker/db:/data/db
-  #Rabbitmq
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  nest:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: example
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+    depends_on:
+      - mongo
