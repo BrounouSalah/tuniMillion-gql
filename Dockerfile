@@ -12,6 +12,6 @@ RUN npm install
 RUN npm install --save-dev @types/ioredis
 # Copy the rest of the project files
 COPY . .
-
+RUN npm run gen
 # Set the command to run when the container starts
-CMD [ "npm", "start" ]
+CMD [ "npm","run", "start" ]
