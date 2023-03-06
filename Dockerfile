@@ -13,8 +13,5 @@ RUN npm install --save-dev @types/ioredis
 # Copy the rest of the project files
 COPY . .
 
-# Build the project
-RUN npm run build
-
 # Set the command to run when the container starts
 CMD [ "npm", "start" ]
