@@ -1,0 +1,60 @@
+enum Status{
+    PENDING
+    WIN
+    LOSE
+    PAID
+}
+
+input CreateGrilleInput {
+    userId:String
+    numbers: [Int]
+    stars: [Int]
+    DrawDate: Date
+   
+}
+
+input UpdateGrilleInput {
+    userId:String
+    numbers: [Int]
+    stars: [Int]
+    DrawDate: Date
+    status:Status
+    
+}
+
+type Combinations{
+    numbers: [Int]
+    stars: [Int]
+    tuniMillionsCode: String
+   
+}
+
+type Grille{
+    _id: ID!
+    userId: ID!
+    numbers: [Int]
+    stars: [Int]
+    DrawDate: Date
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+    status:Status
+    randomCode: String
+    combinations: [Combinations]
+    prise:Int
+    price:Int 
+
+}
+
+type Query {
+    getGrille(id: ID!): Grille @isAuthenticated
+    getAllGrilles: [Grille]
+    getAllGrillesByStatus(status:Status):[Grille] 
+    getAllGrillesByUserId(userId:ID!):[Grille]
+}
+
+type Mutation {
+    createGrille(input: CreateGrilleInput!): Grille @isAuthenticated
+    deleteGrille(_id: ID!): Boolean @isAuthenticated
+    updateGrille(userId: ID!, input: UpdateGrilleInput): Boolean @isAuthenticated
+}

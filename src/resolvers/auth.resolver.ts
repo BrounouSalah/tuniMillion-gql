@@ -146,7 +146,7 @@ export class AuthResolver {
 		const { data, info } = await authenticateGoogle(req, res)
 
 		if (data) {
-			console.log(data.profile)
+			//console.log(data.profile)
 
 			const { profile } = data
 

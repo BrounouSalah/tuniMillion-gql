@@ -10,3 +10,4 @@ export * from './userRole.resolver'
 export * from './notification.resolver'
 
 export * from './translate.resolver'
+export * from './grille.resolver'

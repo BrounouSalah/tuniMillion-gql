@@ -89,6 +89,20 @@ type Local {
 	email: String
 	password: String
 }
+type Grille{
+    _id: ID!
+    userId: ID!
+    Numbers: [Int]
+    Stars: [Int]
+    DrawDate: Date
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+    status:Status
+    randomCode: String
+    prise:Int
+
+}
 
 type UserVerificationData {
 	picture: Upload!
@@ -124,6 +138,7 @@ type User {
 	walletId: ID
 	userverificationData: UserVerificationData
 	local: Local!
+	grilles: [Grille]
 	google: Google
 	accountState: AccountStateType
 	facebook: Facebook

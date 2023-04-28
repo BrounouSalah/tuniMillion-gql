@@ -32,7 +32,9 @@ import {
 	RefreshTokenResponse,
 	Type,
 	AccountStateType,
-	UserFilterInput
+	UserFilterInput,
+
+	
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -42,6 +44,8 @@ import { USER_SUBSCRIPTION } from '../environments'
 import { forwardRef, Inject } from '@nestjs/common'
 
 import { sendSms } from 'shared/sms'
+import { GrilleResolver } from './grille.resolver'
+import * as crypto from 'crypto';
 
 @Resolver('User')
 export class UserResolver {
@@ -52,7 +56,11 @@ export class UserResolver {
 		private emailResolver: EmailResolver,
 
 		@Inject(forwardRef(() => FileResolver))
-		private fileResolver: FileResolver
+		private fileResolver: FileResolver,
+
+		@Inject(forwardRef(() => GrilleResolver))
+		private grilleResolver: GrilleResolver
+
 	) {}
 
 	@Query()
@@ -64,6 +72,19 @@ export class UserResolver {
 	async today(): Promise<Date> {
 		return new Date()
 	}
+	@Query()
+	async me(@Context('currentUser') currentUser: User): Promise<User> {
+		const grille = await this.grilleResolver.getAllGrillesByUserId(currentUser._id)
+		// let grilles = [{
+		// 	_id:grille._id,
+    	// 	userId: currentUser._id,
+    	// 	Numbers:grille.Numbers,
+    	// 	Stars: [5,3]
+		// }]
+		// currentUser.grilles = grilles
+		return {...currentUser,grilles:grille}
+
+	};
 
 	@Query()
 	async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
@@ -212,7 +233,8 @@ export class UserResolver {
 	async createUser(
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
-		@Context('req') req: any
+		@Context('req') req: any,
+	
 	): Promise<User> {
 		try {
 			let { email, password } = input
@@ -246,8 +268,11 @@ export class UserResolver {
 						local: {
 							email,
 							password: await hashPassword(password)
-						}
+						},
+
+					
 					})
+				 
 				)
 
 				return updateUser
@@ -261,7 +286,9 @@ export class UserResolver {
 					local: {
 						email,
 						password: await hashPassword(password)
-					}
+					},
+
+				
 				})
 			)
 
@@ -324,13 +351,16 @@ export class UserResolver {
 						local: {
 							email: input.toLocaleLowerCase(),
 							password: await hashPassword(password)
-						}
+						},
+						
+						
 					})
 				)
 				await this.emailResolver.createEmail({
 					userId: createdUser._id,
 					type: Type.FINALIZE_REGISTRATION
-				})
+				}),
+
 				await sendMail('finalizeRegistration', createdUser, password)
 				return createdUser
 			}
@@ -444,6 +474,7 @@ export class UserResolver {
 				{ returnOriginal: false }
 			)
 			return updateUser ? true : false
+			
 		} catch (error) {
 			throw new ApolloError(error)
 		}
@@ -467,7 +498,7 @@ export class UserResolver {
 		// const user = await verifyEmailToken(emailToken)
 		const user = await verifyToken(emailToken, 'emailToken')
 
-		console.log(user)
+		//console.log(user)
 
 		if (!user.isVerified) {
 			user.isVerified = true

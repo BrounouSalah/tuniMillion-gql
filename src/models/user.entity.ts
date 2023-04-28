@@ -6,7 +6,8 @@ import {
 	Google,
 	Facebook,
 	UserType,
-	AccountStateType
+	AccountStateType,
+	Grille
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -106,6 +107,11 @@ export class User {
 
 	@Expose()
 	@Column()
+	grilles:Grille[]
+
+	
+	@Expose()
+	@Column()
 	createdAt: Date
 
 	@Expose()
@@ -115,6 +121,7 @@ export class User {
 	@Expose()
 	@Column()
 	deletedAt: Date
+   
 
 	constructor(user: Partial<User>) {
 		if (user) {
