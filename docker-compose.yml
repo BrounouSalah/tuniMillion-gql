@@ -9,6 +9,7 @@ services:
     volumes:
       - ./mongo-data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -17,7 +18,7 @@ services:
     build: .
     restart: always
     ports:
-      - "3000:3000"
+      - "4040:3000"
     environment:
       MONGO_USERNAME: root
       MONGO_PASSWORD: example

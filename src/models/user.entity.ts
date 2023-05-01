@@ -5,6 +5,8 @@ import {
 	Local,
 	Google,
 	Facebook,
+	UserType,
+	Grille
 	AccountStateType,
 	Address,
 	Gender,
@@ -108,6 +110,11 @@ export class User {
 
 	@Expose()
 	@Column()
+	grilles:Grille[]
+
+	
+	@Expose()
+	@Column()
 	createdAt: Date
 
 	@Expose()
@@ -117,6 +124,7 @@ export class User {
 	@Expose()
 	@Column()
 	deletedAt: Date
+   
 
 	constructor(user: Partial<User>) {
 		if (user) {

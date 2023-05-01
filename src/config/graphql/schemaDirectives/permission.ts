@@ -58,7 +58,7 @@ class PermissionDirective extends SchemaDirectiveVisitor {
 				])
 				.toArray()
 
-			console.log(userRoles[0].permissions)
+			//console.log(userRoles[0].permissions)
 
 			if (userRoles[0].permissions.indexOf(permission) === -1) {
 				throw new ForbiddenError('You are not authorized for this resource.')

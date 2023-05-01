@@ -39,6 +39,8 @@ import { USER_SUBSCRIPTION } from '../environments'
 import { forwardRef, Inject } from '@nestjs/common'
 
 import { sendSms } from 'shared/sms'
+import { GrilleResolver } from './grille.resolver'
+import * as crypto from 'crypto';
 
 @Resolver('User')
 export class UserResolver {
@@ -49,8 +51,67 @@ export class UserResolver {
 		private emailResolver: EmailResolver,
 
 		@Inject(forwardRef(() => FileResolver))
-		private fileResolver: FileResolver
+		private fileResolver: FileResolver,
+
+		@Inject(forwardRef(() => GrilleResolver))
+		private grilleResolver: GrilleResolver
+
 	) {}
+
+	@Query()
+	async hello(): Promise<string> {
+		return uuid.v1()
+	}
+
+	@Query()
+	async today(): Promise<Date> {
+		return new Date()
+	}
+	@Query()
+	async me(@Context('currentUser') currentUser: User): Promise<User> {
+		const grille = await this.grilleResolver.getAllGrillesByUserId(currentUser._id)
+		// let grilles = [{
+		// 	_id:grille._id,
+    	// 	userId: currentUser._id,
+    	// 	Numbers:grille.Numbers,
+    	// 	Stars: [5,3]
+		// }]
+		// currentUser.grilles = grilles
+		return {...currentUser,grilles:grille}
+
+	};
+
+	@Query()
+	async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
+		let result
+
+		const { select, where, order, skip, take } = conditions
+
+		if (Object.keys(where).length > 1) {
+			throw new UserInputError('Your where must be 1 collection.')
+		}
+
+		const type = Object.keys(where)[0]
+
+		// const createdAt = { $gte: 0, $lte: new Date().getTime() }
+
+		result = await getMongoRepository(type).find({
+			where: where[type] && JSON.parse(JSON.stringify(where[type])),
+			order: order && JSON.parse(JSON.stringify(order)),
+			skip,
+			take
+		})
+
+		// console.log(result)
+
+		if (result.length === 0) {
+			throw new ForbiddenError('Not found.')
+		}
+
+		return result
+	}
+
+
 	@Query()
 	async me(@Context('currentUser') currentUser: User): Promise<User> {
 		return currentUser
@@ -180,7 +241,8 @@ isVerified:filter.isVerified
 	async createUser(
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
-		@Context('req') req: any
+		@Context('req') req: any,
+	
 	): Promise<User> {
 		try {
 			let { email, password } = input
@@ -212,8 +274,11 @@ isVerified:filter.isVerified
 						local: {
 							email,
 							password: await hashPassword(password)
-						}
+						},
+
+					
 					})
+				 
 				)
 
 				return updateUser
@@ -226,7 +291,9 @@ isVerified:filter.isVerified
 					local: {
 						email,
 						password: await hashPassword(password)
-					}
+					},
+
+				
 				})
 			)
 
@@ -252,6 +319,64 @@ isVerified:filter.isVerified
 	}
 
 	@Mutation()
+
+	async createUserAuth(@Args('input') input: string): Promise<User> {
+		try {
+			let existedUser
+
+			existedUser = await getMongoRepository(User).findOne({
+				where: {
+					'local.email': input.toLocaleLowerCase()
+				}
+			})
+
+			if (
+				existedUser &&
+				existedUser.accountState == AccountStateType.FINALIZED
+			) {
+				return existedUser
+			} else if (
+				existedUser &&
+				existedUser.accountState == AccountStateType.PENDING
+			) {
+				await sendMail(
+					'finalizeRegistration',
+					existedUser,
+					existedUser.local.password
+				)
+				return existedUser
+			} else {
+				let password = generate({
+					length: 10,
+					numbers: true
+				})
+				const createdUser = await getMongoRepository(User).save(
+					new User({
+						accountState: AccountStateType.PENDING,
+						isVerified: true,
+						local: {
+							email: input.toLocaleLowerCase(),
+							password: await hashPassword(password)
+						},
+						
+						
+					})
+				)
+				await this.emailResolver.createEmail({
+					userId: createdUser._id,
+					type: Type.FINALIZE_REGISTRATION
+				}),
+
+				await sendMail('finalizeRegistration', createdUser, password)
+				return createdUser
+			}
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+
+	@Mutation()
+
 	async updateUser(
 		@Args('_id') _id: string,
 		@Args('input') input: UpdateUserInput
@@ -328,6 +453,7 @@ isVerified:filter.isVerified
 				{ returnOriginal: false }
 			)
 			return updateUser ? true : false
+			
 		} catch (error) {
 			throw new ApolloError(error)
 		}
@@ -349,6 +475,9 @@ isVerified:filter.isVerified
 	@Mutation()
 	async verifyEmail(@Args('emailToken') emailToken: string): Promise<boolean> {
 		const user = await verifyToken(emailToken, 'emailToken')
+
+
+
 
 		if (!user.isVerified) {
 			user.isVerified = true
