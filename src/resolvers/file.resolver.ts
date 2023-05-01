@@ -11,20 +11,6 @@ import { ApolloError } from 'apollo-server-core'
 export class FileResolver {
 	constructor() {}
 
-	// @Mutation()
-	// async uploadFile(@Args('file') file: any): Promise<File> {
-	// 	const { filename } = file
-
-	// 	console.log(file)
-
-	// 	const path = await uploadFile(file)
-
-	// 	const newFile = await getMongoRepository(File).save(
-	// 		new File({ filename, path })
-	// 	)
-
-	// 	return newFile
-	// }
 
 	@Mutation()
 	async uploadFileLocal(
@@ -43,7 +29,7 @@ export class FileResolver {
 						reject(err)
 					})
 					.on('finish', async () => {
-						const link = `https://${req.headers.host}/static/${convertFilename}`
+						const link = `http://${req.headers.host}/static/${convertFilename}`
 						resolve(link)
 					})
 			)

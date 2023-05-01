@@ -6,8 +6,11 @@ import {
 	Google,
 	Facebook,
 	UserType,
-	AccountStateType,
 	Grille
+	AccountStateType,
+	Address,
+	Gender,
+	UserVerificationData
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -51,7 +54,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	address: string
+	address: Address
 
 	@Expose()
 	@Column()
@@ -59,15 +62,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	accountState: AccountStateType
-
-	@Expose()
-	@Column()
 	avatar: string
-
-	@Expose()
-	@Column()
-	background: string
 
 	@Expose()
 	@Column()
@@ -83,19 +78,27 @@ export class User {
 
 	@Expose()
 	@Column()
-	isOnline: boolean
+	pseudoName: string
 
 	@Expose()
 	@Column()
-	isLocked: boolean
+	secondeName: string
 
 	@Expose()
 	@Column()
-	reason: string
+	thirdName: string
 
 	@Expose()
 	@Column()
-	stripeId: string
+	termsOfUse: boolean
+
+	@Expose()
+	@Column()
+	userVerificationData: UserVerificationData
+
+	@Expose()
+	@Column()
+	identityVerified: boolean
 
 	@Expose()
 	@Column()
@@ -103,7 +106,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	type: UserType
+	gender: Gender
 
 	@Expose()
 	@Column()
@@ -138,12 +141,13 @@ export class User {
 					: this.google || this.facebook
 					? true
 					: false
-			this.isOnline = this.isOnline !== undefined ? this.isOnline : false
-			this.isLocked = this.isLocked !== undefined ? this.isLocked : false
-			this.reason = this.reason || ''
+
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-			this.type = this.type || UserType.BASIC
+			this.userVerificationData=this.userVerificationData || { verificationImage: "",
+				type: "",
+				isVerified: false}
+				this.identityVerified=this.identityVerified || false
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}

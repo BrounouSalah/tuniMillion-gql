@@ -9,7 +9,7 @@ import {
 	ISSUER,
 	NODEMAILER_USER,
 	NODEMAILER_PASS,
-	MINECLAP_BASEURL,
+	TUNIMILLION_BASEURL,
 	NODEMAILER_HOST,
 	NODEMAILER_PORT
 } from 'environments'
@@ -90,7 +90,7 @@ export const sendMail = async (
 
 		const replacements = {
 			verifyEmail: {
-				link: `${MINECLAP_BASEURL}/verify/${token}`,
+				link: `${TUNIMILLION_BASEURL}/verify/${token}`,
 				subject: 'Verify Email',
 				text1: 'To complete your sign up, please verify your email: ',
 				button: 'VERIFY EMAIL',
@@ -98,7 +98,7 @@ export const sendMail = async (
 				...common
 			},
 			forgotPassword: {
-				link: `${MINECLAP_BASEURL}/reset/${token}`,
+				link: `${TUNIMILLION_BASEURL}/reset/${token}`,
 				subject: 'Reset Your Password',
 				text1:
 					// tslint:disable-next-line:quotemark
@@ -108,25 +108,25 @@ export const sendMail = async (
 					// tslint:disable-next-line:quotemark
 					"If that doesn't work, copy and paste the following link in your browser:",
 				...common
-			},
-			finalizeRegistration: {
-				link: `${MINECLAP_BASEURL}/finalizeRegistration/?email=${user.local.email}&password=${token}`,
-				subject: 'Finalize MineClap registration',
-				text1:
-					'To finalize your Mineclap Registration, please click on the button below:',
-				button: 'Finalize Registration',
-				text2: 'Use your mail to connect, you have to change your password',
-				...common
-			},
-			sendEventInvitation: {
-				subject: 'Mineclap Event Invitation',
-				text1: 'You received a mineclap invitation'
-			},
-			sendEventTicket: {
-				subject: 'Mineclap Event Ticket',
-				text1: 'You received a mineclap Ticket',
-				qrCodeUrl
 			}
+			// finalizeRegistration: {
+			// 	link: `${TUNIMILLION_BASEURL}/finalizeRegistration/?email=${user.local.email}&password=${token}`,
+			// 	subject: 'Finalize MineClap registration',
+			// 	text1:
+			// 		'To finalize your Mineclap Registration, please click on the button below:',
+			// 	button: 'Finalize Registration',
+			// 	text2: 'Use your mail to connect, you have to change your password',
+			// 	...common
+			// },
+			// sendEventInvitation: {
+			// 	subject: 'Mineclap Event Invitation',
+			// 	text1: 'You received a mineclap invitation'
+			// },
+			// sendEventTicket: {
+			// 	subject: 'Mineclap Event Ticket',
+			// 	text1: 'You received a mineclap Ticket',
+			// 	qrCodeUrl
+			// }
 		}
 
 		const htmlToSend = template(replacements[type])
@@ -171,10 +171,8 @@ export const sendMail = async (
 		transporter.sendMail(mailOptions, (err, info) => {
 			if (err) {
 				console.log(err)
-				// console.error(err.message)
 			} else {
-				// console.log('Message sent: ' + JSON.parse(info))
-				// console.debug(info.response.message, 'Nodemailer')
+				//console.log('Message sent: ' + info.response)
 			}
 		})
 

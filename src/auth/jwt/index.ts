@@ -146,10 +146,6 @@ export const tradeToken = async (user: User): Promise<LoginResponse> => {
 		throw new ForbiddenError('Please verify your email.')
 	}
 
-	if (user.isLocked) {
-		throw new ForbiddenError('Your email has been locked.')
-	}
-
 	const accessToken = await generateToken(user, 'accessToken')
 	const refreshToken = await generateToken(user, 'refreshToken')
 
