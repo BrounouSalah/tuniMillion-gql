@@ -7,7 +7,8 @@ import {
 	Facebook,
 	AccountStateType,
 	Address,
-	Gender
+	Gender,
+	UserVerificationData
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -91,6 +92,14 @@ export class User {
 
 	@Expose()
 	@Column()
+	userVerificationData: UserVerificationData
+
+	@Expose()
+	@Column()
+	identityVerified: boolean
+
+	@Expose()
+	@Column()
 	ccLast4: string
 
 	@Expose()
@@ -127,7 +136,10 @@ export class User {
 
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-
+			this.userVerificationData=this.userVerificationData || { verificationImage: "",
+				type: "",
+				isVerified: false}
+				this.identityVerified=this.identityVerified || false
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}

@@ -27,7 +27,9 @@ import {
 	RefreshTokenResponse,
 	Type,
 	AccountStateType,
-	UserFilterInput
+	UserFilterInput,
+	FilterInput,
+	VerificationTypeFilter
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -55,16 +57,50 @@ export class UserResolver {
 	}
 	@Query()
 	async users(
+		@Args("filter") filter: FilterInput,
 		@Args('offset') offset: number,
 		@Args('limit') limit: number
 	): Promise<User[]> {
-		const users = await getMongoRepository(User).find({
-			skip: offset,
-			take: limit,
-			cache: true // 1000: 60000 / 1 minute
-		})
+		
+		if(filter && filter.type === undefined && filter.isVerified === undefined){
 
-		return users
+			const users = await getMongoRepository(User).find({
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+			})
+	
+			return users
+		}else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
+			
+			const users = await getMongoRepository(User).find({
+				
+			
+where:{
+identityVerified:filter.isVerified
+},
+				
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+				
+			})
+	
+			return users
+		}else {
+			const users = await getMongoRepository(User).find({
+				
+				where:{
+isVerified:filter.isVerified
+				},
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+				
+			})
+	
+			return users
+		}
 	}
 
 	@Query()

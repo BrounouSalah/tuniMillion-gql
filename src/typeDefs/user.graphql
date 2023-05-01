@@ -29,7 +29,8 @@ enum VerificationType {
 }
 input Verification {
 	type: VerificationType
-	verificationImage: FileInput
+	verificationImage: String
+	
 }
 input UserInput {
 	firstName: String!
@@ -45,10 +46,6 @@ input UserInput {
 	termsOfUse: Boolean!
 	verification: Verification
 	gender: Gender!
-}
-
-input FileInput {
-	filename: String
 }
 
 input CreateUserInput {
@@ -81,6 +78,7 @@ input UpdateUserInput {
 	termsOfUse: Boolean!
 	verification: Verification
 	gender: Gender!
+	identityVerified:Boolean
 }
 
 input LoginUserInput {
@@ -103,8 +101,9 @@ type Local {
 }
 
 type UserVerificationData {
-	verificationImage: Upload
+	verificationImage: String
 	type: String
+	isVerified:Boolean
 }
 
 type Google {
@@ -135,7 +134,7 @@ input UserFilterInput {
 type User {
 	_id: ID!
 	walletId: ID
-	userverificationData: UserVerificationData
+	userVerificationData: UserVerificationData
 	local: Local!
 	google: Google
 	facebook: Facebook
@@ -154,16 +153,25 @@ type User {
 	resetPasswordExpires: Float
 	fullName: String @upper
 	isVerified: Boolean!
+	identityVerified:Boolean!
 	isActive: Boolean
 	ccLast4: String
 	createdAt: Date!
 	updatedAt: Date!
 	deletedAt: Date
 }
+enum VerificationTypeFilter {
+	EMAIL
+	IDENTITY
+}
+input FilterInput {
+	isVerified:Boolean
+	type:VerificationTypeFilter
+}
 
 type Query {
 	me: User @isAuthenticated
-	users(offset: Int, limit: Int): [User!] @isAuthenticated
+	users(offset: Int, limit: Int,filter:FilterInput): [User!] @isAuthenticated
 	user(_id: ID!): User #@isAuthenticated
 	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
 	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
