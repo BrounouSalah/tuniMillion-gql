@@ -58,15 +58,15 @@ export class UserResolver {
 
 	) {}
 
-	@Query()
-	async hello(): Promise<string> {
-		return uuid.v1()
-	}
+	// @Query()
+	// async hello(): Promise<string> {
+	// 	return uuid.v1()
+	// }
 
-	@Query()
-	async today(): Promise<Date> {
-		return new Date()
-	}
+	// @Query()
+	// async today(): Promise<Date> {
+	// 	return new Date()
+	// }
 	@Query()
 	async me(@Context('currentUser') currentUser: User): Promise<User> {
 		const grille = await this.grilleResolver.getAllGrillesByUserId(currentUser._id)
@@ -81,41 +81,37 @@ export class UserResolver {
 
 	};
 
-	@Query()
-	async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
-		let result
+	// @Query()
+	// async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
+	// 	let result
 
-		const { select, where, order, skip, take } = conditions
+	// 	const { select, where, order, skip, take } = conditions
 
-		if (Object.keys(where).length > 1) {
-			throw new UserInputError('Your where must be 1 collection.')
-		}
+	// 	if (Object.keys(where).length > 1) {
+	// 		throw new UserInputError('Your where must be 1 collection.')
+	// 	}
 
-		const type = Object.keys(where)[0]
+	// 	const type = Object.keys(where)[0]
 
-		// const createdAt = { $gte: 0, $lte: new Date().getTime() }
+	// 	// const createdAt = { $gte: 0, $lte: new Date().getTime() }
 
-		result = await getMongoRepository(type).find({
-			where: where[type] && JSON.parse(JSON.stringify(where[type])),
-			order: order && JSON.parse(JSON.stringify(order)),
-			skip,
-			take
-		})
+	// 	result = await getMongoRepository(type).find({
+	// 		where: where[type] && JSON.parse(JSON.stringify(where[type])),
+	// 		order: order && JSON.parse(JSON.stringify(order)),
+	// 		skip,
+	// 		take
+	// 	})
 
-		// console.log(result)
+	// 	// console.log(result)
 
-		if (result.length === 0) {
-			throw new ForbiddenError('Not found.')
-		}
+	// 	if (result.length === 0) {
+	// 		throw new ForbiddenError('Not found.')
+	// 	}
 
-		return result
-	}
+	// 	return result
+	// }
 
 
-	@Query()
-	async me(@Context('currentUser') currentUser: User): Promise<User> {
-		return currentUser
-	}
 	@Query()
 	async users(
 		@Args("filter") filter: FilterInput,
@@ -318,62 +314,62 @@ isVerified:filter.isVerified
 		}
 	}
 
-	@Mutation()
+	// @Mutation()
 
-	async createUserAuth(@Args('input') input: string): Promise<User> {
-		try {
-			let existedUser
+	// async createUserAuth(@Args('input') input: string): Promise<User> {
+	// 	try {
+	// 		let existedUser
 
-			existedUser = await getMongoRepository(User).findOne({
-				where: {
-					'local.email': input.toLocaleLowerCase()
-				}
-			})
+	// 		existedUser = await getMongoRepository(User).findOne({
+	// 			where: {
+	// 				'local.email': input.toLocaleLowerCase()
+	// 			}
+	// 		})
 
-			if (
-				existedUser &&
-				existedUser.accountState == AccountStateType.FINALIZED
-			) {
-				return existedUser
-			} else if (
-				existedUser &&
-				existedUser.accountState == AccountStateType.PENDING
-			) {
-				await sendMail(
-					'finalizeRegistration',
-					existedUser,
-					existedUser.local.password
-				)
-				return existedUser
-			} else {
-				let password = generate({
-					length: 10,
-					numbers: true
-				})
-				const createdUser = await getMongoRepository(User).save(
-					new User({
-						accountState: AccountStateType.PENDING,
-						isVerified: true,
-						local: {
-							email: input.toLocaleLowerCase(),
-							password: await hashPassword(password)
-						},
+	// 		if (
+	// 			existedUser &&
+	// 			existedUser.accountState == AccountStateType.FINALIZED
+	// 		) {
+	// 			return existedUser
+	// 		} else if (
+	// 			existedUser &&
+	// 			existedUser.accountState == AccountStateType.PENDING
+	// 		) {
+	// 			await sendMail(
+	// 				'finalizeRegistration',
+	// 				existedUser,
+	// 				existedUser.local.password
+	// 			)
+	// 			return existedUser
+	// 		} else {
+	// 			let password = generate({
+	// 				length: 10,
+	// 				numbers: true
+	// 			})
+	// 			const createdUser = await getMongoRepository(User).save(
+	// 				new User({
+						
+	// 					isVerified: true,
+	// 					local: {
+	// 						email: input.toLocaleLowerCase(),
+	// 						password: await hashPassword(password)
+	// 					},
 						
 						
-					})
-				)
-				await this.emailResolver.createEmail({
-					userId: createdUser._id,
-					type: Type.FINALIZE_REGISTRATION
-				}),
+	// 				})
+	// 			)
+	// 			await this.emailResolver.createEmail({
+	// 				userId: createdUser._id,
+	// 				type: Type.FINALIZE_REGISTRATION
+	// 			}),
 
-				await sendMail('finalizeRegistration', createdUser, password)
-				return createdUser
-			}
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
+	// 			await sendMail('finalizeRegistration', createdUser, password)
+	// 			return createdUser
+	// 		}
+	// 	} catch (error) {
+	// 		throw new ApolloError(error)
+	// 	}
+	// }
 
 	@Mutation()
 

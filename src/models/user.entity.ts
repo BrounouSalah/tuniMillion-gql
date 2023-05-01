@@ -5,9 +5,7 @@ import {
 	Local,
 	Google,
 	Facebook,
-	UserType,
-	Grille
-	AccountStateType,
+	Grille,
 	Address,
 	Gender,
 	UserVerificationData
