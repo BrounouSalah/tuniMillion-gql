@@ -11,3 +11,4 @@ export * from './notification.resolver'
 
 export * from './translate.resolver'
 export * from './grille.resolver'
+export * from './winningSequence.resolver'

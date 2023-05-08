@@ -5,10 +5,7 @@ import { CreateGrilleInput, Status, UpdateGrilleInput } from "generator/graphql.
 import { ApolloError, ForbiddenError } from "apollo-server-express";
 import { NotFoundException } from "@nestjs/common";
 import { User } from "@models";
-import { ObjectId } from "mongodb";
-import * as crypto from 'crypto';
-import { create } from "handlebars/runtime";
-import { constants } from "fs/promises";
+import crypto from "crypto";
 
 type CombinationsBasic = {numbers: number[]; stars: number[], tuniMillionsCode?: string;};
 
@@ -32,11 +29,8 @@ export class GrilleResolver{
         for (const numbers of numberCombos) {
           for (const stars of starCombos) {
             //TODO: add call to function that generates the tunimillion code 
-            //const tuniMillionsCode = this.generateTuniMillionsCode(15);
-            combinations.push({ numbers, stars });
-
-            // combinations.push({numbers:numbers, stars:stars});
-            
+            const tuniMillionsCode = this.generateTuniMillionsCode(combinations.length);
+            combinations.push({ numbers, stars, tuniMillionsCode});
           }
         }
       
@@ -54,74 +48,69 @@ export class GrilleResolver{
         });
       }
 
-      // generateTuniMillionsCode(numCodes: number): string[] {
-      //   const codes: string[] = [];
+
+ generateConsecutiveStrings(start, limit) {
+  const end = "F ZZZ 99999";
+  
+  const startNumber = Number(start.slice(-5));
+  const endNumber = Number(end.slice(-5));
+  
+  let currentNumber = startNumber;
+  
+  const result = [];
+  while (currentNumber <= endNumber && result.length < limit) {
+    const currentString = `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}`;
+    result.push(currentString);
+    currentNumber++;
+  }
+  console.log(this.generateConsecutiveStrings("F WBB 00000", 10));
+
+  return result;
+}
+
+
+ generateRandomConsonants() {
+  const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
+  const randomConsonants = Array.from({ length: 3 }, () => consonants[Math.floor(Math.random() * consonants.length)]);
+  return randomConsonants.join("");
+}
+
+       generateTuniMillionsCode(usedCode: number): string {
+        const consonants = "BCDFGHJKLMNPQRSTVWXYZ"; // Only consonants
+        let currentString = "BBB";
       
-      //   let startingMiddlePart = 'WBB';
-      //   let startingLastPart = '00001';
+        let code = "";
+       
+        
+          for (let i = 0; i < usedCode; i++) {
+            const lastIndex = currentString.length - 1;
+            let nextCharIndex = consonants.indexOf(currentString[lastIndex]) + 1;
+        
+            // Handle wraparound if we've reached the end of the consonants array
+            if (nextCharIndex >= consonants.length) {
+              nextCharIndex = 0;
+              // If we wrapped around to the beginning of the consonants array, increment the second-to-last character
+              if (lastIndex === 1) {
+                currentString = consonants[0] + currentString[0] + consonants[0];
+                continue;
+              }
+            }
+        
+            // Replace the last character with the next consonant
+            currentString = currentString.slice(0, lastIndex)+consonants[nextCharIndex] ;
+          }
       
-      //   for (let i = 1; i <= numCodes; i++) {
-      //     let middlePart = startingMiddlePart;
-      //     let lastPart = startingLastPart;
+          // Generate five random digits
+          let digits = "";
+          for (let i = 0; i < 5; i++) {
+            digits += Math.floor(Math.random() * 10);
+          }
       
-      //     if (i > 10) {
-      //       const lastNum = parseInt(startingLastPart) + 1;
-      //       if (lastNum > 99999) {
-      //         const middleIndex = startingMiddlePart.charCodeAt(2) - 65;
-      //         if (middleIndex === 25) {
-      //           startingMiddlePart = 'XAA';
-      //         } else if (middleIndex === 24) {
-      //           startingMiddlePart = 'WZZ';
-      //         } else {
-      //           startingMiddlePart = `W${String.fromCharCode(middleIndex + 67)}A`;
-      //         }
-      //         startingLastPart = '00001';
-      //       } else {
-      //         startingLastPart = lastNum.toString().padStart(5, '0');
-      //       }
-      //     }
+          // Combine the letters and digits to form the code
+          code = `F${currentString}${digits}`;
+        return code;
+      }
       
-      //     const code = `F${this.randomConsonant()}${this.randomConsonant()}${this.randomConsonant()}${middlePart}${lastPart}`;
-      //     codes.push(code);
-      //   }
-      
-      //   console.log("codes", codes)
-      //   return codes;
-      // }
-      
-      //  randomConsonant(): string {
-      //   const consonants = 'BCDFGHJKLMNPQRSTVWXYZ';
-      //   return consonants.charAt(Math.floor(Math.random() * consonants.length));
-      // }
-      
-      
-      //  generateTuniMillionsCode(combinationsCount: number): string {
-      //   let code = "F";
-      //   const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
-      //   const middleLettersMin = "BBB";
-      //   const middleLettersMax = combinationsCount <= 10 ? "WBB" : "ZZZ";
-      //   const lastNumbersMax = combinationsCount <= 10 ? "00000" : "99999";
-      
-      //   // Generate 3 random consonants for the middle part of the code
-      //   for (let i = 0; i < 3; i++) {
-      //     code += consonants[Math.floor(Math.random() * consonants.length)];
-      //   }
-      
-      //   // Generate the middle part of the code based on the combinations count
-      //   code += combinationsCount <= 10
-      //     ? middleLettersMin + lastNumbersMax
-      //     : this.getRandomCodeInRange(middleLettersMin, middleLettersMax) + this.getRandomCodeInRange("00001", lastNumbersMax);
-      
-      //   return code;
-      // }
-      
-      //  getRandomCodeInRange(minCode: string, maxCode: string): string {
-      //   const minNumber = parseInt(minCode.slice(-5));
-      //   const maxNumber = parseInt(maxCode.slice(-5));
-      //   const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-      //   const formattedNumber = randomNumber.toString().padStart(5, "0");
-      //   return minCode.slice(0, -5) + formattedNumber;
-      // }
       
 
     @Mutation()
