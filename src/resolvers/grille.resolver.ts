@@ -29,9 +29,19 @@ export class GrilleResolver{
         for (const numbers of numberCombos) {
           for (const stars of starCombos) {
             //TODO: add call to function that generates the tunimillion code 
-            const tuniMillionsCode = this.generateTuniMillionsCode(combinations.length);
-            combinations.push({ numbers, stars, tuniMillionsCode});
+            let tuniMillionsCode = "";
+      
+            if (combinations.length <= 10) {
+              tuniMillionsCode = this.generateTuniMillionsCode(combinations.length);
+            } else {
+              tuniMillionsCode = this.generateConsecutiveStrings(combinations.length);
+            }
+            
+            combinations.push({ numbers, stars, tuniMillionsCode });
+          
+            
           }
+        
         }
       
         return combinations;
@@ -49,26 +59,51 @@ export class GrilleResolver{
       }
 
 
- generateConsecutiveStrings(start, limit) {
-  const end = "F ZZZ 99999";
-  
-  const startNumber = Number(start.slice(-5));
-  const endNumber = Number(end.slice(-5));
-  
-  let currentNumber = startNumber;
-  
-  const result = [];
-  while (currentNumber <= endNumber && result.length < limit) {
-    const currentString = `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}`;
-    result.push(currentString);
-    currentNumber++;
-  }
-  console.log(this.generateConsecutiveStrings("F WBB 00000", 10));
+      //  generateConsecutiveStrings(start: string, limit: number): string {
+      //   const end = "F ZZZ 99999";
+      
+      //   const startNumber = Number(start.slice(-5));
+      //   const endNumber = Number(end.slice(-5));
+      
+      //   let currentNumber = startNumber;
+      
+      //   let result = "";
+      //   while (currentNumber <= endNumber && result.split("\n").length <= limit) {
+      //     const currentString = `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}\n`;
+      //     result += currentString;
+      //     currentNumber++;
+      //     console.log("result",result)
+      //   }
+      
+      //   return result;
+       
+      // }
+    
+      generateConsecutiveStrings(usedCode: number): string {
+        const end = "F ZZZ 99999";
+        const start = "F WBB 00001 ";
+        const startNumber = Number(start.slice(-5));
+        const endNumber = Number(end.slice(-5));
+        
+        let currentNumber = startNumber;
+        let currentString = "";
+       
+     
+          for (let i = 0; i < usedCode; i++) {
+            currentString += `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}\n`;
+            currentNumber++;
 
-  return result;
-}
-
-
+            if (currentNumber > endNumber) {
+              break;
+            }
+          }
+        
+        
+        return currentString;
+      }
+    
+      
+      
  generateRandomConsonants() {
   const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
   const randomConsonants = Array.from({ length: 3 }, () => consonants[Math.floor(Math.random() * consonants.length)]);
@@ -274,27 +309,29 @@ export class GrilleResolver{
 
 
     @Mutation()
-    async updateGrille(@Args('userId') userId: string,@Args('input') input: UpdateGrilleInput): Promise<Boolean> {
-        
-        const grille = await getMongoRepository(User).findOne({_id:userId})
-        if (!grille) {
-            throw new ForbiddenError('Grille not found.')
-        } else {
-            // if (grille.Numbers == null && input.Numbers != null) 
+    async updateGrille(
+      @Args('userId') userId: string,
+      @Args('input') input: UpdateGrilleInput
+  ): Promise<boolean> {
+      try {
+         
+          const grille = await getMongoRepository(Grille).findOne({ userId })
+
+          if (!grille) {
+              throw new ForbiddenError('grille not found.')
+          } 
           
-                await this.changeGrilleAccountState(grille)
-            
-        }
-        const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
-            { userId: grille._id },
-            { $set: input },
-            { returnOriginal: false }
-        )
-        return updateGrille ? true : false
-    }
-    changeGrilleAccountState(grille: any) {
-        throw new Error("Method not implemented.");
-    }
+          const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
+              { userId:userId },
+              { $set: input },
+              { returnOriginal: false }
+          )
+          return updateGrille ? true : false
+      } catch (error) {
+          throw new ApolloError(error)
+      }
+  }
+
 
     
     }

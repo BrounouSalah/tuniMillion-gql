@@ -140,6 +140,20 @@ export class UserResolver {
 		return result
 	}
 
+	
+    @Query()
+    async searchUsersByDate(@Args('createdAt') createdAt: string): Promise<User[]> {
+            
+            return await getMongoRepository(User).find({
+                cache: true,
+                where: {
+                    createdAt: { $gte : new Date(createdAt) },
+                    deletedAt: null
+                
+                }
+            })
+        }
+
 	@Query()
 	async users(
 		@Args('offset') offset: number,
@@ -150,7 +164,11 @@ export class UserResolver {
 			// order: { createdAt: -1 },
 			skip: offset,
 			take: limit,
-			cache: true // 1000: 60000 / 1 minute
+			cache: true ,// 1000: 60000 / 1 minute
+			where: {
+                deletedAt: null
+            
+            }
 		})
 
 		return users
