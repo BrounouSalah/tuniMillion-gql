@@ -1,7 +1,7 @@
 import { Args, Mutation, Query,Context } from "@nestjs/graphql";
 import { getMongoRepository } from "typeorm";
 import { Grille } from "../models/grille.entity";
-import { CreateGrilleInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
+import { Combinations, CreateGrilleInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
 import { ApolloError, ForbiddenError } from "apollo-server-express";
 import { NotFoundException } from "@nestjs/common";
 import { User } from "@models";
@@ -14,31 +14,27 @@ export class GrilleResolver{
     constructor() {}
     
    
-     generateCombinations(starArray: number[], numberArray: number[]): any {
-  
+     generateCombinations(starArray: number[], numberArray: number[],prise): any {
+
         const combinations: CombinationsBasic[] = [];
-        console.log("here")
+       
       
         // Generate all possible combinations of 5 numbers
         const numberCombos = this.combinationsOf(numberArray, 5);
       
         // Generate all possible combinations of 2 stars
         const starCombos = this.combinationsOf(starArray, 2);
-      
+
+        let number = 0
+        let depart = prise > 10 ? "F WBB 99990" : "F BBB 00000"
         // Combine number and star combos to form valid combinations
         for (const numbers of numberCombos) {
           for (const stars of starCombos) {
-            //TODO: add call to function that generates the tunimillion code 
-            let tuniMillionsCode = "";
-      
-            if (combinations.length <= 10) {
-              tuniMillionsCode = this.generateTuniMillionsCode(combinations.length);
-            } else {
-              tuniMillionsCode = this.generateConsecutiveStrings(combinations.length);
-            }
-            
-            combinations.push({ numbers, stars, tuniMillionsCode });
-          
+            const tuniMillionsCode = this.generateConsecutiveStrings(this.generateConsecutiveStrings(depart , 1,0)[0] , 1,number)[0]
+            combinations.push({ numbers, stars,tuniMillionsCode});  
+            if(number< prise +1) number++ 
+            if(number === prise +1) number = 0      
+                
             
           }
         
@@ -57,97 +53,51 @@ export class GrilleResolver{
           return subcombos.map((combo) => [val, ...combo]);
         });
       }
-
-
-      //  generateConsecutiveStrings(start: string, limit: number): string {
-      //   const end = "F ZZZ 99999";
-      
-      //   const startNumber = Number(start.slice(-5));
-      //   const endNumber = Number(end.slice(-5));
-      
-      //   let currentNumber = startNumber;
-      
-      //   let result = "";
-      //   while (currentNumber <= endNumber && result.split("\n").length <= limit) {
-      //     const currentString = `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}\n`;
-      //     result += currentString;
-      //     currentNumber++;
-      //     console.log("result",result)
-      //   }
-      
-      //   return result;
-       
-      // }
     
-      generateConsecutiveStrings(usedCode: number): string {
-        const end = "F ZZZ 99999";
-        const start = "F WBB 00001 ";
-        const startNumber = Number(start.slice(-5));
-        const endNumber = Number(end.slice(-5));
-        
-        let currentNumber = startNumber;
-        let currentString = "";
-       
+    
      
-          for (let i = 0; i < usedCode; i++) {
-            currentString += `F ${this.generateRandomConsonants()} ${currentNumber.toString().padStart(5, "0")}\n`;
-            currentNumber++;
 
-            if (currentNumber > endNumber) {
-              break;
-            }
-          }
+       generateConsecutiveStrings(start:string, limit: number,number:number): string[] {
+        const end = "F ZZZ 99999";
+  
         
+        const endNumber = Number(end.slice(-5));
+        const startNumber = Number(start.slice(-5)?? start.slice(-6))> endNumber ? Number(start.slice(-5)?? start.slice(-6)) - 100000 : Number(start.slice(-5)?? start.slice(-6));
         
-        return currentString;
-      }
-    
-      
-      
- generateRandomConsonants() {
-  const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
-  const randomConsonants = Array.from({ length: 3 }, () => consonants[Math.floor(Math.random() * consonants.length)]);
-  return randomConsonants.join("");
-}
-
-       generateTuniMillionsCode(usedCode: number): string {
-        const consonants = "BCDFGHJKLMNPQRSTVWXYZ"; // Only consonants
-        let currentString = "BBB";
-      
-        let code = "";
+        let currentNumber = startNumber + number 
        
-        
-          for (let i = 0; i < usedCode; i++) {
-            const lastIndex = currentString.length - 1;
-            let nextCharIndex = consonants.indexOf(currentString[lastIndex]) + 1;
-        
-            // Handle wraparound if we've reached the end of the consonants array
-            if (nextCharIndex >= consonants.length) {
-              nextCharIndex = 0;
-              // If we wrapped around to the beginning of the consonants array, increment the second-to-last character
-              if (lastIndex === 1) {
-                currentString = consonants[0] + currentString[0] + consonants[0];
-                continue;
-              }
+        let consonants = start.slice(2, 5); // Retrieve the consonants from the start input string
+        const result = [];
+        while (currentNumber <= endNumber && result.length < limit) {
+          const currentString = `F ${consonants} ${currentNumber.toString().padStart(5, "0")}`;
+          result.push(currentString);
+          
+      
+          // Handle wraparound of number part
+          if (currentNumber > endNumber) {
+            if (consonants === "ZZZ") {
+              break; // Reached the end, exit loop
             }
+            consonants = this.incrementConsonants(consonants);
+           
+          }
+        }
         
-            // Replace the last character with the next consonant
-            currentString = currentString.slice(0, lastIndex)+consonants[nextCharIndex] ;
-          }
-      
-          // Generate five random digits
-          let digits = "";
-          for (let i = 0; i < 5; i++) {
-            digits += Math.floor(Math.random() * 10);
-          }
-      
-          // Combine the letters and digits to form the code
-          code = `F${currentString}${digits}`;
-        return code;
+        return result;
       }
       
-      
+       incrementConsonants(consonants:string) {
+        const consonantArray = Array.from(consonants);
+        for (let i = consonantArray.length - 1; i >= 0; i--) {
+          if (consonantArray[i] !== "Z") {
+            consonantArray[i] = String.fromCharCode(consonantArray[i].charCodeAt(0) + 1);
+            break;
+          }
+        }
+        return consonantArray.join("");
+      }
 
+      
     @Mutation()
     async createGrille(@Args('input') input: CreateGrilleInput,@Context('currentUser') currentUser: User): Promise<Grille> {
         const { _id } = currentUser
@@ -212,24 +162,34 @@ export class GrilleResolver{
           ];
           const { numbers, stars } = input;
       
-
           if(!(numbers.length > 4 && stars.length > 1)) throw new ForbiddenError('invalid input')
           if (numbers.length > 4 && stars.length > 1) {
-            console.log("hear")
+          
             let object =
               gridPrice[stars.length - 2][
                 numbers.length - 5
               ];
-              type Combinations = {number: number[], stars: number[]}
-              //const generatedGrids: Grille[] = [];
-            const combinations:any = await  this.generateCombinations( stars,numbers);
-           
+
+             
+             
+              type Combinations = {number: number[], stars: number[], tuniMillionsCode: string}[]
+              const combinations:any = await  this.generateCombinations( stars,numbers,object.prise);
+             
             
-            console.log("cob",combinations)
-          
-           
-       
-        // return await getMongoRepository(Grille).save(new Grille({...input , randomCode}))
+              // if (object.prise <= 10) {
+              //   for (let i = 0; i < object.prise; i++) { 
+              //     tuniMillionsCode = this.generateTuniMillionsCode(i);
+              //     console.log("tuniMillionsCode",tuniMillionsCode)
+              //     combinations.push({ numbers, stars, tuniMillionsCode });
+                  
+              //   }
+              // } else {
+              //   for (let i = 0; i < object.prise; i++) {
+              //     tuniMillionsCode = this.generateConsecutiveStrings(i);
+              //     combinations.push({ numbers, stars, tuniMillionsCode });
+              //   }
+              // }
+                  
         return await getMongoRepository(Grille).save(new Grille({...input,prise:object.prise,price:object.price,combinations}))
     } 
 }
