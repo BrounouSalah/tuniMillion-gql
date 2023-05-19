@@ -6,3 +6,5 @@ export * from './file.resolver'
 
 export * from './translate.resolver'
 export * from './grille.resolver'
+
+export * from './payment-method.resolver'

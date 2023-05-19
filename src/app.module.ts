@@ -1,4 +1,4 @@
-import { CacheModule, Module, HttpModule } from '@nestjs/common'
+import { CacheModule, Module } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -11,6 +11,7 @@ import { UploadScalar } from './config/graphql/scalars/upload.scalar'
 
 import * as Resolvers from './resolvers'
 import { AppService } from 'app.service'
+import { HttpModule } from '@nestjs/axios'
 
 @Module({
 	imports: [

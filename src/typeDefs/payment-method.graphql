@@ -3,7 +3,7 @@ type Query {
 }
 
 type Mutation {
-	createPayment(paymentInput: PaymentInput!): PaymentResponse
+	createPayment(PaymentInput: PaymentInput!): PaymentResponse
 	completePayment(id: String!, PAReq: String!): PaymentResponse
 	confirmPayment(id: String!, amount: AmountInput!): Boolean
 	cancelPayment(id: String!): Boolean
@@ -30,7 +30,6 @@ type PaymentDetails {
 }
 
 input PaymentInput {
-	merchantId: String!
 	invoice: InvoiceInput!
 	amount: AmountInput!
 	paymentMethod: String!
