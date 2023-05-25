@@ -4,7 +4,7 @@ type Query {
 
 type Mutation {
 	createPayment(PaymentInput: PaymentInput!): PaymentResponse
-	completePayment(id: String!, PAReq: String!): PaymentResponse
+	completePayment(id: String!, PAReq: String!): PaymentDetails
 	confirmPayment(id: String!, amount: AmountInput!): Boolean
 	cancelPayment(id: String!): Boolean
 }
@@ -33,6 +33,28 @@ input PaymentInput {
 	invoice: InvoiceInput!
 	amount: AmountInput!
 	paymentMethod: String!
+	protocol: ProtocolInput!
+	customer: CustomerInput!
+	userId: String!
+}
+type Protocol{
+	returnUrl: String!
+	callbackUrl: String!
+}
+
+input ProtocolInput{
+	returnUrl: String!
+	callbackUrl: String!
+}
+
+type Customer{
+	email: String!
+	phone: String!
+}
+
+input CustomerInput{
+	email: String!
+	phone: String!
 }
 
 type PaymentResponse {
@@ -47,7 +69,7 @@ type Amount {
 
 input AmountInput {
 	value: Float!
-	currency: String!
+	currency: Currency!
 }
 
 type Invoice {

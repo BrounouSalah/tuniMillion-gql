@@ -3,12 +3,17 @@ import { HttpService } from '@nestjs/axios'
 import { map } from 'rxjs/operators'
 import { firstValueFrom } from 'rxjs';
 import { AmountInput , PaymentInput } from 'generator/graphql.schema';
+import {  getMongoRepository } from 'typeorm';
+import { PaymentMethod } from 'models/payment-method.entity';
+import { ForbiddenError } from 'apollo-server-express';
+import { NotFoundException } from '@nestjs/common';
 
 
 @Resolver()
 export class PaymentMethodResolver {
+	
 	constructor(private httpService: HttpService) {}
-
+	
 	@Query('getPaymentDetails')
 	async getPaymentDetails(@Args('id') id: string) {
 		const response = await this.httpService
@@ -19,12 +24,12 @@ export class PaymentMethodResolver {
 			})
 			.pipe(map((response) => response.data))
 			.toPromise()
-
-		return response
+			const details=await getMongoRepository (PaymentMethod).findOne({where: {runPayId:id }})
+		return details
 	}
 
 	@Mutation('createPayment')
-	async createPayment(@Args('PaymentInput') PaymentInput: PaymentInput) {
+	async createPayment(@Args('PaymentInput') PaymentInput: PaymentInput ){
 	
 		console.log("PaymentInput" , PaymentInput)
 		const response = await firstValueFrom(
@@ -33,73 +38,47 @@ export class PaymentMethodResolver {
 				headers: {
 					Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
 					'Content-Type': 'application/json',
-					'Idempotency-Key': +new Date().toISOString()
+					'Idempotency-Key': new Date().toISOString()
 				}
 			})
 		) 
-	
-			console.log(response.data)
-		return {id:response.data.paymentId,url:response.data.url}
+			if (response) {
+				const res = await getMongoRepository (PaymentMethod).save(new PaymentMethod({...PaymentInput,runPayId:response.data.paymentId }))
+				return({ id :response.data.paymentId , url:response.data.url})
+			}
+			if(!response) throw new ForbiddenError("Payment Failed")
 	}
 
-	// @Mutation('createPayment')
-	// async createPayment(@Args('paymentInput') paymentInput: any) {
-	//   try {
-	// 	const response = await this.httpService
-	// 	  .post('https://psp.paymaster.tn/api/v2/invoices', paymentInput, {
-	// 		headers: {
-	// 		  Authorization: `Bearer QdvdwiXKFm=`,
-	// 		  'Content-Type': 'application/json',
-	// 		  'Idempotency-Key': '86cf125c',
-	// 		},
-	// 	  })
-	// 	  .toPromise();
-	
-	// 	if (response.data && response.data.url) {
-	// 	  return {
-	// 		id: response.data.paymentId,
-	// 		url: response.data.url,
-	// 	  };
-	// 	} else {
-	// 	  console.error('Invalid response:', response.data);
-	// 	  throw new HttpException(
-	// 		'Failed to create payment',
-	// 		HttpStatus.INTERNAL_SERVER_ERROR,
-	// 	  );
-	// 	}
-	//   } catch (error) {
-	// 	console.error('API request error:', error);
-	// 	throw new HttpException(
-	// 	  'Failed to create payment',
-	// 	  HttpStatus.INTERNAL_SERVER_ERROR,
-	// 	);
-	//   }
-	// }
-	
 
 
 	@Mutation('completePayment')
-	async completePayment(@Args('id') id: string) {
+	async completePayment(@Args('id') _id: string ) {
 		const headers = {
 			Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
 			'Content-Type': 'application/json',
 			Accept: 'application/json'
 		}
-
 		const response = await firstValueFrom(
-			this.httpService.post(
-				`https://psp.paymaster.tn/api/v2/payments/${id}/complete`,
+			this.httpService.put(
+				`https://psp.paymaster.tn/api/v2/payments/${_id}/complete`,
 				{},
 				{ headers }
 			)
 		)
-
-		// Assuming a successful completion is indicated by status 200
-		return response.status === 200
+		console.log('Response Data:', response.data);
+		if (response.status === 200 ) {
+			const details=await getMongoRepository (PaymentMethod).findOne({where: {runPayId:_id }})
+			console.log("details",details)
+			return details
+			//   id: response.data.paymentId,
+			//   url: response.data.url,	
+		}
+		
 	}
+
 	@Mutation(() => Boolean)
 	async confirmPayment(
-		@Args('id') id: string,
+		@Args('id') _id: string,
 		@Args('amount') amount: AmountInput
 	) {
 		const headers = {
@@ -109,13 +88,14 @@ export class PaymentMethodResolver {
 		}
 
 		const data = {
-			paymentId: id,
+			paymentId: _id,
 			amount: amount
 		}
+		console.log("data",data)
 
 		const response = await firstValueFrom(
-			this.httpService.post(
-				'https://psp.paymaster.tn/api/v2/payments/confirm',
+			this.httpService.put(
+				`https://psp.paymaster.tn/api/v2/payments/${_id}/confirm`,
 				data,
 				{ headers }
 			)
@@ -125,23 +105,39 @@ export class PaymentMethodResolver {
 		return response.status === 200
 	}
 
+	
+
 	@Mutation(() => Boolean)
-	async cancelPayment(@Args('id') id: string) {
+	async cancelPayment(@Args('id') _id: string) {
 		const headers = {
 			Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
 			'Content-Type': 'application/json',
-			Accept: 'application/json'
+			Accept: 'application/json',
+			'Idempotency-Key': +new Date().toISOString()
 		}
-
 		const response = await firstValueFrom(
-			this.httpService.post(
-				`https://psp.paymaster.tn/api/v2/payments/${id}/cancel`,
+			this.httpService.put(
+				`https://psp.paymaster.tn/api/v2/payments/${_id}/cancel`,
 				{},
 				{ headers }
 			)
 		)
-
-		// Assuming a successful cancellation is indicated by status 200
-		return response.status === 200
+		const payment = await getMongoRepository (PaymentMethod).findOne({runPayId:_id})
+		console.log("payment",payment)
+		if (!payment) 
+		{
+		 throw new NotFoundException('payment not found');
+		}
+		payment.deletedAt = new Date(Date.now())
+		if (response.status === 200) {
+		const updatePayment = await getMongoRepository(PaymentMethod).findOneAndUpdate(
+		 { _id:payment._id },
+		 { $set: payment },
+		 { returnOriginal: false }
+		
+	 )
+		return updatePayment ? true : false
+		}
+		if(!response) throw new ForbiddenError("Payment Failed")
 	}
 }

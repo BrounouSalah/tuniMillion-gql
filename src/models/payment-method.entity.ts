@@ -4,10 +4,12 @@ import { Expose, plainToClass } from 'class-transformer'
 import {
 	Amount,
 	Currency,
+	Customer,
 	Invoice,
 	PaymentData,
 	PaymentDataMethod,
-	PaymentStatusEnum
+	PaymentStatusEnum,
+	Protocol
 } from 'generator/graphql.schema'
 
 @Entity({
@@ -39,10 +41,6 @@ export class PaymentMethod {
 
 	@Expose()
 	@Column()
-	merchantId: String
-
-	@Expose()
-	@Column()
 	amount: Amount
 
 	@Expose()
@@ -55,10 +53,23 @@ export class PaymentMethod {
 
 	@Expose()
 	@Column()
-	createdAt: number
+	protocol: Protocol
+
 	@Expose()
 	@Column()
-	updatedAt: number
+	customer:Customer
+
+
+	@Expose()
+	@Column()
+	createdAt: Date
+	@Expose()
+	@Column()
+	updatedAt: Date
+	
+	@Expose()
+	@Column()
+	deletedAt: Date
 
 	constructor(paymentMethod: Partial<PaymentMethod>) {
 		if (paymentMethod) {
@@ -73,14 +84,14 @@ export class PaymentMethod {
 			this.runPayId = this.runPayId || ''
 			this.status = this.status || PaymentStatusEnum.Pending
 			this.created = this.created || +new Date()
-			this.merchantId = this.merchantId || ''
+			//this.merchantId = this.merchantId || ''
 			this.amount = this.amount || { value: 0, currency: Currency.TND }
 			this.paymentData = this.paymentData || {
 				paymentMethod: PaymentDataMethod.runpay
 			}
 			this.invoice = this.invoice || {}
-			this.createdAt = this.createdAt || +new Date()
-			this.updatedAt = +new Date()
+			this.createdAt = this.createdAt || new Date(Date.now())
+			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}
 	}
 }
