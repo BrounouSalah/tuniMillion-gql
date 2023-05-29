@@ -40,7 +40,7 @@ import { forwardRef, Inject } from '@nestjs/common'
 
 import { sendSms } from 'shared/sms'
 import { GrilleResolver } from './grille.resolver'
-import * as crypto from 'crypto';
+import * as crypto from 'crypto'
 
 @Resolver('User')
 export class UserResolver {
@@ -55,7 +55,6 @@ export class UserResolver {
 
 		@Inject(forwardRef(() => GrilleResolver))
 		private grilleResolver: GrilleResolver
-
 	) {}
 
 	// @Query()
@@ -69,17 +68,18 @@ export class UserResolver {
 	// }
 	@Query()
 	async me(@Context('currentUser') currentUser: User): Promise<User> {
-		const grille = await this.grilleResolver.getAllGrillesByUserId(currentUser._id)
+		const grille = await this.grilleResolver.getAllGrillesByUserId(
+			currentUser._id
+		)
 		// let grilles = [{
 		// 	_id:grille._id,
-    	// 	userId: currentUser._id,
-    	// 	Numbers:grille.Numbers,
-    	// 	Stars: [5,3]
+		// 	userId: currentUser._id,
+		// 	Numbers:grille.Numbers,
+		// 	Stars: [5,3]
 		// }]
 		// currentUser.grilles = grilles
-		return {...currentUser,grilles:grille}
-
-	};
+		return { ...currentUser, grilles: grille }
+	}
 
 	// @Query()
 	// async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
@@ -111,51 +111,46 @@ export class UserResolver {
 	// 	return result
 	// }
 
-
 	@Query()
 	async users(
-		@Args("filter") filter: FilterInput,
+		@Args('filter') filter: FilterInput,
 		@Args('offset') offset: number,
 		@Args('limit') limit: number
 	): Promise<User[]> {
-		
-		if(filter && filter.type === undefined && filter.isVerified === undefined){
+		if (
+			filter &&
+			filter.type === undefined &&
+			filter.isVerified === undefined
+		) {
+			const users = await getMongoRepository(User).find({
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+			})
 
+			return users
+		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
 			const users = await getMongoRepository(User).find({
+				where: {
+					identityVerified: filter.isVerified
+				},
+
 				skip: offset,
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
 			})
-	
+
 			return users
-		}else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
-			
+		} else {
 			const users = await getMongoRepository(User).find({
-				
-			
-where:{
-identityVerified:filter.isVerified
-},
-				
-				skip: offset,
-				take: limit,
-				cache: true // 1000: 60000 / 1 minute
-				
-			})
-	
-			return users
-		}else {
-			const users = await getMongoRepository(User).find({
-				
-				where:{
-isVerified:filter.isVerified
+				where: {
+					isVerified: filter.isVerified
 				},
 				skip: offset,
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
-				
 			})
-	
+
 			return users
 		}
 	}
@@ -237,8 +232,7 @@ isVerified:filter.isVerified
 	async createUser(
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
-		@Context('req') req: any,
-	
+		@Context('req') req: any
 	): Promise<User> {
 		try {
 			let { email, password } = input
@@ -270,11 +264,8 @@ isVerified:filter.isVerified
 						local: {
 							email,
 							password: await hashPassword(password)
-						},
-
-					
+						}
 					})
-				 
 				)
 
 				return updateUser
@@ -287,9 +278,7 @@ isVerified:filter.isVerified
 					local: {
 						email,
 						password: await hashPassword(password)
-					},
-
-				
+					}
 				})
 			)
 
@@ -348,14 +337,13 @@ isVerified:filter.isVerified
 	// 			})
 	// 			const createdUser = await getMongoRepository(User).save(
 	// 				new User({
-						
+
 	// 					isVerified: true,
 	// 					local: {
 	// 						email: input.toLocaleLowerCase(),
 	// 						password: await hashPassword(password)
 	// 					},
-						
-						
+
 	// 				})
 	// 			)
 	// 			await this.emailResolver.createEmail({
@@ -372,7 +360,6 @@ isVerified:filter.isVerified
 	// }
 
 	@Mutation()
-
 	async updateUser(
 		@Args('_id') _id: string,
 		@Args('input') input: UpdateUserInput
@@ -449,7 +436,6 @@ isVerified:filter.isVerified
 				{ returnOriginal: false }
 			)
 			return updateUser ? true : false
-			
 		} catch (error) {
 			throw new ApolloError(error)
 		}
@@ -471,9 +457,6 @@ isVerified:filter.isVerified
 	@Mutation()
 	async verifyEmail(@Args('emailToken') emailToken: string): Promise<boolean> {
 		const user = await verifyToken(emailToken, 'emailToken')
-
-
-
 
 		if (!user.isVerified) {
 			user.isVerified = true

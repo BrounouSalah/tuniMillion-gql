@@ -142,7 +142,7 @@ export class User {
 
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-			this.userVerificationData=this.userVerificationData || { verificationImage: "",
+			this.userVerificationData=this.userVerificationData || { verificationImage: [],
 				type: "",
 				isVerified: false}
 				this.identityVerified=this.identityVerified || false

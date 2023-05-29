@@ -29,7 +29,7 @@ enum VerificationType {
 }
 input Verification {
 	type: VerificationType
-	verificationImage: String
+	verificationImage: [String]
 	
 }
 input UserInput {
@@ -115,7 +115,7 @@ type Grille{
 }
 
 type UserVerificationData {
-	verificationImage: String
+	verificationImage: [String]
 	type: String
 	isVerified:Boolean
 }
@@ -202,12 +202,6 @@ type Mutation {
 		input: UpdateUserInput! @validate(schema: "updateUserRegister")
 	): Boolean @isAuthenticated
 	updateUserAvatar(_id: ID!, file: Upload!): Boolean @isAuthenticated
-
-	updateUserVerificationData(
-		_id: ID!
-		picture: Upload!
-		document: String!
-	): Boolean @isAuthenticated
 	deleteUser(_id: ID!): Boolean @isAuthenticated
 	deleteUsers: Boolean! @isAuthenticated
 	verifyEmail(emailToken: String!): Boolean
