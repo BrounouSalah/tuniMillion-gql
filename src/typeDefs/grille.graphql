@@ -9,7 +9,7 @@ input CreateGrilleInput {
     userId:String
     numbers: [Int]
     stars: [Int]
-    DrawDate: Date
+  
    
 }
 
@@ -17,7 +17,6 @@ input UpdateGrilleInput {
     userId:String
     numbers: [Int]
     stars: [Int]
-    DrawDate: Date
     status:Status
     
 }
@@ -34,7 +33,6 @@ type Grille{
     userId: ID!
     numbers: [Int]
     stars: [Int]
-    DrawDate: Date
     createdAt: Date
     updatedAt: Date
     deletedAt: Date

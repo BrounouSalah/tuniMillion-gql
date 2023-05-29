@@ -32,10 +32,6 @@ export class Grille{
 
     @Expose()
     @Column()
-    DrawDate:Date
-
-    @Expose()
-    @Column()
     status:Status 
 
     @Expose()
