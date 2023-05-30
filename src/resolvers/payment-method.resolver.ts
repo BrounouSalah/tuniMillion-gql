@@ -64,7 +64,7 @@ export class PaymentMethodResolver {
 					...paymentMethodInput,
 					merchantId: process.env.MERCHANT_ID,
 					protocol: {
-						returnUrl: `localhost3000/tunimillions/payment/success/${paymentMethod._id}`,
+						returnUrl: `https://tunimillions.com/tunimillions/payment/success/${paymentMethod._id}`,
 						callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
 					}
 				},
