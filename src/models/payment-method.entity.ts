@@ -87,7 +87,7 @@ export class PaymentMethod {
 			//this.merchantId = this.merchantId || ''
 			this.amount = this.amount || { value: 0, currency: Currency.TND }
 			this.paymentData = this.paymentData || {
-				paymentMethod: PaymentDataMethod.runpay
+				paymentMethod: PaymentDataMethod.bankcard,
 			}
 			this.invoice = this.invoice || {}
 			this.createdAt = this.createdAt || new Date(Date.now())

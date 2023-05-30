@@ -3,13 +3,14 @@ type Query {
 }
 
 type Mutation {
-	createPayment(PaymentInput: PaymentInput!): PaymentResponse
+	createPayment(PaymentInput: PaymentInput!): PaymentResponse @isAuthenticated
 	completePayment(id: String!, PAReq: String!): PaymentDetails
 	confirmPayment(id: String!, amount: AmountInput!): Boolean
 	cancelPayment(id: String!): Boolean
 }
 
 enum PaymentStatusEnum {
+	Initiated
 	Pending
 	Rejected
 	Success
@@ -30,12 +31,8 @@ type PaymentDetails {
 }
 
 input PaymentInput {
-	invoice: InvoiceInput!
 	amount: AmountInput!
 	paymentMethod: String!
-	protocol: ProtocolInput!
-	customer: CustomerInput!
-	userId: String!
 }
 type Protocol{
 	returnUrl: String!
