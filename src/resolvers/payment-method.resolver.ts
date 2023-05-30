@@ -46,7 +46,7 @@ export class PaymentMethodResolver {
 				email: currentUser.local.email,
 				phone: currentUser.phoneNumber
 			},
-			paymentData: {paymentMethod: paymentInput.paymentMethod}
+			paymentData: { paymentMethod: paymentInput.paymentMethod }
 		}
 
 		const paymentMethod = await getMongoRepository(PaymentMethod).save(
@@ -60,10 +60,14 @@ export class PaymentMethodResolver {
 		const response = await firstValueFrom(
 			this.httpService.post(
 				'https://psp.paymaster.tn/api/v2/invoices',
-				{ ...paymentMethodInput, merchantId: process.env.MERCHANT_ID,protocol: {
-					returnUrl: `https://tunimillions.com/tunimillions/payment/success/${paymentMethod._id}`,
-					callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
-				} },
+				{
+					...paymentMethodInput,
+					merchantId: process.env.MERCHANT_ID,
+					protocol: {
+						returnUrl: `localhost3000/tunimillions/payment/success/${paymentMethod._id}`,
+						callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
+					}
+				},
 				{
 					headers: {
 						Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
@@ -74,18 +78,21 @@ export class PaymentMethodResolver {
 			)
 		)
 		console.log('Response Data:', response.data)
-		if (response && response.status !== 200) 
-			throw(new ForbiddenError( response.data))
-		
-		const res = await getMongoRepository(PaymentMethod).save(
-			new PaymentMethod({
-				...paymentMethod,
-				runPayId: response.data.paymentId,
-				status: PaymentStatusEnum.Pending,
-			})
+		if (response && response.status !== 200)
+			throw new ForbiddenError(response.data)
+
+		const res = await getMongoRepository(PaymentMethod).findOneAndUpdate(
+			{ _id: paymentMethod._id },
+			{
+				$set: new PaymentMethod({
+					...paymentMethod,
+					runPayId: response.data.paymentId,
+					status: PaymentStatusEnum.Pending
+				})
+			},
+			{ returnOriginal: false }
 		)
 		return { id: response.data.paymentId, url: response.data.url }
-		
 	}
 
 	@Mutation('completePayment')
@@ -127,7 +134,7 @@ export class PaymentMethodResolver {
 
 		const data = {
 			paymentId: _id,
-			amount: amount
+			amount
 		}
 		console.log('data', data)
 
