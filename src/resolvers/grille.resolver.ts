@@ -247,8 +247,7 @@ export class GrilleResolver{
 
     @Query()
     async getGrille(@Args('id') id: string): Promise<Grille> {
-
-       
+   
           return getMongoRepository(Grille).findOne({
             where: {
                 _id: id,

@@ -28,6 +28,7 @@ type PaymentDetails {
 	amount: Amount
 	invoice: Invoice
 	paymentData: PaymentData
+	resultCode: String	
 }
 
 input PaymentInput {
