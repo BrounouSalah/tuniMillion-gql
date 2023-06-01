@@ -15,7 +15,7 @@ import {
 	UserInputError
 } from 'apollo-server-core'
 
-import { User } from '@models'
+import { User, UserLimitation } from '@models'
 import { comparePassword, hashPassword } from '@utils'
 import { EmailResolver } from './email.resolver'
 import { FileResolver } from './file.resolver'
@@ -41,6 +41,7 @@ import { forwardRef, Inject } from '@nestjs/common'
 import { sendSms } from 'shared/sms'
 import { GrilleResolver } from './grille.resolver'
 import * as crypto from 'crypto'
+
 
 @Resolver('User')
 export class UserResolver {
@@ -233,7 +234,12 @@ export class UserResolver {
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
 		@Context('req') req: any
+		
+		//@Context('idLimitation') idLimitation: UserLimitation
+	
 	): Promise<User> {
+		//const { _id } = idLimitation
+		//input.IdUserLimitation = _id
 		try {
 			let { email, password } = input
 			email = email.toLocaleLowerCase()
@@ -270,6 +276,7 @@ export class UserResolver {
 
 				return updateUser
 			}
+			
 
 			const createdUser = await getMongoRepository(User).save(
 				new User({
@@ -296,7 +303,7 @@ export class UserResolver {
 			// await sendSms(input.phoneNumber, emailToken)
 
 			await sendMail('verifyEmail', createdUser, emailToken)
-
+			
 			return createdUser
 		} catch (error) {
 			throw new ApolloError(error)

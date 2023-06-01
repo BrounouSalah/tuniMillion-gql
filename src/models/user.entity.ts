@@ -22,6 +22,10 @@ export class User {
 	@ObjectIdColumn()
 	_id: string
 
+	@Expose()	
+	@Column()
+	userLimitationId: string
+
 	@Expose()
 	@Column()
 	walletId: string
@@ -146,6 +150,7 @@ export class User {
 				type: "",
 				isVerified: false}
 				this.identityVerified=this.identityVerified || false
+			this.userLimitationId = this.userLimitationId || ""
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}

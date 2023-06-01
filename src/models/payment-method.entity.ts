@@ -37,6 +37,10 @@ export class PaymentMethod {
 
 	@Expose()
 	@Column()
+	resultCode: string
+
+	@Expose()
+	@Column()
 	created: number
 
 	@Expose()

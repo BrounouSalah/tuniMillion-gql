@@ -59,9 +59,10 @@ input CreateUserInput {
 	birthDate: String!
 	phoneNumber: String!
 	address: AddressInput!
-	termsOfUse: Boolean!
+	termsOfUse: Boolean
 	verification: Verification
-	gender: Gender!
+	gender: Gender
+	
 }
 
 input UpdateUserInput {
@@ -174,6 +175,7 @@ type User {
 	createdAt: Date!
 	updatedAt: Date!
 	deletedAt: Date
+	userLimitationId:String
 }
 enum VerificationTypeFilter {
 	EMAIL
