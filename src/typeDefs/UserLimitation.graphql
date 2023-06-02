@@ -13,6 +13,7 @@ input CreateUserLimitationInput {
 input UpdateUserLimitationInput {
     limit : Float!
     type : TypeLimit!
+    rest : Float!
    
 }
 

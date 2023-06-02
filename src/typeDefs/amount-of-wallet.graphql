@@ -1,0 +1,39 @@
+enum Currency {
+	TND
+}
+
+type Wallet{
+    _id: ID!
+    totalAmount: Float
+    currency: Currency
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+}
+
+input CretateWalletInput{
+    userId: ID!
+    totalAmount: Float
+    currency: Currency
+}
+
+input UpdateWalletInput{
+    totalAmount: Float
+    currency: Currency
+}
+
+type Query { 
+    getWalletById(id: ID!): Wallet
+    getWalletByUserId(userId: ID!): Wallet
+    getAllWallets: [Wallet]
+}
+
+type Mutation {
+    createWallet(input: CretateWalletInput!): Wallet @isAuthenticated
+    updateWallet(id: ID!, input: UpdateWalletInput!): Boolean 
+    deleteWallet(id: ID!): Boolean
+}
+
+
+
+

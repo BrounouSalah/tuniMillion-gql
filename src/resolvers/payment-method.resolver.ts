@@ -99,6 +99,7 @@ export class PaymentMethodResolver {
 				userId: currentUser._id
 			})
 		)
+		console.log('paymentMethod:', paymentMethod)
 
 		const userLimitation=await this.userLimitation.getUserLimitationByUserId(currentUser._id)
 		const reste: number | null = userLimitation.rest;
