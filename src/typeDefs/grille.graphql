@@ -40,7 +40,7 @@ type Grille{
     randomCode: String
     combinations: [Combinations]
     prise:Int
-    price:Int 
+    price:Float 
 
 }
 

@@ -130,62 +130,63 @@ export class GrilleResolver{
         input.userId = _id
 
         const gridPrice = [
-            [
-              { price: 5, prise: 1 },
-              { price: 30, prise: 6 },
-              { price: 165, prise: 21 },
-              { price: 280, prise: 56 },
-              { price: 630, prise: 126 },
-              { price: 1260, prise: 252 },
-            ],
-            [
-              { price: 15, prise: 3 },
-              { price: 90, prise: 18 },
-              { price: 315, prise: 63 },
-              { price: 840, prise: 168 },
-              { price: 1890, prise: 378 },
-            ],
-            [
-              { price: 30, prise: 6 },
-              { price: 180, prise: 36 },
-              { price: 630, prise: 126 },
-              { price: 1680, prise: 336 },
-            ],
-            [
-              { price: 50, prise: 10 },
-              { price: 300, prise: 60 },
-              { price: 1050, prise: 210 },
-            ],
-            [
-              { price: 75, prise: 15 },
-              { price: 550, prise: 90 },
-              { price: 1575, prise: 315 },
-            ],
-            [
-              { price: 105, prise: 21 },
-              { price: 630, prise: 126 },
-            ],
-            [
-              { price: 140, prise: 28 },
-              { price: 840, prise: 168 },
-            ],
-            [
-              { price: 180, prise: 36 },
-              { price: 1080, prise: 216 },
-            ],
-            [
-              { price: 225, prise: 45 },
-              { price: 1350, prise: 270 },
-            ],
-            [
-              { price: 275, prise: 55 },
-              { price: 1650, prise: 330 },
-            ],
-            [
-              { price: 330, prise: 66 },
-              { price: 1980, prise: 396 },
-            ],
-          ];
+          [
+            { price: 7.5, prise: 1 },
+            { price: 45, prise: 6 },
+            { price: 157.5, prise: 21 },
+            { price: 420, prise: 56 },
+            { price: 945, prise: 126 },
+            { price: 1890, prise: 252 },
+          ],
+          [
+            { price: 22.5, prise: 3 },
+            { price: 135, prise: 18 },
+            { price: 472.5, prise: 63 },
+            { price: 1260, prise: 168 },
+            { price: 2835, prise: 378 },
+          ],
+          [
+            { price: 45, prise: 6 },
+            { price: 270, prise: 36 },
+            { price: 945, prise: 126 },
+            { price: 2520, prise: 336 },
+          ],
+          [
+            { price: 75, prise: 10 },
+            { price: 450, prise: 60 },
+            { price: 1575, prise: 210 },
+          ],
+          [
+            { price: 112.5, prise: 15 },
+            { price: 675, prise: 90 },
+            { price: 2162.5, prise: 315 },
+          ],
+          [
+            { price: 157.5, prise: 21 },
+            { price: 945, prise: 126 },
+          ],
+          [
+            { price: 210, prise: 28 },
+            { price: 1260, prise: 168 },
+          ],
+          [
+            { price: 270, prise: 36 },
+            { price: 1620, prise: 216 },
+          ],
+          [
+            { price: 337.5, prise: 45 },
+            { price: 2025, prise: 270 },
+          ],
+          [
+            { price: 412.5, prise: 55 },
+            { price: 2475, prise: 330 },
+          ],
+          [
+            { price: 495, prise: 66 },
+            { price: 2970, prise: 396 },
+          ],
+        ];
+      
           const { numbers, stars } = input;
       
 
