@@ -1,5 +1,5 @@
 import { Expose, plainToClass } from "class-transformer";
-import { Currency } from "generator/graphql.schema";
+import { Currency, WalletInCommingTransaction, WalletOutCommingTransaction } from "generator/graphql.schema";
 import { Column, Entity, ObjectIdColumn } from "typeorm";
 import * as uuid from 'uuid';
 
@@ -11,6 +11,7 @@ import * as uuid from 'uuid';
 	}
 })
 
+
 export class AmountOfWallet {
 
     @Expose()
@@ -20,10 +21,23 @@ export class AmountOfWallet {
     @Expose()
     @Column()
     userId:string
-
+    
     @Expose()
     @Column()
     totalAmount: number
+
+    @Expose()
+    @Column()
+    amount: number
+
+
+    @Expose()
+    @Column()
+    inCommingTransactions: WalletInCommingTransaction[]
+
+    @Expose()
+    @Column()
+    outGoingTransactions: WalletOutCommingTransaction[]
 
     @Expose()   
     @Column()
@@ -47,6 +61,11 @@ export class AmountOfWallet {
             Object.assign(this, plainToClass(AmountOfWallet, amountOfWallet, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
+            this.totalAmount = this.totalAmount || 0
+            this.inCommingTransactions = this.inCommingTransactions || []
+            this.outGoingTransactions = this.outGoingTransactions || []
+            this.currency = this.currency || Currency.TND
+            this.deletedAt = this.deletedAt || null
             this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
         }

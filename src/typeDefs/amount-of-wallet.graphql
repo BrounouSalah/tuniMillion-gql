@@ -1,25 +1,52 @@
 enum Currency {
 	TND
 }
+type WalletInCommingTransaction {
+    transactionId: String
+    amount: Float
+    currency: Currency
+    createdAt: Date
+}
+
+type WalletOutCommingTransaction {
+    grillId: String
+    amount: Float
+    currency: Currency
+    createdAt: Date
+}
+
 
 type Wallet{
     _id: ID!
     totalAmount: Float
     currency: Currency
+    inCommingTransactions:[WalletInCommingTransaction]
+    outCommingTransactions: [WalletOutCommingTransaction]
     createdAt: Date
     updatedAt: Date
     deletedAt: Date
 }
 
-input CretateWalletInput{
+input CreateWalletInput{
     userId: ID!
     totalAmount: Float
     currency: Currency
 }
 
-input UpdateWalletInput{
-    totalAmount: Float
+
+input AddAmountInput{
+    amount: Float
     currency: Currency
+    userId: ID
+    transactionId: String
+   
+}
+
+input RemoveAmountInput{
+    userId: ID!
+    amount: Float
+    currency: Currency
+    grillId: String
 }
 
 type Query { 
@@ -29,8 +56,9 @@ type Query {
 }
 
 type Mutation {
-    createWallet(input: CretateWalletInput!): Wallet @isAuthenticated
-    updateWallet(id: ID!, input: UpdateWalletInput!): Boolean 
+    createWallet(input: CreateWalletInput!): Wallet @isAuthenticated
+    addAmount(input: AddAmountInput!): Wallet  
+    removeAmount( input: RemoveAmountInput!): Wallet
     deleteWallet(id: ID!): Boolean
 }
 

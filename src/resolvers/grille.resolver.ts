@@ -1,20 +1,26 @@
 import { Args, Mutation, Query,Context } from "@nestjs/graphql";
 import { getMongoRepository } from "typeorm";
 import { Grille } from "../models/grille.entity";
-import { CreateGrilleInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
+import { Amount, CreateGrilleInput, PayGrilleInput, RemoveAmountInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
 import { ApolloError, ForbiddenError } from "apollo-server-express";
-import { NotFoundException } from "@nestjs/common";
-import { User } from "@models";
+import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
+import { AmountOfWallet, User } from "@models";
 import { ObjectId } from "mongodb";
 import * as crypto from 'crypto';
 import { create } from "handlebars/runtime";
 import { constants } from "fs/promises";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AmountOfWalletResolver } from "./amount-of-wallet.resolver";
 
 type CombinationsBasic = {numbers: number[]; stars: number[], tuniMillionsCode?: string;};
 
 
 export class GrilleResolver{
-    constructor() {}
+    constructor(
+      @Inject(forwardRef(() => AmountOfWalletResolver))
+		  private walletResolver: AmountOfWalletResolver
+      
+    ) {}
     
    
      generateCombinations(starArray: number[], numberArray: number[]): any {
@@ -54,75 +60,7 @@ export class GrilleResolver{
         });
       }
 
-      // generateTuniMillionsCode(numCodes: number): string[] {
-      //   const codes: string[] = [];
-      
-      //   let startingMiddlePart = 'WBB';
-      //   let startingLastPart = '00001';
-      
-      //   for (let i = 1; i <= numCodes; i++) {
-      //     let middlePart = startingMiddlePart;
-      //     let lastPart = startingLastPart;
-      
-      //     if (i > 10) {
-      //       const lastNum = parseInt(startingLastPart) + 1;
-      //       if (lastNum > 99999) {
-      //         const middleIndex = startingMiddlePart.charCodeAt(2) - 65;
-      //         if (middleIndex === 25) {
-      //           startingMiddlePart = 'XAA';
-      //         } else if (middleIndex === 24) {
-      //           startingMiddlePart = 'WZZ';
-      //         } else {
-      //           startingMiddlePart = `W${String.fromCharCode(middleIndex + 67)}A`;
-      //         }
-      //         startingLastPart = '00001';
-      //       } else {
-      //         startingLastPart = lastNum.toString().padStart(5, '0');
-      //       }
-      //     }
-      
-      //     const code = `F${this.randomConsonant()}${this.randomConsonant()}${this.randomConsonant()}${middlePart}${lastPart}`;
-      //     codes.push(code);
-      //   }
-      
-      //   console.log("codes", codes)
-      //   return codes;
-      // }
-      
-      //  randomConsonant(): string {
-      //   const consonants = 'BCDFGHJKLMNPQRSTVWXYZ';
-      //   return consonants.charAt(Math.floor(Math.random() * consonants.length));
-      // }
-      
-      
-      //  generateTuniMillionsCode(combinationsCount: number): string {
-      //   let code = "F";
-      //   const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
-      //   const middleLettersMin = "BBB";
-      //   const middleLettersMax = combinationsCount <= 10 ? "WBB" : "ZZZ";
-      //   const lastNumbersMax = combinationsCount <= 10 ? "00000" : "99999";
-      
-      //   // Generate 3 random consonants for the middle part of the code
-      //   for (let i = 0; i < 3; i++) {
-      //     code += consonants[Math.floor(Math.random() * consonants.length)];
-      //   }
-      
-      //   // Generate the middle part of the code based on the combinations count
-      //   code += combinationsCount <= 10
-      //     ? middleLettersMin + lastNumbersMax
-      //     : this.getRandomCodeInRange(middleLettersMin, middleLettersMax) + this.getRandomCodeInRange("00001", lastNumbersMax);
-      
-      //   return code;
-      // }
-      
-      //  getRandomCodeInRange(minCode: string, maxCode: string): string {
-      //   const minNumber = parseInt(minCode.slice(-5));
-      //   const maxNumber = parseInt(maxCode.slice(-5));
-      //   const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-      //   const formattedNumber = randomNumber.toString().padStart(5, "0");
-      //   return minCode.slice(0, -5) + formattedNumber;
-      // }
-      
+    
 
     @Mutation()
     async createGrille(@Args('input') input: CreateGrilleInput,@Context('currentUser') currentUser: User): Promise<Grille> {
@@ -307,9 +245,44 @@ export class GrilleResolver{
         throw new Error("Method not implemented.");
     }
 
+    @Mutation()
+    async payGrille(
+      @Args('id') id: string,
+    ): Promise<Grille> {
+      const grille = await getMongoRepository(Grille).findOne({ _id: id });
+      if (!grille) {
+        throw new NotFoundException('Grille not found');
+      }
+
+      const wallet = await this.walletResolver.getWalletByUserId(grille.userId);
+      console.log("wallet",wallet)
+      if (!wallet) {
+        throw new ForbiddenError('Wallet not found');
+      }
+    	const userId = grille.userId;
+			const amount = grille.price;
+			const input: RemoveAmountInput = {
+			  userId,
+				amount,
+        grillId: grille._id,
+			};
+			const Removewallet = await this.walletResolver.removeAmount( input);
     
+      await getMongoRepository(Grille).findOneAndUpdate(
+        { _id: grille._id }, 
+        { $set: { status: Status.PAID } }, 
+        { returnOriginal: false })
+        //grille.status = Status.PAID;
+    
+			
+      
+        return grille;
+      } 
     }
     
+    
+    
+   
    
 
 

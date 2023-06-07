@@ -20,6 +20,11 @@ input UpdateGrilleInput {
     status:Status
     
 }
+input PayGrilleInput{
+    userId:String
+    
+    
+}
 
 type Combinations{
     numbers: [Int]
@@ -55,4 +60,5 @@ type Mutation {
     createGrille(input: CreateGrilleInput!): Grille @isAuthenticated
     deleteGrille(_id: ID!): Boolean @isAuthenticated
     updateGrille(userId: ID!, input: UpdateGrilleInput): Boolean @isAuthenticated
+    payGrille(id: ID! ): Grille 
 }
