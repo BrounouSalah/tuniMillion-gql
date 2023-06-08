@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios'
 import { map } from 'rxjs/operators'
 import { firstValueFrom } from 'rxjs'
 import {
+	AddAmountInput,
 	AmountInput,
 	PaymentInput,
 	PaymentStatusEnum
@@ -14,13 +15,17 @@ import { Inject, NotFoundException, forwardRef } from '@nestjs/common';
 import { UserLimitationResolver } from './userLimitation.resolver';
 import { User, UserLimitation } from '@models';
 import { update } from 'lodash'
+import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 
 @Resolver()
 export class PaymentMethodResolver {
 	
 	constructor(private httpService: HttpService,
 		@Inject(forwardRef(() => UserLimitationResolver))
-		private userLimitation: UserLimitationResolver 
+		private userLimitation: UserLimitationResolver,
+
+		@Inject(forwardRef(() => AmountOfWalletResolver))
+		private walletResolver: AmountOfWalletResolver
 ) {}
 	
 
@@ -63,8 +68,23 @@ export class PaymentMethodResolver {
 		)
 		
 
-		if (updatedPaymentMethod.resultCode === PaymentStatusEnum.Success || updatedPaymentMethod.status == PaymentStatusEnum.Success) {
+		if (updatedPaymentMethod.resultCode === PaymentStatusEnum.Pending || updatedPaymentMethod.status == PaymentStatusEnum.Pending) {
 			
+			
+			const userId = updatedPaymentMethod.userId;
+			const amount = updatedPaymentMethod.amount.value;
+			const currency = updatedPaymentMethod.amount.currency;
+			const input: AddAmountInput = {
+			  userId,
+				amount,
+				currency,
+				transactionId:updatedPaymentMethod._id,
+			};
+			const wallet = await this.walletResolver.addAmount( input);
+			console.log('wallet:', wallet);
+			
+			 
+
 			await getMongoRepository(UserLimitation).findOneAndUpdate(
 		  { _id: userLimitation._id },
 	 		  { $set: { rest: newRest } },
@@ -98,8 +118,8 @@ export class PaymentMethodResolver {
 				status: PaymentStatusEnum.Initiated,
 				userId: currentUser._id
 			})
-		) 
-		
+		)
+		console.log('paymentMethod:', paymentMethod)
 
 		const userLimitation=await this.userLimitation.getUserLimitationByUserId(currentUser._id)
 		console.log("userLimitation",userLimitation)

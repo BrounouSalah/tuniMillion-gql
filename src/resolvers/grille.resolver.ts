@@ -1,20 +1,26 @@
 import { Args, Mutation, Query,Context } from "@nestjs/graphql";
 import { getMongoRepository } from "typeorm";
 import { Grille } from "../models/grille.entity";
-import { CreateGrilleInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
+import { Amount, CreateGrilleInput, PayGrilleInput, RemoveAmountInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
 import { ApolloError, ForbiddenError } from "apollo-server-express";
-import { NotFoundException } from "@nestjs/common";
-import { User } from "@models";
+import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
+import { AmountOfWallet, User } from "@models";
 import { ObjectId } from "mongodb";
 import * as crypto from 'crypto';
 import { create } from "handlebars/runtime";
 import { constants } from "fs/promises";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AmountOfWalletResolver } from "./amount-of-wallet.resolver";
 
 type CombinationsBasic = {numbers: number[]; stars: number[], tuniMillionsCode?: string;};
 
 
 export class GrilleResolver{
-    constructor() {}
+    constructor(
+      @Inject(forwardRef(() => AmountOfWalletResolver))
+		  private walletResolver: AmountOfWalletResolver
+      
+    ) {}
     
    
      generateCombinations(starArray: number[], numberArray: number[]): any {
@@ -54,75 +60,7 @@ export class GrilleResolver{
         });
       }
 
-      // generateTuniMillionsCode(numCodes: number): string[] {
-      //   const codes: string[] = [];
-      
-      //   let startingMiddlePart = 'WBB';
-      //   let startingLastPart = '00001';
-      
-      //   for (let i = 1; i <= numCodes; i++) {
-      //     let middlePart = startingMiddlePart;
-      //     let lastPart = startingLastPart;
-      
-      //     if (i > 10) {
-      //       const lastNum = parseInt(startingLastPart) + 1;
-      //       if (lastNum > 99999) {
-      //         const middleIndex = startingMiddlePart.charCodeAt(2) - 65;
-      //         if (middleIndex === 25) {
-      //           startingMiddlePart = 'XAA';
-      //         } else if (middleIndex === 24) {
-      //           startingMiddlePart = 'WZZ';
-      //         } else {
-      //           startingMiddlePart = `W${String.fromCharCode(middleIndex + 67)}A`;
-      //         }
-      //         startingLastPart = '00001';
-      //       } else {
-      //         startingLastPart = lastNum.toString().padStart(5, '0');
-      //       }
-      //     }
-      
-      //     const code = `F${this.randomConsonant()}${this.randomConsonant()}${this.randomConsonant()}${middlePart}${lastPart}`;
-      //     codes.push(code);
-      //   }
-      
-      //   console.log("codes", codes)
-      //   return codes;
-      // }
-      
-      //  randomConsonant(): string {
-      //   const consonants = 'BCDFGHJKLMNPQRSTVWXYZ';
-      //   return consonants.charAt(Math.floor(Math.random() * consonants.length));
-      // }
-      
-      
-      //  generateTuniMillionsCode(combinationsCount: number): string {
-      //   let code = "F";
-      //   const consonants = "BCDFGHJKLMNPQRSTVWXYZ";
-      //   const middleLettersMin = "BBB";
-      //   const middleLettersMax = combinationsCount <= 10 ? "WBB" : "ZZZ";
-      //   const lastNumbersMax = combinationsCount <= 10 ? "00000" : "99999";
-      
-      //   // Generate 3 random consonants for the middle part of the code
-      //   for (let i = 0; i < 3; i++) {
-      //     code += consonants[Math.floor(Math.random() * consonants.length)];
-      //   }
-      
-      //   // Generate the middle part of the code based on the combinations count
-      //   code += combinationsCount <= 10
-      //     ? middleLettersMin + lastNumbersMax
-      //     : this.getRandomCodeInRange(middleLettersMin, middleLettersMax) + this.getRandomCodeInRange("00001", lastNumbersMax);
-      
-      //   return code;
-      // }
-      
-      //  getRandomCodeInRange(minCode: string, maxCode: string): string {
-      //   const minNumber = parseInt(minCode.slice(-5));
-      //   const maxNumber = parseInt(maxCode.slice(-5));
-      //   const randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-      //   const formattedNumber = randomNumber.toString().padStart(5, "0");
-      //   return minCode.slice(0, -5) + formattedNumber;
-      // }
-      
+    
 
     @Mutation()
     async createGrille(@Args('input') input: CreateGrilleInput,@Context('currentUser') currentUser: User): Promise<Grille> {
@@ -130,62 +68,63 @@ export class GrilleResolver{
         input.userId = _id
 
         const gridPrice = [
-            [
-              { price: 5, prise: 1 },
-              { price: 30, prise: 6 },
-              { price: 165, prise: 21 },
-              { price: 280, prise: 56 },
-              { price: 630, prise: 126 },
-              { price: 1260, prise: 252 },
-            ],
-            [
-              { price: 15, prise: 3 },
-              { price: 90, prise: 18 },
-              { price: 315, prise: 63 },
-              { price: 840, prise: 168 },
-              { price: 1890, prise: 378 },
-            ],
-            [
-              { price: 30, prise: 6 },
-              { price: 180, prise: 36 },
-              { price: 630, prise: 126 },
-              { price: 1680, prise: 336 },
-            ],
-            [
-              { price: 50, prise: 10 },
-              { price: 300, prise: 60 },
-              { price: 1050, prise: 210 },
-            ],
-            [
-              { price: 75, prise: 15 },
-              { price: 550, prise: 90 },
-              { price: 1575, prise: 315 },
-            ],
-            [
-              { price: 105, prise: 21 },
-              { price: 630, prise: 126 },
-            ],
-            [
-              { price: 140, prise: 28 },
-              { price: 840, prise: 168 },
-            ],
-            [
-              { price: 180, prise: 36 },
-              { price: 1080, prise: 216 },
-            ],
-            [
-              { price: 225, prise: 45 },
-              { price: 1350, prise: 270 },
-            ],
-            [
-              { price: 275, prise: 55 },
-              { price: 1650, prise: 330 },
-            ],
-            [
-              { price: 330, prise: 66 },
-              { price: 1980, prise: 396 },
-            ],
-          ];
+          [
+            { price: 7.5, prise: 1 },
+            { price: 45, prise: 6 },
+            { price: 157.5, prise: 21 },
+            { price: 420, prise: 56 },
+            { price: 945, prise: 126 },
+            { price: 1890, prise: 252 },
+          ],
+          [
+            { price: 22.5, prise: 3 },
+            { price: 135, prise: 18 },
+            { price: 472.5, prise: 63 },
+            { price: 1260, prise: 168 },
+            { price: 2835, prise: 378 },
+          ],
+          [
+            { price: 45, prise: 6 },
+            { price: 270, prise: 36 },
+            { price: 945, prise: 126 },
+            { price: 2520, prise: 336 },
+          ],
+          [
+            { price: 75, prise: 10 },
+            { price: 450, prise: 60 },
+            { price: 1575, prise: 210 },
+          ],
+          [
+            { price: 112.5, prise: 15 },
+            { price: 675, prise: 90 },
+            { price: 2162.5, prise: 315 },
+          ],
+          [
+            { price: 157.5, prise: 21 },
+            { price: 945, prise: 126 },
+          ],
+          [
+            { price: 210, prise: 28 },
+            { price: 1260, prise: 168 },
+          ],
+          [
+            { price: 270, prise: 36 },
+            { price: 1620, prise: 216 },
+          ],
+          [
+            { price: 337.5, prise: 45 },
+            { price: 2025, prise: 270 },
+          ],
+          [
+            { price: 412.5, prise: 55 },
+            { price: 2475, prise: 330 },
+          ],
+          [
+            { price: 495, prise: 66 },
+            { price: 2970, prise: 396 },
+          ],
+        ];
+      
           const { numbers, stars } = input;
       
 
@@ -306,9 +245,44 @@ export class GrilleResolver{
         throw new Error("Method not implemented.");
     }
 
+    @Mutation()
+    async payGrille(
+      @Args('id') id: string,
+    ): Promise<Grille> {
+      const grille = await getMongoRepository(Grille).findOne({ _id: id });
+      if (!grille) {
+        throw new NotFoundException('Grille not found');
+      }
+
+      const wallet = await this.walletResolver.getWalletByUserId(grille.userId);
+      console.log("wallet",wallet)
+      if (!wallet) {
+        throw new ForbiddenError('Wallet not found');
+      }
+    	const userId = grille.userId;
+			const amount = grille.price;
+			const input: RemoveAmountInput = {
+			  userId,
+				amount,
+        grillId: grille._id,
+			};
+			const Removewallet = await this.walletResolver.removeAmount( input);
     
+      await getMongoRepository(Grille).findOneAndUpdate(
+        { _id: grille._id }, 
+        { $set: { status: Status.PAID } }, 
+        { returnOriginal: false })
+        //grille.status = Status.PAID;
+    
+			
+      
+        return grille;
+      } 
     }
     
+    
+    
+   
    
 
 
