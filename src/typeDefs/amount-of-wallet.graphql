@@ -1,0 +1,67 @@
+enum Currency {
+	TND
+}
+type WalletInCommingTransaction {
+    transactionId: String
+    amount: Float
+    currency: Currency
+    createdAt: Date
+}
+
+type WalletOutCommingTransaction {
+    grillId: String
+    amount: Float
+    currency: Currency
+    createdAt: Date
+}
+
+
+type Wallet{
+    _id: ID!
+    totalAmount: Float
+    currency: Currency
+    inCommingTransactions:[WalletInCommingTransaction]
+    outCommingTransactions: [WalletOutCommingTransaction]
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+}
+
+input CreateWalletInput{
+    userId: ID!
+    totalAmount: Float
+    currency: Currency
+}
+
+
+input AddAmountInput{
+    amount: Float
+    currency: Currency
+    userId: ID
+    transactionId: String
+   
+}
+
+input RemoveAmountInput{
+    userId: ID!
+    amount: Float
+    currency: Currency
+    grillId: String
+}
+
+type Query { 
+    getWalletById(id: ID!): Wallet
+    getWalletByUserId(userId: ID!): Wallet
+    getAllWallets: [Wallet]
+}
+
+type Mutation {
+    createWallet(input: CreateWalletInput!): Wallet @isAuthenticated
+    addAmount(input: AddAmountInput!): Wallet  
+    removeAmount( input: RemoveAmountInput!): Wallet
+    deleteWallet(id: ID!): Boolean
+}
+
+
+
+
