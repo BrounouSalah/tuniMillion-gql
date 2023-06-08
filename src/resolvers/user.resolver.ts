@@ -41,6 +41,8 @@ import { forwardRef, Inject } from '@nestjs/common'
 import { sendSms } from 'shared/sms'
 import { GrilleResolver } from './grille.resolver'
 import * as crypto from 'crypto'
+import { AmountOfWallet } from '@models'
+import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 
 
 @Resolver('User')
@@ -53,6 +55,9 @@ export class UserResolver {
 
 		@Inject(forwardRef(() => FileResolver))
 		private fileResolver: FileResolver,
+
+		@Inject(forwardRef(() => AmountOfWalletResolver))
+		private walletResolver: AmountOfWalletResolver,
 
 		@Inject(forwardRef(() => GrilleResolver))
 		private grilleResolver: GrilleResolver
@@ -288,6 +293,18 @@ export class UserResolver {
 					}
 				})
 			)
+
+			//call create wallet from  amount of wallet and update user with walletId
+			const wallet = await this.walletResolver.createWallet({userId:createdUser._id})
+			createdUser.walletId = wallet._id;
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: createdUser._id },
+				{ $set: {...createdUser, walletId:wallet._id} },
+				{ returnOriginal: false }
+			)
+
+			//get user and return it with new walletId
+			
 
 			pubsub.publish(USER_SUBSCRIPTION, { userCreated: createdUser })
 

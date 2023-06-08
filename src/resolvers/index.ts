@@ -9,3 +9,4 @@ export * from './grille.resolver'
 
 export * from './payment-method.resolver'
 export * from './userLimitation.resolver'
+export * from './amount-of-wallet.resolver'
