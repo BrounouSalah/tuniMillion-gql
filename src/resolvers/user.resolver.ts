@@ -509,7 +509,7 @@ export class UserResolver {
 
 	@Mutation()
 	async login(@Args('input') input: LoginUserInput): Promise<LoginResponse> {
-		const { email, password } = input
+		const { email, password , birthDate} = input
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email.toLocaleLowerCase()
@@ -517,8 +517,12 @@ export class UserResolver {
 		})
 
 		if (user && (await comparePassword(password, user.local.password))) {
-			return await tradeToken(user)
-		}
+			if (user.birthDate === birthDate) {
+			  return await tradeToken(user);
+			} else {
+			  throw new AuthenticationError('Incorrect birthdate.');
+			}
+		  }
 		throw new AuthenticationError('Login failed.')
 	}
 
