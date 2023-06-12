@@ -1,7 +1,7 @@
 import { Args, Mutation, Query,Context } from "@nestjs/graphql";
 import { getMongoRepository } from "typeorm";
 import { Grille } from "../models/grille.entity";
-import { Amount, CreateGrilleInput, PayGrilleInput, RemoveAmountInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
+import { Amount, CreateGrilleInput, PayGrilleInput, PaymentStatus, RemoveAmountInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
 import { ApolloError, ForbiddenError } from "apollo-server-express";
 import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
 import { AmountOfWallet, User } from "@models";
@@ -270,9 +270,9 @@ export class GrilleResolver{
     
       await getMongoRepository(Grille).findOneAndUpdate(
         { _id: grille._id }, 
-        { $set: { status: Status.PAID } }, 
+        { $set: { paymentStatus: PaymentStatus.PAID } }, 
         { returnOriginal: false })
-        //grille.status = Status.PAID;
+        
     
 			
       

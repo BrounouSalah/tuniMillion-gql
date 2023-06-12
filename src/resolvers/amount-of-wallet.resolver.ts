@@ -90,7 +90,13 @@ export class AmountOfWalletResolver {
         if (isNewTransactionOut) {
             throw new ForbiddenError('transactionOut already added.')
         }
-        wallet.totalAmount -= amount
+        //wallet.totalAmount -= amount
+
+		const updatedTotalAmount = wallet.totalAmount - amount;
+
+		if (updatedTotalAmount < 0) {
+		  throw new ForbiddenError('Insufficient funds.');
+		}
         const outGoingTransactions = [...wallet.outGoingTransactions,{
             amount: input.amount,
             grillId: input.grillId,

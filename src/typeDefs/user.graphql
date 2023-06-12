@@ -85,6 +85,8 @@ input UpdateUserInput {
 input LoginUserInput {
 	email: String! @length(max: 7)
 	password: String!
+	birthDate : String!
+	
 }
 
 type LoginResponse {

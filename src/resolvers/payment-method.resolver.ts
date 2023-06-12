@@ -68,7 +68,7 @@ export class PaymentMethodResolver {
 		)
 		
 
-		if (updatedPaymentMethod.resultCode === PaymentStatusEnum.Pending || updatedPaymentMethod.status == PaymentStatusEnum.Pending) {
+		if (updatedPaymentMethod.resultCode === PaymentStatusEnum.Settled || updatedPaymentMethod.status == PaymentStatusEnum.Settled) {
 			
 			
 			const userId = updatedPaymentMethod.userId;

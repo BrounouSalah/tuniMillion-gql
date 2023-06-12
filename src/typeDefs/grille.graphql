@@ -2,6 +2,11 @@ enum Status{
     PENDING
     WIN
     LOSE
+    
+}
+
+enum PaymentStatus{
+    NOT_PAIED
     PAID
 }
 
@@ -42,6 +47,7 @@ type Grille{
     updatedAt: Date
     deletedAt: Date
     status:Status
+    paymentStatus:PaymentStatus
     randomCode: String
     combinations: [Combinations]
     prise:Int

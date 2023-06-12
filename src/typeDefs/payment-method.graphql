@@ -14,6 +14,7 @@ enum PaymentStatusEnum {
 	Pending
 	Rejected
 	Success
+	Settled
 }
 
 enum Currency {
