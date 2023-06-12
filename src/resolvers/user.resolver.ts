@@ -29,7 +29,9 @@ import {
 	AccountStateType,
 	UserFilterInput,
 	FilterInput,
-	VerificationTypeFilter
+	VerificationTypeFilter,
+	AddFavoritesInput,
+	Favorites
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -620,4 +622,43 @@ export class UserResolver {
 		)
 		return updateUser ? true : false
 	}
+
+	@Mutation()
+	async addFavorites(@Args('input') input: AddFavoritesInput, 	@Context('currentUser') currentUser: User): Promise<User> {
+		const { numbers, stars} = input
+		const user = await getMongoRepository(User).findOne({_id: currentUser._id })
+
+		if (!user) {
+			throw new ForbiddenError('User not found.')
+		}
+
+		const existingFavorites = user.favorites.map((el,index)=> {
+			return JSON.stringify(el) === JSON.stringify({numbers, stars}) ? {el:el,index:index} : null
+			
+		})
+		
+		  if (existingFavorites) {
+			let newFav = [...user.favorites]
+			newFav.splice(existingFavorites[0].index,1)
+			
+			await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { favorites:newFav } },
+				{ returnOriginal: false }
+			)
+		  }else {
+			let favorite = []
+		favorite.push({numbers, stars})
+		const updateUser = await getMongoRepository(User).findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: { favorites:favorite } },
+			{ returnOriginal: false }
+		)
+		  }
+		
+		return user
+	}
+
+
+
 }

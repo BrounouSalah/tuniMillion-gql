@@ -62,6 +62,7 @@ input CreateUserInput {
 	termsOfUse: Boolean
 	verification: Verification
 	gender: Gender
+
 	
 }
 
@@ -148,12 +149,25 @@ input UserFilterInput {
 	lastName: String
 }
 
+type Favorites{
+	_id:ID!
+	userID:ID!
+	numbers:[Int]
+	stars:[Int]
+}
+
+input AddFavoritesInput{
+	numbers:[Int]
+	stars:[Int]
+}
+
 type User {
 	_id: ID!
 	walletId: ID
 	userVerificationData: UserVerificationData
 	local: Local!
 	grilles: [Grille]
+	favorites:[Favorites]
 	google: Google
 	facebook: Facebook
 	firstName: String
@@ -221,6 +235,7 @@ type Mutation {
 	): Boolean @isAuthenticated
 	forgotPassword(email: String!): Boolean
 	resetPassword(resetPasswordToken: String!, password: String!): Boolean
+	addFavorites(input:AddFavoritesInput!):User @isAuthenticated
 }
 
 type Subscription {
