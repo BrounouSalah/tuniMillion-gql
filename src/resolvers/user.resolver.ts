@@ -566,7 +566,7 @@ export class UserResolver {
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email,
-				isVerified: true
+				
 			}
 		})
 
@@ -632,14 +632,15 @@ export class UserResolver {
 			throw new ForbiddenError('User not found.')
 		}
 
-		const existingFavorites = user.favorites.map((el,index)=> {
-			return JSON.stringify(el) === JSON.stringify({numbers, stars}) ? {el:el,index:index} : null
+		const existingFavorites = user.favorites.findIndex((el)=> {
+			return JSON.stringify(el) === JSON.stringify({numbers, stars}) 
 			
 		})
 		
-		  if (existingFavorites) {
+		
+		  if (existingFavorites!== (-1) ) {
 			let newFav = [...user.favorites]
-			newFav.splice(existingFavorites[0].index,1)
+			newFav.splice(existingFavorites,1)
 			
 			await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
@@ -647,7 +648,7 @@ export class UserResolver {
 				{ returnOriginal: false }
 			)
 		  }else {
-			let favorite = []
+			let favorite = [...user.favorites]
 		favorite.push({numbers, stars})
 		const updateUser = await getMongoRepository(User).findOneAndUpdate(
 			{ _id: user._id },

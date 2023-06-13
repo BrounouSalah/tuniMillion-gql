@@ -149,9 +149,7 @@ input UserFilterInput {
 	lastName: String
 }
 
-type Favorites{
-	_id:ID!
-	userID:ID!
+type Favorites{	
 	numbers:[Int]
 	stars:[Int]
 }
