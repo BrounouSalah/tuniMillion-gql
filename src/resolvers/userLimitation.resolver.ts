@@ -12,21 +12,19 @@ export class UserLimitationResolver
 {
 
     @Mutation()
-    async createUserLimitation(@Args('input') input: CreateUserLimitationInput, @Context('currentUser') currentUser: User): Promise<UserLimitation> {
-        const { _id } = currentUser
+    async createUserLimitation(@Args('input') input: CreateUserLimitationInput): Promise<UserLimitation> {
+        const { userId } = input
 
         const existingLimitation = await getMongoRepository(UserLimitation).findOne({
-          userId: _id,
+          userId: userId,
         });
       
         if (existingLimitation) {
-          throw new Error('Limitation already exists ');
+          return existingLimitation;
         }
-        input.userId = _id
+        
         const res = await getMongoRepository(UserLimitation).save(new UserLimitation(input))
-        if(res){
-            await getMongoRepository(User).findOneAndUpdate({_id:res.userId},{$set:{userLimitationId:res._id}},{returnOriginal:false})
-        }
+      
         return res
     }
 

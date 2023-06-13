@@ -32,17 +32,17 @@ export class PaymentMethodResolver {
 	@Query('getPaymentDetails')
 	async getPaymentDetails(@Args('id') id: string) {
 		
-		const runPayResponse = await this.httpService
-			.get(`https://psp.paymaster.tn/api/v2/payments/${id}`, {
-				headers: {
-					Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`
-				}
-			})
-			.pipe(map((runPayResponse) => runPayResponse.data))
-			.toPromise()
 		const paymentMethodResult = await getMongoRepository(PaymentMethod).findOne({
-			where: { runPayId: id }
+			where: { _id: id }
 		})
+		const runPayResponse = await this.httpService
+		.get(`https://psp.paymaster.tn/api/v2/payments/${paymentMethodResult.runPayId}`, {
+			headers: {
+				Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`
+			}
+		})
+		.pipe(map((runPayResponse) => runPayResponse.data))
+		.toPromise()
 	
 
 		const userLimitation=await this.userLimitation.getUserLimitationByUserId(paymentMethodResult.userId)
@@ -122,6 +122,8 @@ export class PaymentMethodResolver {
 		console.log('paymentMethod:', paymentMethod)
 
 		const userLimitation=await this.userLimitation.getUserLimitationByUserId(currentUser._id)
+		console.log("userLimitation",userLimitation)
+		
 		const reste: number | null = userLimitation.rest;
         const limit: number = userLimitation.limit;
 		const montantPaiement: number= paymentInput.amount.value
@@ -142,7 +144,7 @@ export class PaymentMethodResolver {
 							...paymentMethodInput,
 							merchantId: process.env.MERCHANT_ID,
 							protocol: {
-								returnUrl: `https://tunimillions.com/tunimillions/payment/success/${paymentMethod._id}`,
+								returnUrl: `http://localhost:3000/payment/success/${paymentMethod._id}`,
 								callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
 							}
 						},

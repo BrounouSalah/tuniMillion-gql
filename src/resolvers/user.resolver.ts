@@ -31,7 +31,8 @@ import {
 	FilterInput,
 	VerificationTypeFilter,
 	AddFavoritesInput,
-	Favorites
+	Favorites,
+	User
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -42,10 +43,11 @@ import { forwardRef, Inject } from '@nestjs/common'
 
 import { sendSms } from 'shared/sms'
 import { GrilleResolver } from './grille.resolver'
-import * as crypto from 'crypto'
-import { AmountOfWallet } from '@models'
-import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 
+import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
+import { UserLimitationResolver } from './userLimitation.resolver'
+
+const DEFAULTUSERLIMITAMAOUNT = 5.999
 
 @Resolver('User')
 export class UserResolver {
@@ -60,7 +62,10 @@ export class UserResolver {
 
 		@Inject(forwardRef(() => AmountOfWalletResolver))
 		private walletResolver: AmountOfWalletResolver,
-
+		
+		@Inject(forwardRef(() => UserLimitationResolver))
+		private userLimitationResolver: UserLimitationResolver,
+		
 		@Inject(forwardRef(() => GrilleResolver))
 		private grilleResolver: GrilleResolver
 	) {}
@@ -76,9 +81,11 @@ export class UserResolver {
 	// }
 	@Query()
 	async me(@Context('currentUser') currentUser: User): Promise<User> {
-		const grille = await this.grilleResolver.getAllGrillesByUserId(
+		const grilles = await this.grilleResolver.getAllGrillesByUserId(
 			currentUser._id
 		)
+		const userLimitation = await this.userLimitationResolver.getUserLimitationByUserId(currentUser._id);
+		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id);
 		// let grilles = [{
 		// 	_id:grille._id,
 		// 	userId: currentUser._id,
@@ -86,7 +93,7 @@ export class UserResolver {
 		// 	Stars: [5,3]
 		// }]
 		// currentUser.grilles = grilles
-		return { ...currentUser, grilles: grille }
+		return { ...currentUser, grilles: grilles, wallet: wallet, userLimitation: userLimitation }
 	}
 
 	// @Query()
@@ -298,7 +305,12 @@ export class UserResolver {
 
 			//call create wallet from  amount of wallet and update user with walletId
 			const wallet = await this.walletResolver.createWallet({userId:createdUser._id})
+			//call create user limitation and update user with userLimitationId
+			const defaultUserLimitationInput  = {userId:createdUser._id, limit: DEFAULTUSERLIMITAMAOUNT}
+			const UserLimitation = await this.userLimitationResolver.createUserLimitation(defaultUserLimitationInput)
 			createdUser.walletId = wallet._id;
+			createdUser.userLimitationId = UserLimitation._id;
+
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: createdUser._id },
 				{ $set: {...createdUser, walletId:wallet._id} },

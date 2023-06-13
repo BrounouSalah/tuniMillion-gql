@@ -190,6 +190,8 @@ type User {
 	updatedAt: Date!
 	deletedAt: Date
 	userLimitationId:String
+	userLimitation:UserLimitation
+	wallet:Wallet
 }
 enum VerificationTypeFilter {
 	EMAIL

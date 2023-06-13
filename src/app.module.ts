@@ -21,7 +21,7 @@ export class TasksService {
 
   constructor(private readonly userLimitationResolver: Resolvers.UserLimitationResolver) {}
 
-  @Cron('0 0 1 * *') // Exécuter chaque mois à 1h00
+  @Cron('0 0 * * 1') // Exécuter chaque semaine à 0h00
   async handleCron() {
    
     try {
@@ -33,7 +33,7 @@ export class TasksService {
 
         for (const userLimitation of userLimitations) {
           const updateInput: UpdateUserLimitationInput = {
-            type: TypeLimit.MOIS,
+            type: TypeLimit.SEMAINE,
             rest: null,
             limit: initialLimit 
           };
