@@ -32,7 +32,7 @@ import {
 	VerificationTypeFilter,
 	AddFavoritesInput,
 	Favorites,
-	User
+	User as UserGraph
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -62,10 +62,10 @@ export class UserResolver {
 
 		@Inject(forwardRef(() => AmountOfWalletResolver))
 		private walletResolver: AmountOfWalletResolver,
-		
+
 		@Inject(forwardRef(() => UserLimitationResolver))
 		private userLimitationResolver: UserLimitationResolver,
-		
+
 		@Inject(forwardRef(() => GrilleResolver))
 		private grilleResolver: GrilleResolver
 	) {}
@@ -80,51 +80,22 @@ export class UserResolver {
 	// 	return new Date()
 	// }
 	@Query()
-	async me(@Context('currentUser') currentUser: User): Promise<User> {
+	async me(@Context('currentUser') currentUser: User): Promise<UserGraph> {
 		const grilles = await this.grilleResolver.getAllGrillesByUserId(
 			currentUser._id
 		)
-		const userLimitation = await this.userLimitationResolver.getUserLimitationByUserId(currentUser._id);
-		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id);
-		// let grilles = [{
-		// 	_id:grille._id,
-		// 	userId: currentUser._id,
-		// 	Numbers:grille.Numbers,
-		// 	Stars: [5,3]
-		// }]
-		// currentUser.grilles = grilles
-		return { ...currentUser, grilles: grilles, wallet: wallet, userLimitation: userLimitation }
+		const userLimitation =
+			await this.userLimitationResolver.getUserLimitationByUserId(
+				currentUser._id
+			)
+		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id)
+		return {
+			...currentUser,
+			grilles: grilles,
+			wallet: wallet,
+			userLimitation: userLimitation
+		}
 	}
-
-	// @Query()
-	// async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
-	// 	let result
-
-	// 	const { select, where, order, skip, take } = conditions
-
-	// 	if (Object.keys(where).length > 1) {
-	// 		throw new UserInputError('Your where must be 1 collection.')
-	// 	}
-
-	// 	const type = Object.keys(where)[0]
-
-	// 	// const createdAt = { $gte: 0, $lte: new Date().getTime() }
-
-	// 	result = await getMongoRepository(type).find({
-	// 		where: where[type] && JSON.parse(JSON.stringify(where[type])),
-	// 		order: order && JSON.parse(JSON.stringify(order)),
-	// 		skip,
-	// 		take
-	// 	})
-
-	// 	// console.log(result)
-
-	// 	if (result.length === 0) {
-	// 		throw new ForbiddenError('Not found.')
-	// 	}
-
-	// 	return result
-	// }
 
 	@Query()
 	async users(
@@ -248,9 +219,8 @@ export class UserResolver {
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
 		@Context('req') req: any
-		
+
 		//@Context('idLimitation') idLimitation: UserLimitation
-	
 	): Promise<User> {
 		//const { _id } = idLimitation
 		//input.IdUserLimitation = _id
@@ -290,7 +260,6 @@ export class UserResolver {
 
 				return updateUser
 			}
-			
 
 			const createdUser = await getMongoRepository(User).save(
 				new User({
@@ -304,21 +273,28 @@ export class UserResolver {
 			)
 
 			//call create wallet from  amount of wallet and update user with walletId
-			const wallet = await this.walletResolver.createWallet({userId:createdUser._id})
+			const wallet = await this.walletResolver.createWallet({
+				userId: createdUser._id
+			})
 			//call create user limitation and update user with userLimitationId
-			const defaultUserLimitationInput  = {userId:createdUser._id, limit: DEFAULTUSERLIMITAMAOUNT}
-			const UserLimitation = await this.userLimitationResolver.createUserLimitation(defaultUserLimitationInput)
-			createdUser.walletId = wallet._id;
-			createdUser.userLimitationId = UserLimitation._id;
+			const defaultUserLimitationInput = {
+				userId: createdUser._id,
+				limit: DEFAULTUSERLIMITAMAOUNT
+			}
+			const UserLimitation =
+				await this.userLimitationResolver.createUserLimitation(
+					defaultUserLimitationInput
+				)
+			createdUser.walletId = wallet._id
+			createdUser.userLimitationId = UserLimitation._id
 
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: createdUser._id },
-				{ $set: {...createdUser, walletId:wallet._id} },
+				{ $set: { ...createdUser, walletId: wallet._id } },
 				{ returnOriginal: false }
 			)
 
 			//get user and return it with new walletId
-			
 
 			pubsub.publish(USER_SUBSCRIPTION, { userCreated: createdUser })
 
@@ -334,7 +310,7 @@ export class UserResolver {
 			// await sendSms(input.phoneNumber, emailToken)
 
 			await sendMail('verifyEmail', createdUser, emailToken)
-			
+
 			return createdUser
 		} catch (error) {
 			throw new ApolloError(error)
@@ -511,7 +487,7 @@ export class UserResolver {
 
 	@Mutation()
 	async login(@Args('input') input: LoginUserInput): Promise<LoginResponse> {
-		const { email, password , birthDate} = input
+		const { email, password, birthDate } = input
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email.toLocaleLowerCase()
@@ -520,11 +496,11 @@ export class UserResolver {
 
 		if (user && (await comparePassword(password, user.local.password))) {
 			if (user.birthDate === birthDate) {
-			  return await tradeToken(user);
+				return await tradeToken(user)
 			} else {
-			  throw new AuthenticationError('Incorrect birthdate.');
+				throw new AuthenticationError('Incorrect birthdate.')
 			}
-		  }
+		}
 		throw new AuthenticationError('Login failed.')
 	}
 
@@ -577,8 +553,7 @@ export class UserResolver {
 	): Promise<boolean> {
 		const user = await getMongoRepository(User).findOne({
 			where: {
-				'local.email': email,
-				
+				'local.email': email
 			}
 		})
 
@@ -636,42 +611,42 @@ export class UserResolver {
 	}
 
 	@Mutation()
-	async addFavorites(@Args('input') input: AddFavoritesInput, 	@Context('currentUser') currentUser: User): Promise<User> {
-		const { numbers, stars} = input
-		const user = await getMongoRepository(User).findOne({_id: currentUser._id })
+	async addFavorites(
+		@Args('input') input: AddFavoritesInput,
+		@Context('currentUser') currentUser: User
+	): Promise<User> {
+		const { numbers, stars } = input
+		const user = await getMongoRepository(User).findOne({
+			_id: currentUser._id
+		})
 
 		if (!user) {
 			throw new ForbiddenError('User not found.')
 		}
 
-		const existingFavorites = user.favorites.findIndex((el)=> {
-			return JSON.stringify(el) === JSON.stringify({numbers, stars}) 
-			
+		const existingFavorites = user.favorites.findIndex((el) => {
+			return JSON.stringify(el) === JSON.stringify({ numbers, stars })
 		})
-		
-		
-		  if (existingFavorites!== (-1) ) {
+
+		if (existingFavorites !== -1) {
 			let newFav = [...user.favorites]
-			newFav.splice(existingFavorites,1)
-			
+			newFav.splice(existingFavorites, 1)
+
 			await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
-				{ $set: { favorites:newFav } },
+				{ $set: { favorites: newFav } },
 				{ returnOriginal: false }
 			)
-		  }else {
+		} else {
 			let favorite = [...user.favorites]
-		favorite.push({numbers, stars})
-		const updateUser = await getMongoRepository(User).findOneAndUpdate(
-			{ _id: user._id },
-			{ $set: { favorites:favorite } },
-			{ returnOriginal: false }
-		)
-		  }
-		
+			favorite.push({ numbers, stars })
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { favorites: favorite } },
+				{ returnOriginal: false }
+			)
+		}
+
 		return user
 	}
-
-
-
 }
