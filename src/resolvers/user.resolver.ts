@@ -30,7 +30,9 @@ import {
 	UserFilterInput,
 	FilterInput,
 	VerificationTypeFilter,
-	User as UserGraph,
+	AddFavoritesInput,
+	Favorites,
+	User
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -78,7 +80,7 @@ export class UserResolver {
 	// 	return new Date()
 	// }
 	@Query()
-	async me(@Context('currentUser') currentUser: User): Promise<UserGraph> {
+	async me(@Context('currentUser') currentUser: User): Promise<User> {
 		const grilles = await this.grilleResolver.getAllGrillesByUserId(
 			currentUser._id
 		)
@@ -576,7 +578,7 @@ export class UserResolver {
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email,
-				isVerified: true
+				
 			}
 		})
 
@@ -632,4 +634,44 @@ export class UserResolver {
 		)
 		return updateUser ? true : false
 	}
+
+	@Mutation()
+	async addFavorites(@Args('input') input: AddFavoritesInput, 	@Context('currentUser') currentUser: User): Promise<User> {
+		const { numbers, stars} = input
+		const user = await getMongoRepository(User).findOne({_id: currentUser._id })
+
+		if (!user) {
+			throw new ForbiddenError('User not found.')
+		}
+
+		const existingFavorites = user.favorites.findIndex((el)=> {
+			return JSON.stringify(el) === JSON.stringify({numbers, stars}) 
+			
+		})
+		
+		
+		  if (existingFavorites!== (-1) ) {
+			let newFav = [...user.favorites]
+			newFav.splice(existingFavorites,1)
+			
+			await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { favorites:newFav } },
+				{ returnOriginal: false }
+			)
+		  }else {
+			let favorite = [...user.favorites]
+		favorite.push({numbers, stars})
+		const updateUser = await getMongoRepository(User).findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: { favorites:favorite } },
+			{ returnOriginal: false }
+		)
+		  }
+		
+		return user
+	}
+
+
+
 }

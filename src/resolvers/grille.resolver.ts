@@ -255,7 +255,7 @@ export class GrilleResolver{
       }
 
       const wallet = await this.walletResolver.getWalletByUserId(grille.userId);
-      console.log("wallet",wallet)
+     
       if (!wallet) {
         throw new ForbiddenError('Wallet not found');
       }
@@ -268,7 +268,7 @@ export class GrilleResolver{
 			};
 			const Removewallet = await this.walletResolver.removeAmount( input);
     
-      await getMongoRepository(Grille).findOneAndUpdate(
+      const updategrille = await getMongoRepository(Grille).findOneAndUpdate(
         { _id: grille._id }, 
         { $set: { paymentStatus: PaymentStatus.PAID } }, 
         { returnOriginal: false })
@@ -276,7 +276,7 @@ export class GrilleResolver{
     
 			
       
-        return grille;
+        return updategrille.value;
       } 
     }
     

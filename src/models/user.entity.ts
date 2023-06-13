@@ -8,7 +8,8 @@ import {
 	Grille,
 	Address,
 	Gender,
-	UserVerificationData
+	UserVerificationData,
+	Favorites
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -112,6 +113,10 @@ export class User {
 
 	@Expose()
 	@Column()
+	favorites:Favorites[]
+
+	@Expose()
+	@Column()
 	grilles:Grille[]
 
 	
@@ -151,6 +156,7 @@ export class User {
 				isVerified: false}
 				this.identityVerified=this.identityVerified || false
 			this.userLimitationId = this.userLimitationId || ""
+			this.favorites=this.favorites || []
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}
