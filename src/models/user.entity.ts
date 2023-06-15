@@ -147,8 +147,10 @@ export class User {
 					? this.isVerified
 					: this.google || this.facebook
 					? true
-					: false
-
+					: true
+			this.isOnline = this.isOnline !== undefined ? this.isOnline : false
+			this.isLocked = this.isLocked !== undefined ? this.isLocked : false
+			this.reason = this.reason || ''
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
 			this.userVerificationData=this.userVerificationData || { verificationImage: [],

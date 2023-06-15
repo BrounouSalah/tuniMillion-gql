@@ -14,9 +14,9 @@ input CreateGrilleInput {
     userId:String
     numbers: [Int]
     stars: [Int]
-  
-   
+    drawDate: Date  
 }
+
 
 input UpdateGrilleInput {
     userId:String

@@ -1,0 +1,32 @@
+type GridSimulation{
+    _id: ID!
+    numbers: [Int]
+    stars: [Int]
+    price: Float
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+}
+
+input CreateGridSimulationInput{
+    numbers: [Int]
+    stars: [Int] 
+    userId: ID!  
+}
+
+input UpdateGridSimulationInput{
+    numbers: [Int]
+    stars: [Int]   
+}
+
+type Mutation{
+    createGridSimulation(input: CreateGridSimulationInput!): GridSimulation
+    updateGridSimulation(_id: ID!, input: UpdateGridSimulationInput!): Boolean
+    deleteGridSimulation(_id: ID!): Boolean
+}
+
+type Query{
+    getAllgridSimulations: [GridSimulation]
+    getgridSimulationById(id: ID!): GridSimulation
+    getGridSimulationBuUserId(userId: ID!): [GridSimulation]
+}

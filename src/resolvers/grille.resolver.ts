@@ -23,42 +23,137 @@ export class GrilleResolver{
     ) {}
     
    
-     generateCombinations(starArray: number[], numberArray: number[]): any {
-  
-        const combinations: CombinationsBasic[] = [];
-        console.log("here")
-      
-        // Generate all possible combinations of 5 numbers
-        const numberCombos = this.combinationsOf(numberArray, 5);
-      
-        // Generate all possible combinations of 2 stars
-        const starCombos = this.combinationsOf(starArray, 2);
-      
-        // Combine number and star combos to form valid combinations
-        for (const numbers of numberCombos) {
-          for (const stars of starCombos) {
-            //TODO: add call to function that generates the tunimillion code 
-            //const tuniMillionsCode = this.generateTuniMillionsCode(15);
-            combinations.push({ numbers, stars });
+   async generateCombinations(
+		starArray: number[],
+		numberArray: number[],
+		prise
+	): Promise<any> {
+		const combinations: CombinationsBasic[] = []
 
-            // combinations.push({numbers:numbers, stars:stars});
-            
-          }
-        }
-      
-        return combinations;
-      }
-      
-    combinationsOf<T>(arr: T[], count: number): T[][] {
-        if (count === 0) {
-          return [[]];
-        }
-        
-        return arr.flatMap((val, idx) => {
-          const subcombos = this.combinationsOf(arr.slice(idx + 1), count - 1);
-          return subcombos.map((combo) => [val, ...combo]);
-        });
-      }
+		// Generate all possible combinations of 5 numbers
+		const numberCombos = this.combinationsOf(numberArray, 5)
+
+		// Generate all possible combinations of 2 stars
+		const starCombos = this.combinationsOf(starArray, 2)
+		const lastPlayedGrille = await getMongoRepository(Grille).findOne({
+			where: {
+				deletedAt: null,
+				prise: prise > 10 ? { $gt: 10 } : { $lte: 10 }
+			},
+			order: {
+				createdAt: 'DESC'
+			}
+		})
+		let depart
+		if (!lastPlayedGrille) {
+			depart = prise > 10 ? 'F WBB 00000' : 'F BBB 00000'
+		} else {
+			depart =
+				lastPlayedGrille.combinations[lastPlayedGrille.combinations.length - 1]
+					.tuniMillionsCode
+		}
+		// Combine number and star combos to form valid combinations
+		for (const numbers of numberCombos) {
+			for (const stars of starCombos) {
+				combinations.push({ numbers, stars })
+			}
+		}
+		let combWithCode = combinations.map((el, index) => ({
+			numbers: el.numbers,
+			stars: el.stars,
+			tuniMillionsCode: this.generateConsecutiveStrings(depart, index)
+		}))
+		return combWithCode
+	}
+
+	combinationsOf<T>(arr: T[], count: number): T[][] {
+		if (count === 0) {
+			return [[]]
+		}
+
+		return arr.flatMap((val, idx) => {
+			const subcombos = this.combinationsOf(arr.slice(idx + 1), count - 1)
+			return subcombos.map((combo) => [val, ...combo])
+		})
+	}
+
+	generateConsecutiveStrings(
+		start: string,
+
+		number: number
+	): string {
+		const end = 'F ZZZ 99999'
+
+		const endNumber = Number(end.slice(-5))
+		const startNumber = Number(start.slice(-5)) + 1
+		let currentNumber = startNumber + number
+
+		let consonants = start.slice(2, 5) // Retrieve the consonants from the start input string
+
+		// Handle wraparound of number part
+		if (currentNumber > endNumber) {
+			if (consonants === 'ZZZ') {
+				return null // Reached the end, exit loop
+			}
+			consonants = this.incrementConsonants(consonants)
+			currentNumber = currentNumber - 100000
+			return `F ${consonants} ${currentNumber.toString().padStart(5, '0')}`
+		}
+		const currentString = `F ${consonants} ${currentNumber
+			.toString()
+			.padStart(5, '0')}`
+		return currentString
+	}
+
+	incrementConsonants(consonants: string) {
+		const validConsonants = [
+			'B',
+			'C',
+			'D',
+			'F',
+			'G',
+			'H',
+			'J',
+			'K',
+			'L',
+			'M',
+			'N',
+			'P',
+			'Q',
+			'R',
+			'S',
+			'T',
+			'V',
+			'W',
+			'X',
+			'Y',
+			'Z'
+		]
+		const consonantArray = Array.from(consonants)
+
+		let carry = true // Flag to indicate carryover to the subsequent letter
+
+		for (let i = consonantArray.length - 1; i >= 0; i--) {
+			const char = consonantArray[i].toUpperCase()
+			const currentIndex = validConsonants.indexOf(char)
+
+			if (currentIndex === -1) {
+				continue // Skip vowels or non-consonants
+			}
+
+			let nextIndex = (currentIndex + (carry ? 1 : 0)) % validConsonants.length
+
+			if (carry && nextIndex === 0) {
+				carry = true // Set carryover flag if transitioning from 'Z' to 'B'
+			} else {
+				carry = false
+			}
+
+			consonantArray[i] = validConsonants[nextIndex]
+		}
+
+		return consonantArray.join('')
+	}
 
     
 
@@ -124,30 +219,49 @@ export class GrilleResolver{
             { price: 2970, prise: 396 },
           ],
         ];
-      
-          const { numbers, stars } = input;
-      
+	const { numbers, stars } = input
+		 
+		if (numbers.some((number) => number < 1 || number > 50) || new Set(numbers).size !== numbers.length || numbers.length > 10 ) {
+			throw  new ForbiddenError('Invalid numbers. Please provide a unique set of numbers between 1 and 50 and a maximum of 10 numbers..');
+		  }
+		
+			
 
-          if(!(numbers.length > 4 && stars.length > 1)) throw new ForbiddenError('invalid input')
-          if (numbers.length > 4 && stars.length > 1) {
-            console.log("hear")
-            let object =
-              gridPrice[stars.length - 2][
-                numbers.length - 5
-              ];
-              type Combinations = {number: number[], stars: number[]}
-              //const generatedGrids: Grille[] = [];
-            const combinations:any = await  this.generateCombinations( stars,numbers);
-           
-            
-            console.log("cob",combinations)
-          
-           
-       
-        // return await getMongoRepository(Grille).save(new Grille({...input , randomCode}))
-        return await getMongoRepository(Grille).save(new Grille({...input,prise:object.prise,price:object.price,combinations}))
-    } 
-}
+		  if (stars.some((star) => star < 1 || star > 12) || new Set(stars).size !== stars.length) {
+			throw new ForbiddenError('Invalid stars. Please provide a unique set of stars between 1 and 12.');
+		  }
+		
+		if (!(numbers.length > 4 && stars.length > 1))
+			throw new ForbiddenError('invalid input')
+		if (numbers.length > 4 && stars.length > 1) {
+			let object = gridPrice[stars.length - 2][numbers.length - 5]
+			if (!object) throw new ForbiddenError('invalid input')
+			
+			type Combinations = {
+				number: number[]
+				stars: number[]
+				tuniMillionsCode: string
+			}[]
+			const combinations: any = await this.generateCombinations(
+				stars,
+				numbers,
+				object.prise
+			)
+			
+
+			return await getMongoRepository(Grille).save(
+				new Grille({
+					...input,
+					prise: object.prise,
+					price: object.price,
+					combinations
+				})
+			)
+			
+			}
+			
+			
+	}
 
     @Query()
     async getAllGrilles(): Promise<Grille[]> {
@@ -280,11 +394,4 @@ export class GrilleResolver{
       } 
     }
     
-    
-    
-   
-   
-
-
- 
    

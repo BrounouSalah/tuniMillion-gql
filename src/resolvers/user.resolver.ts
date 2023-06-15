@@ -97,6 +97,20 @@ export class UserResolver {
 		}
 	}
 
+	
+    @Query()
+    async searchUsersByDate(@Args('createdAt') createdAt: string): Promise<User[]> {
+            
+            return await getMongoRepository(User).find({
+                cache: true,
+                where: {
+                    createdAt: { $gte : new Date(createdAt) },
+                    deletedAt: null
+                
+                }
+            })
+        }
+
 	@Query()
 	async users(
 		@Args('filter') filter: FilterInput,
@@ -113,6 +127,7 @@ export class UserResolver {
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
 			})
+
 
 			return users
 		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
@@ -150,7 +165,7 @@ export class UserResolver {
 		const { _id } = currentUser
 		const users = await getMongoRepository(User).find({
 			where: {
-				_id: { $ne: _id },
+				
 				accountState: AccountStateType.FINALIZED,
 				deletedAt: null
 			},
