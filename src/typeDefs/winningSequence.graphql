@@ -2,6 +2,7 @@
 input CreateWinningSequenceInput {
     numbers: [Int]
     stars: [Int]
+   
   
    
 }
@@ -13,6 +14,29 @@ input UpdateWinningSequenceInput {
     
 }
 
+enum WinningRank {
+  NONE
+  FIRST
+  SECOND
+  THIRD
+  FOURTH
+  FIFTH
+  SIXTH
+  SEVENTH
+  EIGHTH
+  NINTH
+  TENTH
+  ELEVENTH
+  TWELFTH
+  THIRTEENTH
+  
+}
+
+type WinningRankCount {
+  rank: WinningRank
+  count: Int
+}
+
 
 type WinningSequence{
     _id: ID!
@@ -21,6 +45,8 @@ type WinningSequence{
     createdAt: Date
     updatedAt: Date
     deletedAt: Date
+    userContsByRang:[WinningRankCount]
+    
    
 }
 
@@ -29,6 +55,7 @@ type Query {
     getAllWinningSequencesByDate(createdAt:String):[WinningSequence] 
     getAllWinningSequencesByRange(startedAt:String, endedAt:String):[WinningSequence] 
     getWinningSequneceById(_id:ID!):[WinningSequence] @isAuthenticated
+    getStaticWinningSequence(_id:ID!):WinningSequence @isAuthenticated
 
 }
 

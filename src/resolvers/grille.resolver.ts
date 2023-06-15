@@ -218,12 +218,23 @@ export class GrilleResolver {
 			]
 		]
 		const { numbers, stars } = input
+		 
+		if (numbers.some((number) => number < 1 || number > 50) || new Set(numbers).size !== numbers.length || numbers.length > 10 ) {
+			throw  new ForbiddenError('Invalid numbers. Please provide a unique set of numbers between 1 and 50 and a maximum of 10 numbers..');
+		  }
+		
+			
 
+		  if (stars.some((star) => star < 1 || star > 12) || new Set(stars).size !== stars.length) {
+			throw new ForbiddenError('Invalid stars. Please provide a unique set of stars between 1 and 12.');
+		  }
+		
 		if (!(numbers.length > 4 && stars.length > 1))
 			throw new ForbiddenError('invalid input')
 		if (numbers.length > 4 && stars.length > 1) {
 			let object = gridPrice[stars.length - 2][numbers.length - 5]
-
+			if (!object) throw new ForbiddenError('invalid input')
+			
 			type Combinations = {
 				number: number[]
 				stars: number[]
@@ -234,6 +245,7 @@ export class GrilleResolver {
 				numbers,
 				object.prise
 			)
+			
 
 			return await getMongoRepository(Grille).save(
 				new Grille({
@@ -243,7 +255,10 @@ export class GrilleResolver {
 					combinations
 				})
 			)
-		}
+			
+			}
+			
+			
 	}
 
 	@Query()

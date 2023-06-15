@@ -183,7 +183,7 @@ export class UserResolver {
 		const { _id } = currentUser
 		const users = await getMongoRepository(User).find({
 			where: {
-				_id: { $ne: _id },
+				
 				accountState: AccountStateType.FINALIZED,
 				deletedAt: null
 			},
@@ -622,7 +622,7 @@ export class UserResolver {
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email,
-				isVerified: true
+				
 			}
 		})
 
