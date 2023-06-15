@@ -639,6 +639,10 @@ export class UserResolver {
 			throw new ForbiddenError('User not found.')
 		}
 
+		if(!user.favorites) 
+
+		
+			user.favorites = []
 		const existingFavorites = user.favorites.findIndex((el) => {
 			return JSON.stringify(el) === JSON.stringify({ numbers, stars })
 		})

@@ -5,11 +5,7 @@ import { Amount, CreateGrilleInput, PayGrilleInput, PaymentStatus, RemoveAmountI
 import { ApolloError, ForbiddenError } from "apollo-server-express";
 import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
 import { AmountOfWallet, User } from "@models";
-import { ObjectId } from "mongodb";
-import * as crypto from 'crypto';
-import { create } from "handlebars/runtime";
-import { constants } from "fs/promises";
-import { InjectRepository } from "@nestjs/typeorm";
+
 import { AmountOfWalletResolver } from "./amount-of-wallet.resolver";
 
 type CombinationsBasic = {numbers: number[]; stars: number[], tuniMillionsCode?: string;};
@@ -44,6 +40,7 @@ export class GrilleResolver{
 				createdAt: 'DESC'
 			}
 		})
+    
 		let depart
 		if (!lastPlayedGrille) {
 			depart = prise > 10 ? 'F WBB 00000' : 'F BBB 00000'
@@ -58,6 +55,7 @@ export class GrilleResolver{
 				combinations.push({ numbers, stars })
 			}
 		}
+    
 		let combWithCode = combinations.map((el, index) => ({
 			numbers: el.numbers,
 			stars: el.stars,
@@ -288,13 +286,17 @@ export class GrilleResolver{
     }
 
     @Query() 
-    async getAllGrillesByUserId(@Args('userId') userId: string): Promise<Grille[]> {
+    async getAllGrillesByUserId(@Args('userId' ) userId: string): Promise<Grille[]> {
+
+      
         return await getMongoRepository(Grille).find({
+          
             cache: true,
             where: {
                 deletedAt: null,
                 userId
-            }
+            },
+           
         })
     }
 
@@ -381,17 +383,35 @@ export class GrilleResolver{
         grillId: grille._id,
 			};
 			const Removewallet = await this.walletResolver.removeAmount( input);
-    
+      if (!Removewallet) {
+        throw new ForbiddenError('something happened payment failed');
+      }
       const updategrille = await getMongoRepository(Grille).findOneAndUpdate(
         { _id: grille._id }, 
         { $set: { paymentStatus: PaymentStatus.PAID } }, 
         { returnOriginal: false })
         
     
-			
-      
+        
         return updategrille.value;
       } 
+
+      @Query()
+      async getGrilleByPaymentStatus(@Args('paymenStatus') paymentStatus: PaymentStatus): Promise<Grille[]> {
+          return getMongoRepository(Grille).find({
+              cache: true,
+              where: {
+                  deletedAt: null,
+                  paymentStatus:paymentStatus
+              }
+          })
     }
     
+    
+  }
+   
+   
+
+
+ 
    

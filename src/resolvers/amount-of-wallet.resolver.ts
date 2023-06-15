@@ -103,14 +103,15 @@ export class AmountOfWalletResolver {
             createdAt: new Date(),
             currency: input.currency
         }]
+		
         const updatedWallet = await getMongoRepository(
             AmountOfWallet
         ).findOneAndUpdate(
             { userId: wallet.userId },
-            { $set: { totalAmount: wallet.totalAmount, outGoingTransactions:outGoingTransactions } },
+            { $set: { totalAmount: updatedTotalAmount, outGoingTransactions:outGoingTransactions } },
             { returnOriginal: false }
         )
-        return wallet
+        return updatedWallet.value
     }
 	
 	@Mutation()

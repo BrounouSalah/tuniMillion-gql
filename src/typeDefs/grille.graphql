@@ -29,8 +29,7 @@ input PayGrilleInput{
     userId:String
     
     
-}
-
+} 
 type Combinations{
     numbers: [Int]
     stars: [Int]
@@ -52,6 +51,7 @@ type Grille{
     combinations: [Combinations]
     prise:Int
     price:Float 
+    
 
 }
 
@@ -59,7 +59,8 @@ type Query {
     getGrille(id: ID!): Grille @isAuthenticated
     getAllGrilles: [Grille]
     getAllGrillesByStatus(status:Status):[Grille] 
-    getAllGrillesByUserId(userId:ID!):[Grille]
+    getAllGrillesByUserId(userId: ID!): [Grille]
+    getGrilleByPaymentStatus(paymentStatus:PaymentStatus):[Grille]
 }
 
 type Mutation {

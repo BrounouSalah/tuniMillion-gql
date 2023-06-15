@@ -208,6 +208,7 @@ type Query {
 	user(_id: ID!): User #@isAuthenticated
 	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
 	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
+	searchUsersByDate(createdAt: String):[User] @isAuthenticated
 }
 
 type Mutation {
