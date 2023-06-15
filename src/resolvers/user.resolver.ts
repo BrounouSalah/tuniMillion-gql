@@ -3,7 +3,6 @@ import {
 	Query,
 	Mutation,
 	Args,
-	Subscription,
 	Context,
 	ResolveProperty,
 	Parent
@@ -15,9 +14,8 @@ import {
 	ForbiddenError,
 	UserInputError
 } from 'apollo-server-core'
-import * as uuid from 'uuid'
 
-import { User } from '@models'
+import { User, UserLimitation } from '@models'
 import { comparePassword, hashPassword } from '@utils'
 import { EmailResolver } from './email.resolver'
 import { FileResolver } from './file.resolver'
@@ -25,16 +23,16 @@ import {
 	CreateUserInput,
 	UpdateUserInput,
 	LoginUserInput,
-	Result,
-	SearchInput,
-	UserResult,
 	LoginResponse,
 	RefreshTokenResponse,
 	Type,
 	AccountStateType,
 	UserFilterInput,
-
-	
+	FilterInput,
+	VerificationTypeFilter,
+	AddFavoritesInput,
+	Favorites,
+	User as UserGraph
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -45,7 +43,11 @@ import { forwardRef, Inject } from '@nestjs/common'
 
 import { sendSms } from 'shared/sms'
 import { GrilleResolver } from './grille.resolver'
-import * as crypto from 'crypto';
+
+import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
+import { UserLimitationResolver } from './userLimitation.resolver'
+
+const DEFAULTUSERLIMITAMAOUNT = 5.999
 
 @Resolver('User')
 export class UserResolver {
@@ -58,86 +60,41 @@ export class UserResolver {
 		@Inject(forwardRef(() => FileResolver))
 		private fileResolver: FileResolver,
 
+		@Inject(forwardRef(() => AmountOfWalletResolver))
+		private walletResolver: AmountOfWalletResolver,
+
+		@Inject(forwardRef(() => UserLimitationResolver))
+		private userLimitationResolver: UserLimitationResolver,
+
 		@Inject(forwardRef(() => GrilleResolver))
 		private grilleResolver: GrilleResolver
-
 	) {}
 
+	// @Query()
+	// async hello(): Promise<string> {
+	// 	return uuid.v1()
+	// }
+
+	// @Query()
+	// async today(): Promise<Date> {
+	// 	return new Date()
+	// }
 	@Query()
-	async hello(): Promise<string> {
-		return uuid.v1()
-	}
-
-	@Query()
-	async today(): Promise<Date> {
-		return new Date()
-	}
-	@Query()
-	async me(@Context('currentUser') currentUser: User): Promise<User> {
-		const grille = await this.grilleResolver.getAllGrillesByUserId(currentUser._id)
-		// let grilles = [{
-		// 	_id:grille._id,
-    	// 	userId: currentUser._id,
-    	// 	Numbers:grille.Numbers,
-    	// 	Stars: [5,3]
-		// }]
-		// currentUser.grilles = grilles
-		return {...currentUser,grilles:grille}
-
-	};
-
-	@Query()
-	async search(@Args('conditions') conditions: SearchInput): Promise<Result[]> {
-		let result
-
-		const { select, where, order, skip, take } = conditions
-
-		if (Object.keys(where).length > 1) {
-			throw new UserInputError('Your where must be 1 collection.')
+	async me(@Context('currentUser') currentUser: User): Promise<UserGraph> {
+		const grilles = await this.grilleResolver.getAllGrillesByUserId(
+			currentUser._id
+		)
+		const userLimitation =
+			await this.userLimitationResolver.getUserLimitationByUserId(
+				currentUser._id
+			)
+		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id)
+		return {
+			...currentUser,
+			grilles: grilles,
+			wallet: wallet,
+			userLimitation: userLimitation
 		}
-
-		const type = Object.keys(where)[0]
-
-		// const createdAt = { $gte: 0, $lte: new Date().getTime() }
-
-		result = await getMongoRepository(type).find({
-			where: where[type] && JSON.parse(JSON.stringify(where[type])),
-			order: order && JSON.parse(JSON.stringify(order)),
-			skip,
-			take
-		})
-
-		// console.log(result)
-
-		if (result.length === 0) {
-			throw new ForbiddenError('Not found.')
-		}
-
-		return result
-	}
-
-	@Query()
-	async searchUser(@Args('userIds') userIds: string[]): Promise<UserResult> {
-		let result
-
-		if (userIds.length === 0) {
-			throw new UserInputError('userIds can not be blank.')
-		}
-
-		result = await getMongoRepository(User).find({
-			where: {
-				_id: { $in: userIds }
-			}
-		})
-
-		// tslint:disable-next-line:prefer-conditional-expression
-		if (result.length > 1) {
-			result = { users: result }
-		} else {
-			result = result[0]
-		}
-
-		return result
 	}
 
 	
@@ -156,22 +113,47 @@ export class UserResolver {
 
 	@Query()
 	async users(
+		@Args('filter') filter: FilterInput,
 		@Args('offset') offset: number,
 		@Args('limit') limit: number
 	): Promise<User[]> {
-		const users = await getMongoRepository(User).find({
-			// where: { email: { $nin: ['trinchinchin@gmail.com'] } },
-			// order: { createdAt: -1 },
-			skip: offset,
-			take: limit,
-			cache: true ,// 1000: 60000 / 1 minute
-			where: {
-                deletedAt: null
-            
-            }
-		})
+		if (
+			filter &&
+			filter.type === undefined &&
+			filter.isVerified === undefined
+		) {
+			const users = await getMongoRepository(User).find({
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+			})
 
-		return users
+
+			return users
+		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
+			const users = await getMongoRepository(User).find({
+				where: {
+					identityVerified: filter.isVerified
+				},
+
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+			})
+
+			return users
+		} else {
+			const users = await getMongoRepository(User).find({
+				where: {
+					isVerified: filter.isVerified
+				},
+				skip: offset,
+				take: limit,
+				cache: true // 1000: 60000 / 1 minute
+			})
+
+			return users
+		}
 	}
 
 	@Query()
@@ -187,7 +169,7 @@ export class UserResolver {
 				accountState: AccountStateType.FINALIZED,
 				deletedAt: null
 			},
-			// order: { createdAt: -1 },
+
 			skip: offset,
 			take: limit,
 			cache: true // 1000: 60000 / 1 minute
@@ -251,15 +233,16 @@ export class UserResolver {
 	async createUser(
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
-		@Context('req') req: any,
-	
+		@Context('req') req: any
+
+		//@Context('idLimitation') idLimitation: UserLimitation
 	): Promise<User> {
+		//const { _id } = idLimitation
+		//input.IdUserLimitation = _id
 		try {
 			let { email, password } = input
 			email = email.toLocaleLowerCase()
-
 			let existedUser
-
 			existedUser = await getMongoRepository(User).findOne({
 				where: {
 					'local.email': email
@@ -286,11 +269,8 @@ export class UserResolver {
 						local: {
 							email,
 							password: await hashPassword(password)
-						},
-
-					
+						}
 					})
-				 
 				)
 
 				return updateUser
@@ -298,17 +278,38 @@ export class UserResolver {
 
 			const createdUser = await getMongoRepository(User).save(
 				new User({
-					accountState: AccountStateType.FINALIZED,
 					...input,
-					isVerified: true,
+					isVerified: false,
 					local: {
 						email,
 						password: await hashPassword(password)
-					},
-
-				
+					}
 				})
 			)
+
+			//call create wallet from  amount of wallet and update user with walletId
+			const wallet = await this.walletResolver.createWallet({
+				userId: createdUser._id
+			})
+			//call create user limitation and update user with userLimitationId
+			const defaultUserLimitationInput = {
+				userId: createdUser._id,
+				limit: DEFAULTUSERLIMITAMAOUNT
+			}
+			const UserLimitation =
+				await this.userLimitationResolver.createUserLimitation(
+					defaultUserLimitationInput
+				)
+			createdUser.walletId = wallet._id
+			createdUser.userLimitationId = UserLimitation._id
+
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: createdUser._id },
+				{ $set: { ...createdUser, walletId: wallet._id } },
+				{ returnOriginal: false }
+			)
+
+			//get user and return it with new walletId
 
 			pubsub.publish(USER_SUBSCRIPTION, { userCreated: createdUser })
 
@@ -323,7 +324,7 @@ export class UserResolver {
 
 			// await sendSms(input.phoneNumber, emailToken)
 
-			//await sendMail('verifyEmail', createdUser, emailToken)
+			await sendMail('verifyEmail', createdUser, emailToken)
 
 			return createdUser
 		} catch (error) {
@@ -331,61 +332,61 @@ export class UserResolver {
 		}
 	}
 
-	@Mutation()
-	async createUserAuth(@Args('input') input: string): Promise<User> {
-		try {
-			let existedUser
+	// @Mutation()
 
-			existedUser = await getMongoRepository(User).findOne({
-				where: {
-					'local.email': input.toLocaleLowerCase()
-				}
-			})
+	// async createUserAuth(@Args('input') input: string): Promise<User> {
+	// 	try {
+	// 		let existedUser
 
-			if (
-				existedUser &&
-				existedUser.accountState == AccountStateType.FINALIZED
-			) {
-				return existedUser
-			} else if (
-				existedUser &&
-				existedUser.accountState == AccountStateType.PENDING
-			) {
-				await sendMail(
-					'finalizeRegistration',
-					existedUser,
-					existedUser.local.password
-				)
-				return existedUser
-			} else {
-				let password = generate({
-					length: 10,
-					numbers: true
-				})
-				const createdUser = await getMongoRepository(User).save(
-					new User({
-						accountState: AccountStateType.PENDING,
-						isVerified: true,
-						local: {
-							email: input.toLocaleLowerCase(),
-							password: await hashPassword(password)
-						},
-						
-						
-					})
-				)
-				await this.emailResolver.createEmail({
-					userId: createdUser._id,
-					type: Type.FINALIZE_REGISTRATION
-				}),
+	// 		existedUser = await getMongoRepository(User).findOne({
+	// 			where: {
+	// 				'local.email': input.toLocaleLowerCase()
+	// 			}
+	// 		})
 
-				await sendMail('finalizeRegistration', createdUser, password)
-				return createdUser
-			}
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
+	// 		if (
+	// 			existedUser &&
+	// 			existedUser.accountState == AccountStateType.FINALIZED
+	// 		) {
+	// 			return existedUser
+	// 		} else if (
+	// 			existedUser &&
+	// 			existedUser.accountState == AccountStateType.PENDING
+	// 		) {
+	// 			await sendMail(
+	// 				'finalizeRegistration',
+	// 				existedUser,
+	// 				existedUser.local.password
+	// 			)
+	// 			return existedUser
+	// 		} else {
+	// 			let password = generate({
+	// 				length: 10,
+	// 				numbers: true
+	// 			})
+	// 			const createdUser = await getMongoRepository(User).save(
+	// 				new User({
+
+	// 					isVerified: true,
+	// 					local: {
+	// 						email: input.toLocaleLowerCase(),
+	// 						password: await hashPassword(password)
+	// 					},
+
+	// 				})
+	// 			)
+	// 			await this.emailResolver.createEmail({
+	// 				userId: createdUser._id,
+	// 				type: Type.FINALIZE_REGISTRATION
+	// 			}),
+
+	// 			await sendMail('finalizeRegistration', createdUser, password)
+	// 			return createdUser
+	// 		}
+	// 	} catch (error) {
+	// 		throw new ApolloError(error)
+	// 	}
+	// }
 
 	@Mutation()
 	async updateUser(
@@ -414,7 +415,6 @@ export class UserResolver {
 	}
 
 	async changeUserAccountState(user: User) {
-		user.accountState = AccountStateType.FINALIZED
 		await getMongoRepository(User).findOneAndUpdate(
 			{ _id: user._id },
 			{ $set: user },
@@ -450,33 +450,6 @@ export class UserResolver {
 	}
 
 	@Mutation()
-	async updateUserBackgroundAvatar(
-		@Args('_id') _id: string,
-		@Args('file') file: any,
-		@Context('req') req: any
-	): Promise<boolean> {
-		try {
-			const user = await getMongoRepository(User).findOne({ _id })
-
-			if (!user) {
-				throw new ForbiddenError('User not found.')
-			}
-
-			const newFile = await this.fileResolver.uploadFileLocal(file, req)
-			user.background = newFile.path
-
-			const updateUser = await getMongoRepository(User).findOneAndUpdate(
-				{ _id: user._id },
-				{ $set: user },
-				{ returnOriginal: false }
-			)
-			return updateUser ? true : false
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
-
-	@Mutation()
 	async deleteUser(@Args('_id') _id: string): Promise<boolean> {
 		try {
 			const user = await getMongoRepository(User).findOne({ _id })
@@ -492,7 +465,6 @@ export class UserResolver {
 				{ returnOriginal: false }
 			)
 			return updateUser ? true : false
-			
 		} catch (error) {
 			throw new ApolloError(error)
 		}
@@ -513,10 +485,7 @@ export class UserResolver {
 
 	@Mutation()
 	async verifyEmail(@Args('emailToken') emailToken: string): Promise<boolean> {
-		// const user = await verifyEmailToken(emailToken)
 		const user = await verifyToken(emailToken, 'emailToken')
-
-		//console.log(user)
 
 		if (!user.isVerified) {
 			user.isVerified = true
@@ -533,7 +502,7 @@ export class UserResolver {
 
 	@Mutation()
 	async login(@Args('input') input: LoginUserInput): Promise<LoginResponse> {
-		const { email, password } = input
+		const { email, password, birthDate } = input
 		const user = await getMongoRepository(User).findOne({
 			where: {
 				'local.email': email.toLocaleLowerCase()
@@ -541,7 +510,11 @@ export class UserResolver {
 		})
 
 		if (user && (await comparePassword(password, user.local.password))) {
-			return await tradeToken(user)
+			if (user.birthDate === birthDate) {
+				return await tradeToken(user)
+			} else {
+				throw new AuthenticationError('Incorrect birthdate.')
+			}
 		}
 		throw new AuthenticationError('Login failed.')
 	}
@@ -558,38 +531,12 @@ export class UserResolver {
 	}
 
 	@Mutation()
-	async lockAndUnlockUser(
-		@Args('_id') _id: string,
-		@Args('reason') reason: string
-	): Promise<boolean> {
-		try {
-			const user = await getMongoRepository(User).findOne({ _id })
-
-			if (!user) {
-				throw new ForbiddenError('User not found.')
-			}
-			user.reason = !user.isLocked ? reason : ''
-			user.isLocked = !user.isLocked
-			const updateUser = await getMongoRepository(User).findOneAndUpdate(
-				{ _id: user._id },
-				{ $set: user },
-				{ returnOriginal: false }
-			)
-			return updateUser ? true : false
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
-
-	@Mutation()
 	async changePassword(
 		@Args('_id') _id: string,
 		@Args('currentPassword') currentPassword: string,
 		@Args('password') password: string
 	): Promise<boolean> {
 		const user = await getMongoRepository(User).findOne({ _id })
-
-		// console.log(currentPassword , password)
 
 		if (!user) {
 			throw new ForbiddenError('User not found.')
@@ -621,8 +568,7 @@ export class UserResolver {
 	): Promise<boolean> {
 		const user = await getMongoRepository(User).findOne({
 			where: {
-				'local.email': email,
-				
+				'local.email': email
 			}
 		})
 
@@ -636,8 +582,6 @@ export class UserResolver {
 			userId: user._id,
 			type: Type.FORGOT_PASSWORD
 		})
-
-		// console.log(existedEmail)
 
 		await sendMail('forgotPassword', user, resetPassToken)
 
@@ -681,131 +625,43 @@ export class UserResolver {
 		return updateUser ? true : false
 	}
 
-	// @Mutation()
-	// async createSubscription(
-	// 	@Args('source') source: string,
-	// 	@Args('ccLast4') ccLast4: string,
-	// 	@Context('currentUser') currentUser: User
-	// ): Promise<User> {
-	// 	// console.log(source)
-	// 	if (currentUser.stripeId) {
-	// 		throw new ForbiddenError('stripeId already existed.')
-	// 	}
-	// 	const email = currentUser.local
-	// 		? currentUser.local.email
-	// 		: currentUser.google
-	// 		? currentUser.google.email
-	// 		: currentUser.facebook.email
-
-	// 	const customer = await stripe.customers.create({
-	// 		email,
-	// 		source,
-	// 		plan: STRIPE_PLAN!
-	// 	})
-
-	// 	// console.log(customer)
-
-	// 	const user = await getMongoRepository(User).save(
-	// 		new User({
-	// 			...currentUser,
-	// 			stripeId: customer.id,
-	// 			type: UserType.PREMIUM,
-	// 			ccLast4
-	// 		})
-	// 	)
-
-	// 	return user
-	// }
-
-	// @Mutation()
-	// async changeCreditCard(
-	// 	@Args('source') source: string,
-	// 	@Args('ccLast4') ccLast4: string,
-	// 	@Context('currentUser') currentUser: User
-	// ): Promise<User> {
-	// 	// console.log(source)
-	// 	if (!currentUser.stripeId || currentUser.type !== UserType.PREMIUM) {
-	// 		throw new ForbiddenError('User not found.')
-	// 	}
-
-	// 	await stripe.customers.update(currentUser.stripeId, {
-	// 		source
-	// 	})
-
-	// 	const updateUser = await getMongoRepository(User).save(
-	// 		new User({
-	// 			...currentUser,
-	// 			ccLast4
-	// 		})
-	// 	)
-
-	// 	return updateUser
-	// }
-
-	// @Mutation()
-	// async cancelSubscription(
-	// 	@Context('currentUser') currentUser: User
-	// ): Promise<User> {
-	// 	// console.log(source)
-	// 	if (!currentUser.stripeId || currentUser.type !== UserType.PREMIUM) {
-	// 		throw new ForbiddenError('User not found.')
-	// 	}
-
-	// 	// console.log(currentUser.stripeId)
-
-	// 	const stripeCustomer = await stripe.customers.retrieve(currentUser.stripeId)
-
-	// 	// console.log(stripeCustomer.sources)
-
-	// 	const [subscription] = stripeCustomer.subscriptions.data
-
-	// 	// console.log(subscription)
-
-	// 	await stripe.subscriptions.del(subscription.id)
-
-	// 	await stripe.customers.deleteCard(
-	// 		currentUser.stripeId,
-	// 		stripeCustomer.default_source as string
-	// 	)
-
-	// 	currentUser.stripeId = null
-	// 	currentUser.type = UserType.BASIC
-
-	// 	const user = await getMongoRepository(User).save(currentUser)
-
-	// 	return user
-	// }
-
-	@Subscription(() => Object, {
-		filter: (payload: any, variables: any) => {
-			// console.log('payload', payload)
-			// console.log('variables', variables)
-			// return payload.menuPublishByOrder.currentsite === variables.currentsite
-			return true
-		}
-	})
-	async newUser(@Context('pubsub') pubsub: any): Promise<User> {
-		return pubsub.asyncIterator(USER_SUBSCRIPTION)
-	}
-
-	@ResolveProperty()
-	async fullName(@Parent() user: User): Promise<string> {
-		const { firstName, lastName } = user
-		return `${firstName} ${lastName}`
-	}
-
-	// @ResolveProperty()
-	// async local(@Parent() user: User): Promise<object> {
-	// 	const { local } = user
-	// 	local.password = ''
-	// 	return local
-	// }
-
 	@Mutation()
-	async validateUser(
-		@Args('text') text: string,
-		@Args('input') input: CreateUserInput
-	): Promise<boolean> {
-		return true
+	async addFavorites(
+		@Args('input') input: AddFavoritesInput,
+		@Context('currentUser') currentUser: User
+	): Promise<User> {
+		const { numbers, stars } = input
+		const user = await getMongoRepository(User).findOne({
+			_id: currentUser._id
+		})
+
+		if (!user) {
+			throw new ForbiddenError('User not found.')
+		}
+
+		const existingFavorites = user.favorites.findIndex((el) => {
+			return JSON.stringify(el) === JSON.stringify({ numbers, stars })
+		})
+
+		if (existingFavorites !== -1) {
+			let newFav = [...user.favorites]
+			newFav.splice(existingFavorites, 1)
+
+			await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { favorites: newFav } },
+				{ returnOriginal: false }
+			)
+		} else {
+			let favorite = [...user.favorites]
+			favorite.push({ numbers, stars })
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { favorites: favorite } },
+				{ returnOriginal: false }
+			)
+		}
+
+		return user
 	}
 }

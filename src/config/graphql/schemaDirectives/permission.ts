@@ -9,7 +9,7 @@ class PermissionDirective extends SchemaDirectiveVisitor {
 		const { resolve = defaultFieldResolver } = field
 		const { permission } = this.args
 
-		field.resolve = async function(...args) {
+		field.resolve = async function (...args) {
 			const { currentUser } = args[2]
 
 			if (!currentUser) {

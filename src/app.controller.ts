@@ -27,7 +27,11 @@ export class AppController {
 	postGitlab(@Res() res): any {
 		return res.body
 	}
-
+	@Post('/payments/result')
+	runPaymentNotif(@Res() res): any {
+		console.log(res.body)
+		return res.code(200).send('OK')
+	}
 	@Get('cache')
 	@UseInterceptors(CacheInterceptor)
 	incrementCounter() {

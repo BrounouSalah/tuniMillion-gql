@@ -5,9 +5,11 @@ import {
 	Local,
 	Google,
 	Facebook,
-	UserType,
-	AccountStateType,
-	Grille
+	Grille,
+	Address,
+	Gender,
+	UserVerificationData,
+	Favorites
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -20,6 +22,10 @@ export class User {
 	@Expose()
 	@ObjectIdColumn()
 	_id: string
+
+	@Expose()	
+	@Column()
+	userLimitationId: string
 
 	@Expose()
 	@Column()
@@ -51,7 +57,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	address: string
+	address: Address
 
 	@Expose()
 	@Column()
@@ -59,15 +65,7 @@ export class User {
 
 	@Expose()
 	@Column()
-	accountState: AccountStateType
-
-	@Expose()
-	@Column()
 	avatar: string
-
-	@Expose()
-	@Column()
-	background: string
 
 	@Expose()
 	@Column()
@@ -83,19 +81,27 @@ export class User {
 
 	@Expose()
 	@Column()
-	isOnline: boolean
+	pseudoName: string
 
 	@Expose()
 	@Column()
-	isLocked: boolean
+	secondeName: string
 
 	@Expose()
 	@Column()
-	reason: string
+	thirdName: string
 
 	@Expose()
 	@Column()
-	stripeId: string
+	termsOfUse: boolean
+
+	@Expose()
+	@Column()
+	userVerificationData: UserVerificationData
+
+	@Expose()
+	@Column()
+	identityVerified: boolean
 
 	@Expose()
 	@Column()
@@ -103,7 +109,11 @@ export class User {
 
 	@Expose()
 	@Column()
-	type: UserType
+	gender: Gender
+
+	@Expose()
+	@Column()
+	favorites:Favorites[]
 
 	@Expose()
 	@Column()
@@ -143,7 +153,12 @@ export class User {
 			this.reason = this.reason || ''
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-			this.type = this.type || UserType.BASIC
+			this.userVerificationData=this.userVerificationData || { verificationImage: [],
+				type: "",
+				isVerified: false}
+				this.identityVerified=this.identityVerified || false
+			this.userLimitationId = this.userLimitationId || ""
+			this.favorites=this.favorites || []
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}

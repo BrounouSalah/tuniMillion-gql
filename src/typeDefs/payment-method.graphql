@@ -1,0 +1,100 @@
+type Query {
+	getPaymentDetails(id: String!): PaymentDetails
+}
+
+type Mutation {
+	createPayment(PaymentInput: PaymentInput!): PaymentResponse @isAuthenticated
+	completePayment(id: String!, PAReq: String!): PaymentDetails
+	confirmPayment(id: String!, amount: AmountInput!): Boolean
+	cancelPayment(id: String!): Boolean
+}
+
+enum PaymentStatusEnum {
+	Initiated
+	Pending
+	Rejected
+	Success
+	Settled
+}
+
+enum Currency {
+	TND
+}
+
+type PaymentDetails {
+	id: String
+	status: PaymentStatusEnum
+	created: String
+	merchantId: String
+	amount: Amount
+	invoice: Invoice
+	paymentData: PaymentData
+	resultCode: String	
+}
+
+input PaymentInput {
+	amount: AmountInput!
+	paymentMethod: String!
+}
+type Protocol{
+	returnUrl: String!
+	callbackUrl: String!
+}
+
+input ProtocolInput{
+	returnUrl: String!
+	callbackUrl: String!
+}
+
+type Customer{
+	email: String!
+	phone: String!
+}
+
+input CustomerInput{
+	email: String!
+	phone: String!
+}
+
+type PaymentResponse {
+	id: String!
+	url: String!
+}
+
+type Amount {
+	value: Float
+	currency: Currency
+}
+
+input AmountInput {
+	value: Float!
+	currency: Currency!
+}
+
+type Invoice {
+	description: String
+	params: Params
+}
+
+input InvoiceInput {
+	description: String!
+	params: ParamsInput!
+}
+
+type Params {
+	BT_USR: String
+}
+
+input ParamsInput {
+	BT_USR: String!
+}
+
+type PaymentData {
+	paymentMethod: String
+}
+
+enum PaymentDataMethod {
+	bankcard
+	runpay
+	webmoney
+}

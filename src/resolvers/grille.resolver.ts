@@ -1,26 +1,29 @@
-import { Args, Mutation, Query, Context } from '@nestjs/graphql'
-import { getMongoRepository } from 'typeorm'
-import { Grille } from '../models/grille.entity'
-import {
-	Combinations,
-	CreateGrilleInput,
-	Status,
-	UpdateGrilleInput
-} from 'generator/graphql.schema'
-import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { NotFoundException } from '@nestjs/common'
-import { User } from '@models'
+import { Args, Mutation, Query,Context } from "@nestjs/graphql";
+import { getMongoRepository } from "typeorm";
+import { Grille } from "../models/grille.entity";
+import { Amount, CreateGrilleInput, PayGrilleInput, PaymentStatus, RemoveAmountInput, Status, UpdateGrilleInput } from "generator/graphql.schema";
+import { ApolloError, ForbiddenError } from "apollo-server-express";
+import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
+import { AmountOfWallet, User } from "@models";
+import { ObjectId } from "mongodb";
+import * as crypto from 'crypto';
+import { create } from "handlebars/runtime";
+import { constants } from "fs/promises";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AmountOfWalletResolver } from "./amount-of-wallet.resolver";
 
-type CombinationsBasic = {
-	numbers: number[]
-	stars: number[]
-	tuniMillionsCode?: string
-}
+type CombinationsBasic = {numbers: number[]; stars: number[], tuniMillionsCode?: string;};
 
-export class GrilleResolver {
-	constructor() {}
 
-	async generateCombinations(
+export class GrilleResolver{
+    constructor(
+      @Inject(forwardRef(() => AmountOfWalletResolver))
+		  private walletResolver: AmountOfWalletResolver
+      
+    ) {}
+    
+   
+   async generateCombinations(
 		starArray: number[],
 		numberArray: number[],
 		prise
@@ -152,72 +155,71 @@ export class GrilleResolver {
 		return consonantArray.join('')
 	}
 
-	@Mutation()
-	async createGrille(
-		@Args('input') input: CreateGrilleInput,
-		@Context('currentUser') currentUser: User
-	): Promise<Grille> {
-		const { _id } = currentUser
-		input.userId = _id
+    
 
-		const gridPrice = [
-			[
-				{ price: 5, prise: 1 },
-				{ price: 30, prise: 6 },
-				{ price: 165, prise: 21 },
-				{ price: 280, prise: 56 },
-				{ price: 630, prise: 126 },
-				{ price: 1260, prise: 252 }
-			],
-			[
-				{ price: 15, prise: 3 },
-				{ price: 90, prise: 18 },
-				{ price: 315, prise: 63 },
-				{ price: 840, prise: 168 },
-				{ price: 1890, prise: 378 }
-			],
-			[
-				{ price: 30, prise: 6 },
-				{ price: 180, prise: 36 },
-				{ price: 630, prise: 126 },
-				{ price: 1680, prise: 336 }
-			],
-			[
-				{ price: 50, prise: 10 },
-				{ price: 300, prise: 60 },
-				{ price: 1050, prise: 210 }
-			],
-			[
-				{ price: 75, prise: 15 },
-				{ price: 550, prise: 90 },
-				{ price: 1575, prise: 315 }
-			],
-			[
-				{ price: 105, prise: 21 },
-				{ price: 630, prise: 126 }
-			],
-			[
-				{ price: 140, prise: 28 },
-				{ price: 840, prise: 168 }
-			],
-			[
-				{ price: 180, prise: 36 },
-				{ price: 1080, prise: 216 }
-			],
-			[
-				{ price: 225, prise: 45 },
-				{ price: 1350, prise: 270 }
-			],
-			[
-				{ price: 275, prise: 55 },
-				{ price: 1650, prise: 330 }
-			],
-			[
-				{ price: 330, prise: 66 },
-				{ price: 1980, prise: 396 }
-			]
-		]
-		const { numbers, stars } = input
+    @Mutation()
+    async createGrille(@Args('input') input: CreateGrilleInput,@Context('currentUser') currentUser: User): Promise<Grille> {
+        const { _id } = currentUser
+        input.userId = _id
+
+        const gridPrice = [
+          [
+            { price: 7.5, prise: 1 },
+            { price: 45, prise: 6 },
+            { price: 157.5, prise: 21 },
+            { price: 420, prise: 56 },
+            { price: 945, prise: 126 },
+            { price: 1890, prise: 252 },
+          ],
+          [
+            { price: 22.5, prise: 3 },
+            { price: 135, prise: 18 },
+            { price: 472.5, prise: 63 },
+            { price: 1260, prise: 168 },
+            { price: 2835, prise: 378 },
+          ],
+          [
+            { price: 45, prise: 6 },
+            { price: 270, prise: 36 },
+            { price: 945, prise: 126 },
+            { price: 2520, prise: 336 },
+          ],
+          [
+            { price: 75, prise: 10 },
+            { price: 450, prise: 60 },
+            { price: 1575, prise: 210 },
+          ],
+          [
+            { price: 112.5, prise: 15 },
+            { price: 675, prise: 90 },
+            { price: 2162.5, prise: 315 },
+          ],
+          [
+            { price: 157.5, prise: 21 },
+            { price: 945, prise: 126 },
+          ],
+          [
+            { price: 210, prise: 28 },
+            { price: 1260, prise: 168 },
+          ],
+          [
+            { price: 270, prise: 36 },
+            { price: 1620, prise: 216 },
+          ],
+          [
+            { price: 337.5, prise: 45 },
+            { price: 2025, prise: 270 },
+          ],
+          [
+            { price: 412.5, prise: 55 },
+            { price: 2475, prise: 330 },
+          ],
+          [
+            { price: 495, prise: 66 },
+            { price: 2970, prise: 396 },
+          ],
+        ];
+	const { numbers, stars } = input
 		 
 		if (numbers.some((number) => number < 1 || number > 50) || new Set(numbers).size !== numbers.length || numbers.length > 10 ) {
 			throw  new ForbiddenError('Invalid numbers. Please provide a unique set of numbers between 1 and 50 and a maximum of 10 numbers..');
@@ -261,93 +263,135 @@ export class GrilleResolver {
 			
 	}
 
-	@Query()
-	async getAllGrilles(): Promise<Grille[]> {
-		return getMongoRepository(Grille).find({
-			cache: true,
-			where: {
-				deletedAt: null
-			}
-		})
-	}
+    @Query()
+    async getAllGrilles(): Promise<Grille[]> {
+        
+        return getMongoRepository(Grille).find({
+            cache: true,
+            where: {
+                deletedAt: null
+            
+            }
+        })
+    }
 
-	@Query()
-	async getAllGrillesByStatus(
-		@Args('status') status: Status
-	): Promise<Grille[]> {
-		return getMongoRepository(Grille).find({
-			cache: true,
-			where: {
-				deletedAt: null,
-				status: status
-			}
-		})
-	}
 
-	@Query()
-	async getAllGrillesByUserId(
-		@Args('userId') userId: string
-	): Promise<Grille[]> {
-		return await getMongoRepository(Grille).find({
-			cache: true,
-			where: {
-				deletedAt: null,
-				userId
-			}
-		})
-	}
+    @Query()
+    async getAllGrillesByStatus(@Args('status') status: Status): Promise<Grille[]> {
+        return getMongoRepository(Grille).find({
+            cache: true,
+            where: {
+                deletedAt: null,
+                status:status
+            }
+        })
+    }
 
-	@Query()
-	async getGrille(@Args('id') id: string): Promise<Grille> {
-		return getMongoRepository(Grille).findOne({
-			where: {
-				_id: id,
-				deletedAt: null
-			}
-		})
-	}
+    @Query() 
+    async getAllGrillesByUserId(@Args('userId') userId: string): Promise<Grille[]> {
+        return await getMongoRepository(Grille).find({
+            cache: true,
+            where: {
+                deletedAt: null,
+                userId
+            }
+        })
+    }
 
-	@Mutation()
-	async deleteGrille(@Args('_id') _id: string): Promise<Boolean> {
-		// const grille = await  getMongoRepository(Grille).softDelete({ _id})
-		//  grille.deletedAt = new Date(Date.now())
-		// return grille
+    @Query()
+    async getGrille(@Args('id') id: string): Promise<Grille> {
+   
+          return getMongoRepository(Grille).findOne({
+            where: {
+                _id: id,
+                deletedAt: null,
+               
+            }
+        })
+        }
+    
 
-		const grille = await getMongoRepository(Grille).findOne({ _id })
+    @Mutation()
+    async deleteGrille(@Args('_id') _id: string): Promise<Boolean> {
 
-		if (!grille) {
-			throw new NotFoundException('Grille not found')
-		}
-		grille.deletedAt = new Date(Date.now())
+        // const grille = await  getMongoRepository(Grille).softDelete({ _id})
+        //  grille.deletedAt = new Date(Date.now())
+        // return grille 
+       
+        const grille = await getMongoRepository(Grille).findOne({ _id})
 
-		const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
-			{ _id: grille._id },
-			{ $set: grille },
-			{ returnOriginal: false }
-		)
-		return updateGrille ? true : false
-	}
+        if (!grille) 
+           {
+			throw new NotFoundException('Grille not found');
+           }
+           grille.deletedAt = new Date(Date.now())
 
-	@Mutation()
-	async updateGrille(
-		@Args('userId') userId: string,
-		@Args('input') input: UpdateGrilleInput
-	): Promise<boolean> {
-		try {
-			const grille = await getMongoRepository(Grille).findOne({ userId })
+           const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
+            { _id: grille._id },
+            { $set: grille },
+            { returnOriginal: false }
+        )
+        return updateGrille ? true : false
+       
+           } 
 
-			if (!grille) {
-				throw new ForbiddenError('grille not found.')
-			}
 
-			const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
-				{ userId: userId },
-				{ $set: input },
-				{ returnOriginal: false }
-			)
-			return updateGrille ? true : false
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
-}
+    @Mutation()
+    async updateGrille(@Args('userId') userId: string,@Args('input') input: UpdateGrilleInput): Promise<Boolean> {
+        
+        const grille = await getMongoRepository(User).findOne({_id:userId})
+        if (!grille) {
+            throw new ForbiddenError('Grille not found.')
+        } else {
+            // if (grille.Numbers == null && input.Numbers != null) 
+          
+                await this.changeGrilleAccountState(grille)
+            
+        }
+        const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
+            { userId: grille._id },
+            { $set: input },
+            { returnOriginal: false }
+        )
+        return updateGrille ? true : false
+    }
+    changeGrilleAccountState(grille: any) {
+        throw new Error("Method not implemented.");
+    }
+
+    @Mutation()
+    async payGrille(
+      @Args('id') id: string,
+    ): Promise<Grille> {
+      const grille = await getMongoRepository(Grille).findOne({ _id: id });
+      if (!grille) {
+        throw new NotFoundException('Grille not found');
+      }
+
+      const wallet = await this.walletResolver.getWalletByUserId(grille.userId);
+     
+      if (!wallet) {
+        throw new ForbiddenError('Wallet not found');
+      }
+    	const userId = grille.userId;
+			const amount = grille.price;
+			const input: RemoveAmountInput = {
+			  userId,
+				amount,
+        grillId: grille._id,
+			};
+			const Removewallet = await this.walletResolver.removeAmount( input);
+    
+      const updategrille = await getMongoRepository(Grille).findOneAndUpdate(
+        { _id: grille._id }, 
+        { $set: { paymentStatus: PaymentStatus.PAID } }, 
+        { returnOriginal: false })
+        
+    
+			
+      
+        return updategrille.value;
+      } 
+    }
+    
+   
