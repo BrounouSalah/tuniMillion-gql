@@ -61,6 +61,7 @@ type Query {
     getAllGrillesByStatus(status:Status):[Grille] 
     getAllGrillesByUserId(userId: ID!, offSet: Int, limit: Int ): [Grille]
     getGrilleByPaymentStatus(paymentStatus:PaymentStatus , offSet: Int, limit: Int):[Grille]
+    getGrilleByPaymentStatusAndUserId(paymentStatus:PaymentStatus, offSet: Int, limit: Int):[Grille] @isAuthenticated
 }
 
 type Mutation {
