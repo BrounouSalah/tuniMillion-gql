@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"lib":["es2019"],
+		"lib": ["es2019"],
 		"module": "commonjs",
 		"declaration": true,
 		"removeComments": true,
@@ -10,6 +10,7 @@
 		"sourceMap": true,
 		"incremental": true,
 		"allowSyntheticDefaultImports": true,
+		"types": ["jest", "mocha"],
 		"noLib": false,
 		"noImplicitAny": false,
 		"skipLibCheck": true,
@@ -27,7 +28,12 @@
 			"@validations": ["validations"]
 		}
 	},
-	"include": ["src/**/*.ts", "src/services/reviews/index.js", "src/resolvers/messageItem.resolver.ts"],
+	"include": [
+		"src/**/*.ts",
+		"src/services/reviews/index.js",
+		"src/resolvers/messageItem.resolver.ts",
+		"test/**/*.ts"
+	],
 	"compileOnSave": false,
 	"exclude": [
 		"node_modules",
