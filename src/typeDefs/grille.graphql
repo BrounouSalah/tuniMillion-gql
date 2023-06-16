@@ -57,10 +57,10 @@ type Grille{
 
 type Query {
     getGrille(id: ID!): Grille @isAuthenticated
-    getAllGrilles: [Grille]
+    getAllGrilles(offSet: Int, limit: Int ): [Grille]
     getAllGrillesByStatus(status:Status):[Grille] 
-    getAllGrillesByUserId(userId: ID!): [Grille]
-    getGrilleByPaymentStatus(paymentStatus:PaymentStatus):[Grille]
+    getAllGrillesByUserId(userId: ID!, offSet: Int, limit: Int ): [Grille]
+    getGrilleByPaymentStatus(paymentStatus:PaymentStatus , offSet: Int, limit: Int):[Grille]
 }
 
 type Mutation {

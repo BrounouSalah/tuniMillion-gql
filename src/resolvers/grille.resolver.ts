@@ -262,14 +262,17 @@ export class GrilleResolver{
 	}
 
     @Query()
-    async getAllGrilles(): Promise<Grille[]> {
+    async getAllGrilles(@Args('offSet') offSet?: number, @Args('limit') limit?:number): Promise<Grille[]> {
+		
         
         return getMongoRepository(Grille).find({
             cache: true,
             where: {
                 deletedAt: null
             
-            }
+            },
+			skip:offSet,
+			take: limit,
         })
     }
 
@@ -286,9 +289,8 @@ export class GrilleResolver{
     }
 
     @Query() 
-    async getAllGrillesByUserId(@Args('userId' ) userId: string): Promise<Grille[]> {
-
-      
+    async getAllGrillesByUserId(@Args('userId' ) userId: string, @Args('offSet') offSet?: number, @Args('limit') limit?:number): Promise<Grille[]> {
+		
         return await getMongoRepository(Grille).find({
           
             cache: true,
@@ -296,6 +298,8 @@ export class GrilleResolver{
                 deletedAt: null,
                 userId
             },
+			skip:offSet,
+      		take: limit,
            
         })
     }
@@ -397,13 +401,15 @@ export class GrilleResolver{
       } 
 
       @Query()
-      async getGrilleByPaymentStatus(@Args('paymenStatus') paymentStatus: PaymentStatus): Promise<Grille[]> {
+      async getGrilleByPaymentStatus(@Args('paymenStatus') paymentStatus: PaymentStatus,@Args('offSet') offSet?: number, @Args('limit') limit?:number): Promise<Grille[]> {
           return getMongoRepository(Grille).find({
               cache: true,
               where: {
                   deletedAt: null,
                   paymentStatus:paymentStatus
-              }
+              },
+              skip:offSet,
+      		    take: limit,
           })
     }
     
