@@ -9,7 +9,8 @@ import {
 	Address,
 	Gender,
 	UserVerificationData,
-	Favorites
+	Favorites,
+	Roles
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -23,9 +24,13 @@ export class User {
 	@ObjectIdColumn()
 	_id: string
 
-	@Expose()	
+	@Expose()
 	@Column()
 	userLimitationId: string
+
+	@Expose()
+	@Column()
+	userRole: Roles
 
 	@Expose()
 	@Column()
@@ -113,13 +118,12 @@ export class User {
 
 	@Expose()
 	@Column()
-	favorites:Favorites[]
+	favorites: Favorites[]
 
 	@Expose()
 	@Column()
-	grilles:Grille[]
+	grilles: Grille[]
 
-	
 	@Expose()
 	@Column()
 	createdAt: Date
@@ -131,7 +135,6 @@ export class User {
 	@Expose()
 	@Column()
 	deletedAt: Date
-   
 
 	constructor(user: Partial<User>) {
 		if (user) {
@@ -150,12 +153,15 @@ export class User {
 					: true
 			this.phoneNumber = this.phoneNumber || ''
 			this.walletId = this.walletId || null
-			this.userVerificationData=this.userVerificationData || { verificationImage: [],
-				type: "",
-				isVerified: false}
-				this.identityVerified=this.identityVerified || false
-			this.userLimitationId = this.userLimitationId || ""
-			this.favorites=this.favorites || []
+			this.userVerificationData = this.userVerificationData || {
+				verificationImage: [],
+				type: '',
+				isVerified: false
+			}
+			this.identityVerified = this.identityVerified || false
+			this.userLimitationId = this.userLimitationId || ''
+			this.userRole = this.userRole || Roles.USER
+			this.favorites = this.favorites || []
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}
