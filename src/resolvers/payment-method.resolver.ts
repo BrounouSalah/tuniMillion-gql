@@ -11,89 +11,88 @@ import {
 import { getMongoRepository } from 'typeorm'
 import { PaymentMethod } from 'models/payment-method.entity'
 import { ForbiddenError } from 'apollo-server-express'
-import { Inject, NotFoundException, forwardRef } from '@nestjs/common';
-import { UserLimitationResolver } from './userLimitation.resolver';
-import { User, UserLimitation } from '@models';
+import { Inject, NotFoundException, forwardRef } from '@nestjs/common'
+import { UserLimitationResolver } from './userLimitation.resolver'
+import { User, UserLimitation } from '@models'
 import { update } from 'lodash'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 
 @Resolver()
 export class PaymentMethodResolver {
-	
-	constructor(private httpService: HttpService,
+	constructor(
+		private httpService: HttpService,
 		@Inject(forwardRef(() => UserLimitationResolver))
 		private userLimitation: UserLimitationResolver,
 
 		@Inject(forwardRef(() => AmountOfWalletResolver))
 		private walletResolver: AmountOfWalletResolver
-) {}
-	
+	) {}
 
 	@Query('getPaymentDetails')
 	async getPaymentDetails(@Args('id') id: string) {
-		
-		const paymentMethodResult = await getMongoRepository(PaymentMethod).findOne({
-			where: { _id: id }
-		})
-		const runPayResponse = await this.httpService
-		.get(`https://psp.paymaster.tn/api/v2/payments/${paymentMethodResult.runPayId}`, {
-			headers: {
-				Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`
-			}
-		})
-		.pipe(map((runPayResponse) => runPayResponse.data))
-		.toPromise()
-	
-
-		const userLimitation=await this.userLimitation.getUserLimitationByUserId(paymentMethodResult.userId)
-		const reste: number | null = userLimitation.rest;
-        const limit: number = userLimitation.limit;
-		const montantPaiement: number= paymentMethodResult.amount.value
-		const newRest = this.compareValues(reste, montantPaiement, limit);
-
-		const runPayResult=runPayResponse
-		if (paymentMethodResult.resultCode!=null){
-			return paymentMethodResult
-		}else{
-			 
-		
-		const updatedPaymentMethod = {...paymentMethodResult, ...runPayResult}
-	
-		 await getMongoRepository(PaymentMethod).findOneAndUpdate(
-			{ _id: updatedPaymentMethod._id },
+		const paymentMethodResult = await getMongoRepository(PaymentMethod).findOne(
 			{
-				$set: new PaymentMethod({...updatedPaymentMethod})
-			},
-			{ returnOriginal: false }
+				where: { _id: id }
+			}
 		)
-		
+		const runPayResponse = await this.httpService
+			.get(
+				`https://psp.paymaster.tn/api/v2/payments/${paymentMethodResult.runPayId}`,
+				{
+					headers: {
+						Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`
+					}
+				}
+			)
+			.pipe(map((runPayResponse) => runPayResponse.data))
+			.toPromise()
 
-		if (updatedPaymentMethod.resultCode === PaymentStatusEnum.Settled || updatedPaymentMethod.status == PaymentStatusEnum.Settled) {
-			
-			
-			const userId = updatedPaymentMethod.userId;
-			const amount = updatedPaymentMethod.amount.value;
-			const currency = updatedPaymentMethod.amount.currency;
-			const input: AddAmountInput = {
-			  userId,
-				amount,
-				currency,
-				transactionId:updatedPaymentMethod._id,
-			};
-			const wallet = await this.walletResolver.addAmount( input);
-			console.log('wallet:', wallet);
-			
-			 
+		const userLimitation = await this.userLimitation.getUserLimitationByUserId(
+			paymentMethodResult.userId
+		)
+		const reste: number | null = userLimitation.rest
+		const limit: number = userLimitation.limit
+		const montantPaiement: number = paymentMethodResult.amount.value
+		const newRest = this.compareValues(reste, montantPaiement, limit)
 
-			await getMongoRepository(UserLimitation).findOneAndUpdate(
-		  { _id: userLimitation._id },
-	 		  { $set: { rest: newRest } },
-	 		  { returnOriginal: false }
-	 		);
-		}
-	
-	
-		return updatedPaymentMethod
+		const runPayResult = runPayResponse
+		if (paymentMethodResult.resultCode != null) {
+			return paymentMethodResult
+		} else {
+			const updatedPaymentMethod = { ...paymentMethodResult, ...runPayResult }
+
+			await getMongoRepository(PaymentMethod).findOneAndUpdate(
+				{ _id: updatedPaymentMethod._id },
+				{
+					$set: new PaymentMethod({ ...updatedPaymentMethod })
+				},
+				{ returnOriginal: false }
+			)
+
+			if (
+				updatedPaymentMethod.resultCode === PaymentStatusEnum.Settled ||
+				updatedPaymentMethod.status == PaymentStatusEnum.Settled
+			) {
+				const userId = updatedPaymentMethod.userId
+				const amount = updatedPaymentMethod.amount.value
+				const currency = updatedPaymentMethod.amount.currency
+				const input: AddAmountInput = {
+					userId,
+					amount,
+					currency,
+					transactionId: updatedPaymentMethod._id
+				}
+				const wallet = await this.walletResolver.addAmount(input)
+				console.log('wallet:', wallet)
+
+				await getMongoRepository(UserLimitation).findOneAndUpdate(
+					{ _id: userLimitation._id },
+					{ $set: { rest: newRest } },
+					{ returnOriginal: false }
+				)
+			}
+
+			return updatedPaymentMethod
 		}
 	}
 
@@ -121,30 +120,35 @@ export class PaymentMethodResolver {
 		)
 		console.log('paymentMethod:', paymentMethod)
 
-		const userLimitation=await this.userLimitation.getUserLimitationByUserId(currentUser._id)
-		console.log("userLimitation",userLimitation)
-		
-		const reste: number | null = userLimitation.rest;
-        const limit: number = userLimitation.limit;
-		const montantPaiement: number= paymentInput.amount.value
-		
-		
-		const newRest = this.compareValues(reste, montantPaiement, limit);
-		console.log("resultat",newRest)
-		if (newRest <0 ) {
-			throw new ForbiddenError('Your payment amount exceeded the limit your can only play with '+reste+' TND');
-		  } else {
-			console.log("paymentMethod:", paymentMethodInput)
+		const userLimitation = await this.userLimitation.getUserLimitationByUserId(
+			currentUser._id
+		)
+		console.log('userLimitation', userLimitation)
+
+		const reste: number | null = userLimitation.rest
+		const limit: number = userLimitation.limit
+		const montantPaiement: number = paymentInput.amount.value
+
+		const newRest = this.compareValues(reste, montantPaiement, limit)
+		console.log('resultat', newRest)
+		if (newRest < 0) {
+			throw new ForbiddenError(
+				'Your payment amount exceeded the limit your can only play with ' +
+					reste +
+					' TND'
+			)
+		} else {
+			console.log('paymentMethod:', paymentMethodInput)
 			let runPayResponse
-			try{
-				 runPayResponse = await firstValueFrom(
+			try {
+				runPayResponse = await firstValueFrom(
 					this.httpService.post(
 						'https://psp.paymaster.tn/api/v2/invoices',
 						{
 							...paymentMethodInput,
 							merchantId: process.env.MERCHANT_ID,
 							protocol: {
-								returnUrl: `http://localhost:3000/payment/success/${paymentMethod._id}`,
+								returnUrl: `http://tunimillions.com/payment/success/${paymentMethod._id}`,
 								callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
 							}
 						},
@@ -157,15 +161,17 @@ export class PaymentMethodResolver {
 						}
 					)
 				)
-			}catch(e){
-				console.log((e.response))
+			} catch (e) {
+				console.log(e.response)
 			}
-			
+
 			console.log('Response Data:', runPayResponse.data)
 			if (runPayResponse && runPayResponse.status !== 200)
 				throw new ForbiddenError(runPayResponse.data)
-	
-			const updatePaymentMethod = await getMongoRepository(PaymentMethod).findOneAndUpdate(
+
+			const updatePaymentMethod = await getMongoRepository(
+				PaymentMethod
+			).findOneAndUpdate(
 				{ _id: paymentMethod._id },
 				{
 					$set: new PaymentMethod({
@@ -177,13 +183,10 @@ export class PaymentMethodResolver {
 				{ returnOriginal: false }
 			)
 			console.log('updatePaymentMethod:', updatePaymentMethod)
-			
-			return { id: runPayResponse.data.paymentId, url: runPayResponse.data.url }
-			
-		  }
-	}
 
- 	
+			return { id: runPayResponse.data.paymentId, url: runPayResponse.data.url }
+		}
+	}
 
 	@Mutation('completePayment')
 	async completePayment(@Args('id') _id: string) {
@@ -206,8 +209,6 @@ export class PaymentMethodResolver {
 			})
 			console.log('details', details)
 			return details
-
-	
 		}
 	}
 
@@ -235,7 +236,7 @@ export class PaymentMethodResolver {
 	// 			{ headers }
 	// 		)
 	// 	)
-	// 	//add test on the response if it is successfull and we can retrieve the payment details 
+	// 	//add test on the response if it is successfull and we can retrieve the payment details
 	// 	if (response) {
 	// 		await getMongoRepository(UserLimitation).findOneAndUpdate(
 	// 		  { userId: currentUser._id },
@@ -283,19 +284,17 @@ export class PaymentMethodResolver {
 		if (!response) throw new ForbiddenError('Payment Failed')
 	}
 
-	compareValues(reste: number | null, montantPaiement: number, limit:number){
-		
+	compareValues(reste: number | null, montantPaiement: number, limit: number) {
 		if (reste === null) {
-			if (montantPaiement > limit){
-				return -1;
+			if (montantPaiement > limit) {
+				return -1
 			}
-			return limit - montantPaiement;
-		  } else {
-			if (montantPaiement > reste){
-				return -1;
+			return limit - montantPaiement
+		} else {
+			if (montantPaiement > reste) {
+				return -1
 			}
-			return reste - montantPaiement;
-		  }
-  }
-  
+			return reste - montantPaiement
+		}
+	}
 }
