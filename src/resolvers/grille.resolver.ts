@@ -286,6 +286,9 @@ export class GrilleResolver {
 			where: {
 				deletedAt: null
 			},
+			order: {
+				createdAt: 'DESC'
+			},
 			skip: offSet,
 			take: limit
 		})
@@ -300,6 +303,9 @@ export class GrilleResolver {
 			where: {
 				deletedAt: null,
 				status: status
+			},
+			order: {
+				createdAt: 'DESC'
 			}
 		})
 	}
@@ -315,6 +321,9 @@ export class GrilleResolver {
 			where: {
 				deletedAt: null,
 				userId
+			},
+			order: {
+				createdAt: 'DESC'
 			},
 			skip: offSet,
 			take: limit
@@ -415,7 +424,7 @@ export class GrilleResolver {
 		@Args('offSet') offSet?: number,
 		@Args('limit') limit?: number
 	): Promise<Grille[]> {
-    console.log(currentUser)
+		console.log(currentUser)
 		const where = {
 			deletedAt: null,
 			paymentStatus: paymentStatus,
@@ -424,6 +433,9 @@ export class GrilleResolver {
 		return await getMongoRepository(Grille).find({
 			cache: true,
 			where: where,
+			order: {
+				createdAt: 'DESC'
+			},
 			skip: offSet,
 			take: limit
 		})
@@ -443,6 +455,9 @@ export class GrilleResolver {
 		return await getMongoRepository(Grille).find({
 			cache: true,
 			where: where,
+			order: {
+				createdAt: 'DESC'
+			},
 			skip: offSet,
 			take: limit
 		})
