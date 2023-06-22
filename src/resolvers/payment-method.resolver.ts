@@ -14,7 +14,6 @@ import { ForbiddenError } from 'apollo-server-express'
 import { Inject, NotFoundException, forwardRef } from '@nestjs/common';
 import { UserLimitationResolver } from './userLimitation.resolver';
 import { User, UserLimitation } from '@models';
-import { update } from 'lodash'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 
 @Resolver()
@@ -211,41 +210,7 @@ export class PaymentMethodResolver {
 		}
 	}
 
-	// @Mutation(() => Boolean)
-	// async confirmPayment(
-	// 	@Args('id') _id: string,
-	// 	@Args('amount') amount: AmountInput
-	// ) {
-	// 	const headers = {
-	// 		Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
-	// 		'Content-Type': 'application/json',
-	// 		Accept: 'application/json'
-	// 	}
-
-	// 	const data = {
-	// 		paymentId: _id,
-	// 		amount
-	// 	}
-	// 	console.log('data', data)
-
-	// 	const response = await firstValueFrom(
-	// 		this.httpService.put(
-	// 			`https://psp.paymaster.tn/api/v2/payments/${_id}/confirm`,
-	// 			data,
-	// 			{ headers }
-	// 		)
-	// 	)
-	// 	//add test on the response if it is successfull and we can retrieve the payment details 
-	// 	if (response) {
-	// 		await getMongoRepository(UserLimitation).findOneAndUpdate(
-	// 		  { userId: currentUser._id },
-	// 		  { $set: { rest: resultat } },
-	// 		  { returnOriginal: false }
-	// 		);
-	// 	  }
-	// 	// Assuming a successful confirmation is indicated by status 200
-	// 	return response.status === 200
-	// }
+	
 
 	@Mutation(() => Boolean)
 	async cancelPayment(@Args('id') _id: string) {

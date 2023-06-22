@@ -254,11 +254,7 @@ export class GrilleResolver {
 			let object = gridPrice[stars.length - 2][numbers.length - 5]
 			if (!object) throw new ForbiddenError('invalid input')
 
-			type Combinations = {
-				number: number[]
-				stars: number[]
-				tuniMillionsCode: string
-			}[]
+
 			const combinations: any = await this.generateCombinations(
 				stars,
 				numbers,
@@ -323,12 +319,14 @@ export class GrilleResolver {
 
 	@Query()
 	async getGrille(@Args('id') id: string): Promise<Grille> {
-		return getMongoRepository(Grille).findOne({
+		const res = await getMongoRepository(Grille).findOne({
 			where: {
 				_id: id,
 				deletedAt: null
 			}
 		})
+		console.log(res)
+		return res
 	}
 
 	@Mutation()
