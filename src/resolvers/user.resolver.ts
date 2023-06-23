@@ -662,4 +662,22 @@ export class UserResolver {
 
 		return user
 	}
+
+	@Query()
+    async checkUserByEmail(@Args('email') email: string): Promise<Boolean> {
+        try {
+            const user = await getMongoRepository(User).findOne({
+                where: {
+                    'local.email': email
+                }
+            })
+            if (user) {
+                return true
+            }
+            return false
+        } catch (error) {
+			throw new ForbiddenError(error)
+           
+        }
+    }
 }
