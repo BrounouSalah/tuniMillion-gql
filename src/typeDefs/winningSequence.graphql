@@ -47,7 +47,7 @@ type Query {
 		startedAt: String
 		endedAt: String
 	): [WinningSequence]
-	getWinningSequneceById(_id: ID!): [WinningSequence] @isAuthenticated
+	getWinningSequneceById(_id: ID!): WinningSequence @isAuthenticated
 	getStaticWinningSequence(_id: ID!): WinningSequence @isAuthenticated
 }
 
