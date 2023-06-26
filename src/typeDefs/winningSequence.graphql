@@ -2,7 +2,7 @@ input CreateWinningSequenceInput {
 	numbers: [Int]
 	stars: [Int]
 }
-
+scalar Any
 input UpdateWinningSequenceInput {
 	numbers: [Int]
 	stars: [Int]
@@ -29,6 +29,10 @@ type WinningRankCount {
 	rank: WinningRank
 	count: Int
 }
+type Statique {
+	numbers:Any
+	stars:Any
+}
 
 type WinningSequence {
 	_id: ID!
@@ -39,7 +43,6 @@ type WinningSequence {
 	deletedAt: Date
 	userContsByRang: [WinningRankCount]
 }
-
 type Query {
 	getAllWinningSequences: [WinningSequence]
 	getAllWinningSequencesByDate(createdAt: String): [WinningSequence]
@@ -49,6 +52,7 @@ type Query {
 	): [WinningSequence]
 	getWinningSequneceById(_id: ID!): WinningSequence @isAuthenticated
 	getStaticWinningSequence(_id: ID!): WinningSequence @isAuthenticated
+	getWinningStatique: Statique @isAuthenticated
 }
 
 type Mutation {
