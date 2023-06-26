@@ -169,7 +169,7 @@ export class UserResolver {
 
 			skip: offset,
 			take: limit,
-			cache: true // 1000: 60000 / 1 minute
+			cache: true
 		})
 
 		return users
@@ -664,20 +664,19 @@ export class UserResolver {
 	}
 
 	@Query()
-    async checkUserByEmail(@Args('email') email: string): Promise<Boolean> {
-        try {
-            const user = await getMongoRepository(User).findOne({
-                where: {
-                    'local.email': email
-                }
-            })
-            if (user) {
-                return true
-            }
-            return false
-        } catch (error) {
+	async checkUserByEmail(@Args('email') email: string): Promise<Boolean> {
+		try {
+			const user = await getMongoRepository(User).findOne({
+				where: {
+					'local.email': email
+				}
+			})
+			if (user) {
+				return true
+			}
+			return false
+		} catch (error) {
 			throw new ForbiddenError(error)
-           
-        }
-    }
+		}
+	}
 }
