@@ -106,8 +106,8 @@ type Local {
 type Grille {
 	_id: ID!
 	userId: ID!
-	Numbers: [Int]
-	Stars: [Int]
+	numbers: [Int]
+	stars: [Int]
 	DrawDate: Date
 	createdAt: Date
 	updatedAt: Date
