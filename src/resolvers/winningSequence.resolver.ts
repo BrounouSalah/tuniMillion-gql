@@ -1,10 +1,13 @@
 import { Inject, NotFoundException, forwardRef } from "@nestjs/common";
 import { Args, Mutation, Query } from "@nestjs/graphql";
 import { ApolloError, ForbiddenError } from "apollo-server-express";
-import { CreateWinningSequenceInput, UpdateWinningSequenceInput, WinningRank, WinningRankCount } from "generator/graphql.schema";
+import { CreateWinningSequenceInput, Statique, UpdateWinningSequenceInput, WinningRank, WinningRankCount } from "generator/graphql.schema";
 import { WinningSequence } from "models/winningSequence.entity";
 import {  getMongoRepository } from "typeorm";
 import { GrilleResolver } from "./grille.resolver";
+import { query } from "express";
+import { get } from "http";
+import { getStatistique } from "utils/util/static";
 
 export class WinningSequenceResolver{
     constructor(
@@ -106,13 +109,30 @@ export class WinningSequenceResolver{
     };
         
 
-    grilles.forEach((grille) => {
-      const winningRank = this.compareGrilleWithWinningSequence(grille, winningsequence);
-      console.log(winningRank)
-      if (winningRank) {
-          rankCounts[winningRank] += 1;
-        }
-    });
+    // grilles.forEach((grille) => {
+    //   const winningRank = this.compareGrilleWithWinningSequence(grille, winningsequence);
+    //   console.log(winningRank)
+    //   if (winningRank) {
+    //       rankCounts[winningRank] += 1;
+    //     }
+    // });
+    const userSet = new Set<string>(); // Création d'un ensemble pour stocker les identifiants des utilisateurs
+
+  grilles.forEach((grille) => {
+  const userId = grille.userId; // Récupération de l'identifiant de l'utilisateur de la grille
+
+  if (userSet.has(userId)) {
+    return; // Si l'identifiant de l'utilisateur est déjà présent dans l'ensemble, cela signifie que l'utilisateur a déjà été compté. On passe donc à l'itération suivante.
+  }
+
+  const winningRank = this.compareGrilleWithWinningSequence(grille, winningsequence);
+  console.log(winningRank);
+  if (winningRank) {
+    rankCounts[winningRank] += 1; // Incrémentation du compteur correspondant au winningRank dans rankCounts
+    userSet.add(userId); // Ajout de l'identifiant de l'utilisateur à l'ensemble pour éviter de les compter à nouveau
+  }
+});
+
   
    const counts =  Object.entries(rankCounts).map(([rank, count]) => ({
       rank: rank as WinningRank,
@@ -246,10 +266,16 @@ export class WinningSequenceResolver{
                 throw new ApolloError(error)
             }
         }
-    
-      
-    
 
+   @Query()
+   async getWinningStatique():Promise<Statique>{
+    const winningSequnences =await getMongoRepository(WinningSequence).find({
+      where:{
+        deletedAt:null
+      }
+    })
+    return getStatistique(winningSequnences)
+   }
    
 
 }
