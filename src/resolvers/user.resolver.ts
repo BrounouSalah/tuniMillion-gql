@@ -47,7 +47,7 @@ import { GrilleResolver } from './grille.resolver'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { UserLimitationResolver } from './userLimitation.resolver'
 
-const DEFAULTUSERLIMITAMAOUNT = 5.999
+const DEFAULTUSERLIMITAMAOUNT = 5940
 
 @Resolver('User')
 export class UserResolver {
@@ -97,19 +97,18 @@ export class UserResolver {
 		}
 	}
 
-	
-    @Query()
-    async searchUsersByDate(@Args('createdAt') createdAt: string): Promise<User[]> {
-            
-            return await getMongoRepository(User).find({
-                cache: true,
-                where: {
-                    createdAt: { $gte : new Date(createdAt) },
-                    deletedAt: null
-                
-                }
-            })
-        }
+	@Query()
+	async searchUsersByDate(
+		@Args('createdAt') createdAt: string
+	): Promise<User[]> {
+		return await getMongoRepository(User).find({
+			cache: true,
+			where: {
+				createdAt: { $gte: new Date(createdAt) },
+				deletedAt: null
+			}
+		})
+	}
 
 	@Query()
 	async users(
@@ -127,7 +126,6 @@ export class UserResolver {
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
 			})
-
 
 			return users
 		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
@@ -165,7 +163,6 @@ export class UserResolver {
 		const { _id } = currentUser
 		const users = await getMongoRepository(User).find({
 			where: {
-				
 				accountState: AccountStateType.FINALIZED,
 				deletedAt: null
 			},
@@ -279,7 +276,7 @@ export class UserResolver {
 			const createdUser = await getMongoRepository(User).save(
 				new User({
 					...input,
-					isVerified: false,
+					isVerified: true,
 					local: {
 						email,
 						password: await hashPassword(password)
@@ -639,10 +636,7 @@ export class UserResolver {
 			throw new ForbiddenError('User not found.')
 		}
 
-		if(!user.favorites) 
-
-		
-			user.favorites = []
+		if (!user.favorites) user.favorites = []
 		const existingFavorites = user.favorites.findIndex((el) => {
 			return JSON.stringify(el) === JSON.stringify({ numbers, stars })
 		})
@@ -668,4 +662,22 @@ export class UserResolver {
 
 		return user
 	}
+
+	@Query()
+    async checkUserByEmail(@Args('email') email: string): Promise<Boolean> {
+        try {
+            const user = await getMongoRepository(User).findOne({
+                where: {
+                    'local.email': email
+                }
+            })
+            if (user) {
+                return true
+            }
+            return false
+        } catch (error) {
+			throw new ForbiddenError(error)
+           
+        }
+    }
 }

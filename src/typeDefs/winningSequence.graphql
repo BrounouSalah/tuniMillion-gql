@@ -1,66 +1,60 @@
-
 input CreateWinningSequenceInput {
-    numbers: [Int]
-    stars: [Int]
-   
-  
-   
+	numbers: [Int]
+	stars: [Int]
 }
 
 input UpdateWinningSequenceInput {
-    numbers: [Int]
-    stars: [Int]
-   
-    
+	numbers: [Int]
+	stars: [Int]
 }
 
 enum WinningRank {
-  NONE
-  FIRST
-  SECOND
-  THIRD
-  FOURTH
-  FIFTH
-  SIXTH
-  SEVENTH
-  EIGHTH
-  NINTH
-  TENTH
-  ELEVENTH
-  TWELFTH
-  THIRTEENTH
-  
+	NONE
+	FIRST
+	SECOND
+	THIRD
+	FOURTH
+	FIFTH
+	SIXTH
+	SEVENTH
+	EIGHTH
+	NINTH
+	TENTH
+	ELEVENTH
+	TWELFTH
+	THIRTEENTH
 }
 
 type WinningRankCount {
-  rank: WinningRank
-  count: Int
+	rank: WinningRank
+	count: Int
 }
 
-
-type WinningSequence{
-    _id: ID!
-    numbers: [Int]
-    stars: [Int]
-    createdAt: Date
-    updatedAt: Date
-    deletedAt: Date
-    userContsByRang:[WinningRankCount]
-    
-   
+type WinningSequence {
+	_id: ID!
+	numbers: [Int]
+	stars: [Int]
+	createdAt: Date
+	updatedAt: Date
+	deletedAt: Date
+	userContsByRang: [WinningRankCount]
 }
 
 type Query {
-    getAllWinningSequences: [WinningSequence]
-    getAllWinningSequencesByDate(createdAt:String):[WinningSequence] 
-    getAllWinningSequencesByRange(startedAt:String, endedAt:String):[WinningSequence] 
-    getWinningSequneceById(_id:ID!):[WinningSequence] @isAuthenticated
-    getStaticWinningSequence(_id:ID!):WinningSequence @isAuthenticated
-
+	getAllWinningSequences: [WinningSequence]
+	getAllWinningSequencesByDate(createdAt: String): [WinningSequence]
+	getAllWinningSequencesByRange(
+		startedAt: String
+		endedAt: String
+	): [WinningSequence]
+	getWinningSequneceById(_id: ID!): WinningSequence @isAuthenticated
+	getStaticWinningSequence(_id: ID!): WinningSequence @isAuthenticated
 }
 
 type Mutation {
-    createWinningSequence(input: CreateWinningSequenceInput!): WinningSequence @isAuthenticated
-    deleteWinningSequence(_id: ID!): Boolean @isAuthenticated
-    updateWinningSequence( _id:ID! , input: UpdateWinningSequenceInput): Boolean @isAuthenticated
+	createWinningSequence(input: CreateWinningSequenceInput!): WinningSequence
+		@isAuthenticated
+	deleteWinningSequence(_id: ID!): Boolean @isAuthenticated
+	updateWinningSequence(_id: ID!, input: UpdateWinningSequenceInput): Boolean
+		@isAuthenticated
 }

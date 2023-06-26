@@ -7,7 +7,11 @@ enum RecordType {
 	User
 	File
 }
-
+enum Roles {
+	SUPER_ADMIN
+	ADMIN
+	USER
+}
 enum AccountStateType {
 	PENDING
 	FINALIZED
@@ -30,7 +34,6 @@ enum VerificationType {
 input Verification {
 	type: VerificationType
 	verificationImage: [String]
-	
 }
 input UserInput {
 	firstName: String!
@@ -62,8 +65,6 @@ input CreateUserInput {
 	termsOfUse: Boolean
 	verification: Verification
 	gender: Gender
-
-	
 }
 
 input UpdateUserInput {
@@ -80,14 +81,13 @@ input UpdateUserInput {
 	termsOfUse: Boolean!
 	verification: Verification
 	gender: Gender!
-	identityVerified:Boolean
+	identityVerified: Boolean
 }
 
 input LoginUserInput {
 	email: String! @length(max: 7)
 	password: String!
-	birthDate : String!
-	
+	birthDate: String!
 }
 
 type LoginResponse {
@@ -103,25 +103,24 @@ type Local {
 	email: String
 	password: String
 }
-type Grille{
-    _id: ID!
-    userId: ID!
-    Numbers: [Int]
-    Stars: [Int]
-    DrawDate: Date
-    createdAt: Date
-    updatedAt: Date
-    deletedAt: Date
-    status:Status
-    randomCode: String
-    prise:Int
-
+type Grille {
+	_id: ID!
+	userId: ID!
+	Numbers: [Int]
+	Stars: [Int]
+	DrawDate: Date
+	createdAt: Date
+	updatedAt: Date
+	deletedAt: Date
+	status: Status
+	randomCode: String
+	prise: Int
 }
 
 type UserVerificationData {
 	verificationImage: [String]
 	type: String
-	isVerified:Boolean
+	isVerified: Boolean
 }
 
 type Google {
@@ -149,14 +148,14 @@ input UserFilterInput {
 	lastName: String
 }
 
-type Favorites{	
-	numbers:[Int]
-	stars:[Int]
+type Favorites {
+	numbers: [Int]
+	stars: [Int]
 }
 
-input AddFavoritesInput{
-	numbers:[Int]
-	stars:[Int]
+input AddFavoritesInput {
+	numbers: [Int]
+	stars: [Int]
 }
 
 type User {
@@ -165,7 +164,7 @@ type User {
 	userVerificationData: UserVerificationData
 	local: Local!
 	grilles: [Grille]
-	favorites:[Favorites]
+	favorites: [Favorites]
 	google: Google
 	facebook: Facebook
 	firstName: String
@@ -183,32 +182,37 @@ type User {
 	resetPasswordExpires: Float
 	fullName: String @upper
 	isVerified: Boolean!
-	identityVerified:Boolean!
+	identityVerified: Boolean!
 	isActive: Boolean
 	ccLast4: String
 	createdAt: Date!
 	updatedAt: Date!
 	deletedAt: Date
-	userLimitationId:String
-	userLimitation:UserLimitation
-	wallet:Wallet
+	userLimitationId: String
+	userLimitation: UserLimitation
+	wallet: Wallet
+	userRole: Roles
 }
 enum VerificationTypeFilter {
 	EMAIL
 	IDENTITY
 }
 input FilterInput {
-	isVerified:Boolean
-	type:VerificationTypeFilter
+	isVerified: Boolean
+	type: VerificationTypeFilter
 }
 
 type Query {
 	me: User @isAuthenticated
-	users(offset: Int, limit: Int,filter:FilterInput): [User!] @isAuthenticated
+	users(offset: Int, limit: Int, filter: FilterInput): [User!]
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 	user(_id: ID!): User #@isAuthenticated
 	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
 	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
 	searchUsersByDate(createdAt: String):[User] @isAuthenticated
+	checkUserByEmail(email:String):Boolean 
+
 }
 
 type Mutation {
@@ -236,7 +240,7 @@ type Mutation {
 	): Boolean @isAuthenticated
 	forgotPassword(email: String!): Boolean
 	resetPassword(resetPasswordToken: String!, password: String!): Boolean
-	addFavorites(input:AddFavoritesInput!):User @isAuthenticated
+	addFavorites(input: AddFavoritesInput!): User @isAuthenticated
 }
 
 type Subscription {

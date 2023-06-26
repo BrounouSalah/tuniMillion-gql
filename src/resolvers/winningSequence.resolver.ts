@@ -140,9 +140,9 @@ export class WinningSequenceResolver{
     }
 
     @Query()
-    async  getWinningSequneceById(@Args('_id') _id: string): Promise<WinningSequence[]> {
+    async  getWinningSequneceById(@Args('_id') _id: string): Promise<WinningSequence> {
         
-        return getMongoRepository(WinningSequence).find({
+        return await getMongoRepository(WinningSequence).findOne({
             cache: true,
             where: {
                 _id: _id,
