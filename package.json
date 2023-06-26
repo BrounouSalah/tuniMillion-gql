@@ -20,7 +20,7 @@
 		"start:prod": "NODE_ENV=production node -r ./tsconfig-paths-bootstrap.js dist/main.js",
 		"lint": "tslint -p tsconfig.json -c tslint.json",
 		"lint:fix": "tslint --fix -p tsconfig.json -c tslint.json",
-		"test": "NODE_ENV=testing jest -w 1 --config ./jest.config.json --forceExit",
+		"test": "jest -w 1 --config ./jest.config.json --forceExit",
 		"test:watch": "NODE_ENV=testing jest -w 1 --watch --forceExit",
 		"test:cov": "NODE_ENV=testing jest -w 1 --config ./jest.config.json --coverage --forceExit",
 		"test:debug": "NODE_ENV=testing node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest -w 1 --runInBand --forceExit",

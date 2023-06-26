@@ -2,12 +2,12 @@
 	"moduleDirectories": ["node_modules", "src"],
 	"moduleFileExtensions": ["js", "json", "ts"],
 	"testEnvironment": "node",
-	"testRegex": ".spec.ts$",
+	"testRegex": "\\.spec\\.[tj]sx?",
 	"transform": {
 		"^.+\\.ts$": "ts-jest"
 	},
 	"coverageDirectory": "./coverage",
-	"collectCoverage": true,
+	"collectCoverage": false,
 	"moduleNameMapper": {
 		"^@auth(.*)$": "<rootDir>/src/auth$1",
 		"^@common(.*)$": "<rootDir>/src/common$1",
