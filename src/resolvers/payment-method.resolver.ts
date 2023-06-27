@@ -11,11 +11,13 @@ import {
 import { getMongoRepository } from 'typeorm'
 import { PaymentMethod } from 'models/payment-method.entity'
 import { ForbiddenError } from 'apollo-server-express'
+
 import { Inject, NotFoundException, forwardRef } from '@nestjs/common'
 import { UserLimitationResolver } from './userLimitation.resolver'
 import { User, UserLimitation } from '@models'
-import { update } from 'lodash'
+
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
+import { compareValues } from 'utils/helpers/payment'
 
 @Resolver()
 export class PaymentMethodResolver {
@@ -53,7 +55,7 @@ export class PaymentMethodResolver {
 		const reste: number | null = userLimitation.rest
 		const limit: number = userLimitation.limit
 		const montantPaiement: number = paymentMethodResult.amount.value
-		const newRest = this.compareValues(reste, montantPaiement, limit)
+		const newRest = compareValues(reste, montantPaiement, limit)
 
 		const runPayResult = runPayResponse
 		if (paymentMethodResult.resultCode != null) {
@@ -129,7 +131,7 @@ export class PaymentMethodResolver {
 		const limit: number = userLimitation.limit
 		const montantPaiement: number = paymentInput.amount.value
 
-		const newRest = this.compareValues(reste, montantPaiement, limit)
+		const newRest = compareValues(reste, montantPaiement, limit)
 		console.log('resultat', newRest)
 		if (newRest < 0) {
 			throw new ForbiddenError(
@@ -211,42 +213,6 @@ export class PaymentMethodResolver {
 		}
 	}
 
-	// @Mutation(() => Boolean)
-	// async confirmPayment(
-	// 	@Args('id') _id: string,
-	// 	@Args('amount') amount: AmountInput
-	// ) {
-	// 	const headers = {
-	// 		Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
-	// 		'Content-Type': 'application/json',
-	// 		Accept: 'application/json'
-	// 	}
-
-	// 	const data = {
-	// 		paymentId: _id,
-	// 		amount
-	// 	}
-	// 	console.log('data', data)
-
-	// 	const response = await firstValueFrom(
-	// 		this.httpService.put(
-	// 			`https://psp.paymaster.tn/api/v2/payments/${_id}/confirm`,
-	// 			data,
-	// 			{ headers }
-	// 		)
-	// 	)
-	// 	//add test on the response if it is successfull and we can retrieve the payment details
-	// 	if (response) {
-	// 		await getMongoRepository(UserLimitation).findOneAndUpdate(
-	// 		  { userId: currentUser._id },
-	// 		  { $set: { rest: resultat } },
-	// 		  { returnOriginal: false }
-	// 		);
-	// 	  }
-	// 	// Assuming a successful confirmation is indicated by status 200
-	// 	return response.status === 200
-	// }
-
 	@Mutation(() => Boolean)
 	async cancelPayment(@Args('id') _id: string) {
 		const headers = {
@@ -281,19 +247,5 @@ export class PaymentMethodResolver {
 			return updatePayment ? true : false
 		}
 		if (!response) throw new ForbiddenError('Payment Failed')
-	}
-
-	compareValues(reste: number | null, montantPaiement: number, limit: number) {
-		if (reste === null) {
-			if (montantPaiement > limit) {
-				return -1
-			}
-			return limit - montantPaiement
-		} else {
-			if (montantPaiement > reste) {
-				return -1
-			}
-			return reste - montantPaiement
-		}
 	}
 }

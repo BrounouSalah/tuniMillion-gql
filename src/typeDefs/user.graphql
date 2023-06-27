@@ -211,7 +211,7 @@ type Query {
 	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
 	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
 	searchUsersByDate(createdAt: String):[User] @isAuthenticated
-	checkUserByEmail(email:String):Boolean @isAuthenticated
+	checkUserByEmail(email:String):Boolean 
 
 }
 

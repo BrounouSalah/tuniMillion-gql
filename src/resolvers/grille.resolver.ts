@@ -15,153 +15,13 @@ import { Inject, NotFoundException, forwardRef } from '@nestjs/common'
 import { AmountOfWallet, User } from '@models'
 
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
-
-type CombinationsBasic = {
-	numbers: number[]
-	stars: number[]
-	tuniMillionsCode?: string
-}
+import { generateCombinations, gridPrices } from 'utils/helpers/grille'
 
 export class GrilleResolver {
 	constructor(
 		@Inject(forwardRef(() => AmountOfWalletResolver))
 		private walletResolver: AmountOfWalletResolver
 	) {}
-
-	async generateCombinations(
-		starArray: number[],
-		numberArray: number[],
-		prise
-	): Promise<any> {
-		const combinations: CombinationsBasic[] = []
-
-		// Generate all possible combinations of 5 numbers
-		const numberCombos = this.combinationsOf(numberArray, 5)
-
-		// Generate all possible combinations of 2 stars
-		const starCombos = this.combinationsOf(starArray, 2)
-		const lastPlayedGrille = await getMongoRepository(Grille).findOne({
-			where: {
-				deletedAt: null,
-				prise: prise > 10 ? { $gt: 10 } : { $lte: 10 }
-			},
-			order: {
-				createdAt: 'DESC'
-			}
-		})
-
-		let depart
-		if (!lastPlayedGrille) {
-			depart = prise > 10 ? 'F WBB 00000' : 'F BBB 00000'
-		} else {
-			depart =
-				lastPlayedGrille.combinations[lastPlayedGrille.combinations.length - 1]
-					.tuniMillionsCode
-		}
-		// Combine number and star combos to form valid combinations
-		for (const numbers of numberCombos) {
-			for (const stars of starCombos) {
-				combinations.push({ numbers, stars })
-			}
-		}
-
-		let combWithCode = combinations.map((el, index) => ({
-			numbers: el.numbers,
-			stars: el.stars,
-			tuniMillionsCode: this.generateConsecutiveStrings(depart, index)
-		}))
-		return combWithCode
-	}
-
-	combinationsOf<T>(arr: T[], count: number): T[][] {
-		if (count === 0) {
-			return [[]]
-		}
-
-		return arr.flatMap((val, idx) => {
-			const subcombos = this.combinationsOf(arr.slice(idx + 1), count - 1)
-			return subcombos.map((combo) => [val, ...combo])
-		})
-	}
-
-	generateConsecutiveStrings(
-		start: string,
-
-		number: number
-	): string {
-		const end = 'F ZZZ 99999'
-
-		const endNumber = Number(end.slice(-5))
-		const startNumber = Number(start.slice(-5)) + 1
-		let currentNumber = startNumber + number
-
-		let consonants = start.slice(2, 5) // Retrieve the consonants from the start input
-
-		// Handle wraparound of number part
-		if (currentNumber > endNumber) {
-			if (consonants === 'ZZZ') {
-				return null // Reached the end, exit loop
-			}
-			consonants = this.incrementConsonants(consonants)
-			currentNumber = currentNumber - 100000
-			return `F ${consonants} ${currentNumber.toString().padStart(5, '0')}`
-		}
-		const currentString = `F ${consonants} ${currentNumber
-			.toString()
-			.padStart(5, '0')}`
-		return currentString
-	}
-
-	incrementConsonants(consonants: string) {
-		const validConsonants = [
-			'B',
-			'C',
-			'D',
-			'F',
-			'G',
-			'H',
-			'J',
-			'K',
-			'L',
-			'M',
-			'N',
-			'P',
-			'Q',
-			'R',
-			'S',
-			'T',
-			'V',
-			'W',
-			'X',
-			'Y',
-			'Z'
-		]
-		const consonantArray = Array.from(consonants)
-
-		let carry = true // Flag to indicate carryover to the subsequent letter
-
-		for (let i = consonantArray.length - 1; i >= 0; i--) {
-			const char = consonantArray[i].toUpperCase()
-			const currentIndex = validConsonants.indexOf(char)
-
-			if (currentIndex === -1) {
-				continue // Skip vowels or non-consonants
-			}
-
-			let nextIndex = (currentIndex + (carry ? 1 : 0)) % validConsonants.length
-
-			if (carry && nextIndex === 0) {
-				carry = true // Set carryover flag if transitioning from 'Z' to 'B'
-			} else {
-				carry = false
-			}
-
-			consonantArray[i] = validConsonants[nextIndex]
-		}
-
-		return consonantArray.join('')
-	}
-
 	@Mutation()
 	async createGrille(
 		@Args('input') input: CreateGrilleInput,
@@ -170,63 +30,7 @@ export class GrilleResolver {
 		const { _id } = currentUser
 		input.userId = _id
 
-		const gridPrice = [
-			[
-				{ price: 7.5, prise: 1 },
-				{ price: 45, prise: 6 },
-				{ price: 157.5, prise: 21 },
-				{ price: 420, prise: 56 },
-				{ price: 945, prise: 126 },
-				{ price: 1890, prise: 252 }
-			],
-			[
-				{ price: 22.5, prise: 3 },
-				{ price: 135, prise: 18 },
-				{ price: 472.5, prise: 63 },
-				{ price: 1260, prise: 168 },
-				{ price: 2835, prise: 378 }
-			],
-			[
-				{ price: 45, prise: 6 },
-				{ price: 270, prise: 36 },
-				{ price: 945, prise: 126 },
-				{ price: 2520, prise: 336 }
-			],
-			[
-				{ price: 75, prise: 10 },
-				{ price: 450, prise: 60 },
-				{ price: 1575, prise: 210 }
-			],
-			[
-				{ price: 112.5, prise: 15 },
-				{ price: 675, prise: 90 },
-				{ price: 2162.5, prise: 315 }
-			],
-			[
-				{ price: 157.5, prise: 21 },
-				{ price: 945, prise: 126 }
-			],
-			[
-				{ price: 210, prise: 28 },
-				{ price: 1260, prise: 168 }
-			],
-			[
-				{ price: 270, prise: 36 },
-				{ price: 1620, prise: 216 }
-			],
-			[
-				{ price: 337.5, prise: 45 },
-				{ price: 2025, prise: 270 }
-			],
-			[
-				{ price: 412.5, prise: 55 },
-				{ price: 2475, prise: 330 }
-			],
-			[
-				{ price: 495, prise: 66 },
-				{ price: 2970, prise: 396 }
-			]
-		]
+		const gridPrice = gridPrices
 		const { numbers, stars } = input
 
 		if (
@@ -254,15 +58,20 @@ export class GrilleResolver {
 			let object = gridPrice[stars.length - 2][numbers.length - 5]
 			if (!object) throw new ForbiddenError('invalid input')
 
-			type Combinations = {
-				number: number[]
-				stars: number[]
-				tuniMillionsCode: string
-			}[]
-			const combinations: any = await this.generateCombinations(
+			const lastPlayedGrille = await getMongoRepository(Grille).findOne({
+				where: {
+					deletedAt: null,
+					prise: object.prise > 10 ? { $gt: 10 } : { $lte: 10 }
+				},
+				order: {
+					createdAt: 'DESC'
+				}
+			})
+			const combinations: any = await generateCombinations(
 				stars,
 				numbers,
-				object.prise
+				object.prise,
+				lastPlayedGrille
 			)
 
 			return await getMongoRepository(Grille).save(
@@ -332,20 +141,18 @@ export class GrilleResolver {
 
 	@Query()
 	async getGrille(@Args('id') id: string): Promise<Grille> {
-		return getMongoRepository(Grille).findOne({
+		const res = await getMongoRepository(Grille).findOne({
 			where: {
 				_id: id,
 				deletedAt: null
 			}
 		})
+		console.log(res)
+		return res
 	}
 
 	@Mutation()
 	async deleteGrille(@Args('_id') _id: string): Promise<Boolean> {
-		// const grille = await  getMongoRepository(Grille).softDelete({ _id})
-		//  grille.deletedAt = new Date(Date.now())
-		// return grille
-
 		const grille = await getMongoRepository(Grille).findOne({ _id })
 
 		if (!grille) {
@@ -369,10 +176,6 @@ export class GrilleResolver {
 		const grille = await getMongoRepository(User).findOne({ _id: userId })
 		if (!grille) {
 			throw new ForbiddenError('Grille not found.')
-		} else {
-			// if (grille.Numbers == null && input.Numbers != null)
-
-			await this.changeGrilleAccountState(grille)
 		}
 		const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
 			{ userId: grille._id },
@@ -380,9 +183,6 @@ export class GrilleResolver {
 			{ returnOriginal: false }
 		)
 		return updateGrille ? true : false
-	}
-	changeGrilleAccountState(grille: any) {
-		throw new Error('Method not implemented.')
 	}
 
 	@Mutation()

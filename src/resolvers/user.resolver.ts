@@ -47,7 +47,7 @@ import { GrilleResolver } from './grille.resolver'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { UserLimitationResolver } from './userLimitation.resolver'
 
-const DEFAULTUSERLIMITAMAOUNT = 5.999
+const DEFAULTUSERLIMITAMAOUNT = 5940
 
 @Resolver('User')
 export class UserResolver {
