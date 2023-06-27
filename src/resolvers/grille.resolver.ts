@@ -95,7 +95,7 @@ export class GrilleResolver {
 		const startNumber = Number(start.slice(-5)) + 1
 		let currentNumber = startNumber + number
 
-		let consonants = start.slice(2, 5) // Retrieve the consonants from the start input string
+		let consonants = start.slice(2, 5) // Retrieve the consonants from the start input
 
 		// Handle wraparound of number part
 		if (currentNumber > endNumber) {
