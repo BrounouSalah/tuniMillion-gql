@@ -167,7 +167,6 @@ export class PaymentMethodResolver {
 				console.log(e.response)
 			}
 
-			console.log('Response Data:', runPayResponse.data)
 			if (runPayResponse && runPayResponse.status !== 200)
 				throw new ForbiddenError(runPayResponse.data)
 
