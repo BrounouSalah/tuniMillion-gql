@@ -12,11 +12,12 @@ import { getMongoRepository } from 'typeorm'
 import { PaymentMethod } from 'models/payment-method.entity'
 import { ForbiddenError } from 'apollo-server-express'
 
-import { Inject, NotFoundException, forwardRef } from '@nestjs/common';
-import { UserLimitationResolver } from './userLimitation.resolver';
-import { User, UserLimitation } from '@models';
+import { Inject, NotFoundException, forwardRef } from '@nestjs/common'
+import { UserLimitationResolver } from './userLimitation.resolver'
+import { User, UserLimitation } from '@models'
 
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
+import { compareValues } from 'utils/helpers/payment'
 
 @Resolver()
 export class PaymentMethodResolver {
@@ -54,7 +55,7 @@ export class PaymentMethodResolver {
 		const reste: number | null = userLimitation.rest
 		const limit: number = userLimitation.limit
 		const montantPaiement: number = paymentMethodResult.amount.value
-		const newRest = this.compareValues(reste, montantPaiement, limit)
+		const newRest = compareValues(reste, montantPaiement, limit)
 
 		const runPayResult = runPayResponse
 		if (paymentMethodResult.resultCode != null) {
@@ -130,7 +131,7 @@ export class PaymentMethodResolver {
 		const limit: number = userLimitation.limit
 		const montantPaiement: number = paymentInput.amount.value
 
-		const newRest = this.compareValues(reste, montantPaiement, limit)
+		const newRest = compareValues(reste, montantPaiement, limit)
 		console.log('resultat', newRest)
 		if (newRest < 0) {
 			throw new ForbiddenError(
@@ -213,7 +214,6 @@ export class PaymentMethodResolver {
 		}
 	}
 
-
 	@Mutation(() => Boolean)
 	async cancelPayment(@Args('id') _id: string) {
 		const headers = {
@@ -248,19 +248,5 @@ export class PaymentMethodResolver {
 			return updatePayment ? true : false
 		}
 		if (!response) throw new ForbiddenError('Payment Failed')
-	}
-
-	compareValues(reste: number | null, montantPaiement: number, limit: number) {
-		if (reste === null) {
-			if (montantPaiement > limit) {
-				return -1
-			}
-			return limit - montantPaiement
-		} else {
-			if (montantPaiement > reste) {
-				return -1
-			}
-			return reste - montantPaiement
-		}
 	}
 }

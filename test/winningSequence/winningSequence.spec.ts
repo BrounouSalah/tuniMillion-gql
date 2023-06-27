@@ -1,86 +1,68 @@
-import { TestingModule, Test } from '@nestjs/testing'
-import { getRepositoryToken } from '@nestjs/typeorm'
-import { AppModule } from '../../src/app.module'
-import {  AmountOfWalletResolver, GrilleResolver, WinningSequenceResolver } from '../../src/resolvers'
-import { Repository } from 'typeorm'
-import { WinningSequence } from '../../src/models'
-import { WinningRank } from '../../src/generator/graphql.schema'
-const initModule = async ()=> {
-    const module: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-        providers: [
-            WinningSequenceResolver,
-            {
-                provide: getRepositoryToken(WinningSequence),
-                useClass: Repository
-            },
-            GrilleResolver,
-            AmountOfWalletResolver
-        ]
-    }).compile()
-    return module
-}
-describe('testing winningSequence  compareGrilleWithWinningSequence', () => {
-	it('test compareGrilleWithWinningSequence have the same numbers and stars', async () => {
-		
-        const grille = {
-            numbers: [1, 2, 3, 4, 5],
-            stars: [6, 7]
-          };
-          const winningSequence = {
-            numbers: [1, 2, 3, 4, 5],
-            stars: [6, 7]
-          };
-          const expectedResult =WinningRank.FIRST;
+import { WinningRank } from 'generator/graphql.schema'
+import { compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
 
-          const res = await (await initModule())
-			.get<WinningSequenceResolver>(WinningSequenceResolver)
-			.compareGrilleWithWinningSequence(grille,winningSequence)
-        expect(res).toBe(expectedResult);
-       
-           
+describe('compareGrilleWithWinningSequence', () => {
+	it('should return the correct winning rank for matching numbers and stars', () => {
+		const grille = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [1, 2]
+		}
+		const winningSequence = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [1, 2]
+		}
+		const expectedRank = WinningRank.FIRST
+
+		const result = compareGrilleWithWinningSequence(grille, winningSequence)
+
+		expect(result).toEqual(expectedRank)
 	})
 
-    it('test compareGrilleWithWinningSequence when there are partial matches', async () => {
-		
-        const grille = {
-            numbers: [1, 2, 3, 4, 5],
-            stars: [6, 7]
-          };
-          const winningSequence = {
-            numbers: [1, 2, 6, 7, 8],
-            stars: [9, 10]
-          };
-          const expectedResult = WinningRank.THIRTEENTH;
+	it('should return the correct winning rank for matching numbers only', () => {
+		const grille = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [1, 2]
+		}
+		const winningSequence = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [3, 4]
+		}
+		const expectedRank = WinningRank.THIRD
 
-          const res = await (await initModule())
-			.get<WinningSequenceResolver>(WinningSequenceResolver)
-			.compareGrilleWithWinningSequence(grille,winningSequence)
-        expect(res).toBe(expectedResult);
-            
+		const result = compareGrilleWithWinningSequence(grille, winningSequence)
+
+		expect(result).toEqual(expectedRank)
 	})
 
-    it('test compareGrilleWithWinningSequence when there are no matches', async () => {
-	
-        const grille = {
-            numbers: [1, 2, 3, 4, 5],
-            stars: [6, 7]
-          };
-          const winningSequence = {
-            numbers: [8, 9, 10, 11, 12],
-            stars: [13, 14]
-          };
+	it('should return the correct winning rank for matching stars only', () => {
+		const grille = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [1, 2]
+		}
+		const winningSequence = {
+			numbers: [6, 7, 8, 9, 10],
+			stars: [1, 2]
+		}
+		const expectedRank = WinningRank.NONE
 
-          const expectedResult = WinningRank.NONE;
+		const result = compareGrilleWithWinningSequence(grille, winningSequence)
 
-          const res = await (await initModule())
-			.get<WinningSequenceResolver>(WinningSequenceResolver)
-			.compareGrilleWithWinningSequence(grille,winningSequence)
-        expect(res).toBe(expectedResult);
-            
+		expect(result).toEqual(expectedRank)
 	})
 
+	it('should return WinningRank.NONE when there are no matches', () => {
+		const grille = {
+			numbers: [1, 2, 3, 4, 5],
+			stars: [1, 2]
+		}
+		const winningSequence = {
+			numbers: [6, 7, 8, 9, 10],
+			stars: [3, 4]
+		}
+		const expectedRank = WinningRank.NONE
 
-   
-      
+		const result = compareGrilleWithWinningSequence(grille, winningSequence)
+
+		expect(result).toEqual(expectedRank)
+	})
 })
