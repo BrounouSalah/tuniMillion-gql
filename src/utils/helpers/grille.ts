@@ -63,7 +63,7 @@ export const incrementConsonants = (consonants: string) => {
 			continue // Skip vowels or non-consonants
 		}
 
-		let nextIndex = (currentIndex + (carry ? 1 : 0)) % validConsonants.length
+		const nextIndex = (currentIndex + (carry ? 1 : 0)) % validConsonants.length
 
 		if (carry && nextIndex === 0) {
 			carry = true // Set carryover flag if transitioning from 'Z' to 'B'
@@ -121,7 +121,7 @@ export const generateCombinations = async (
 		}
 	}
 
-	let combWithCode = combinations.map((el, index) => ({
+	const combWithCode = combinations.map((el, index) => ({
 		numbers: el.numbers,
 		stars: el.stars,
 		tuniMillionsCode: generateConsecutiveStrings(depart, index)

@@ -1,6 +1,6 @@
-import { Expose, plainToClass } from "class-transformer";
-import { Currency, WalletInCommingTransaction, WalletOutCommingTransaction } from "generator/graphql.schema";
-import { Column, Entity, ObjectIdColumn } from "typeorm";
+import { Expose, plainToClass } from 'class-transformer';
+import { Currency, WalletInCommingTransaction, WalletOutCommingTransaction } from 'generator/graphql.schema';
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
 import * as uuid from 'uuid';
 
 
@@ -20,8 +20,8 @@ export class AmountOfWallet {
 
     @Expose()
     @Column()
-    userId:string
-    
+    userId: string
+
     @Expose()
     @Column()
     totalAmount: number
@@ -39,25 +39,25 @@ export class AmountOfWallet {
     @Column()
     outGoingTransactions: WalletOutCommingTransaction[]
 
-    @Expose()   
+    @Expose()
     @Column()
-    currency:Currency
+    currency: Currency
 
     @Expose()
     @Column()
-    createdAt:Date
+    createdAt: Date
 
     @Expose()
     @Column()
-    updatedAt:Date
+    updatedAt: Date
 
     @Expose()
     @Column()
-    deletedAt:Date
-   
+    deletedAt: Date
+
 
     constructor(amountOfWallet: Partial<AmountOfWallet>) {
-        if (amountOfWallet){
+        if (amountOfWallet) {
             Object.assign(this, plainToClass(AmountOfWallet, amountOfWallet, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
@@ -69,7 +69,7 @@ export class AmountOfWallet {
             this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
         }
-       
+
 
     }
 

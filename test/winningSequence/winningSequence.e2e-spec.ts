@@ -1,12 +1,12 @@
 import { END_POINT } from '../../src/environments'
-import { WinningSequence } from "@models"
-import { INestApplication } from "@nestjs/common"
-import { Test, TestingModule } from "@nestjs/testing"
-import { getRepositoryToken } from "@nestjs/typeorm"
-import { AppModule } from "app.module"
+import { WinningSequence } from '@models'
+import { INestApplication } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { AppModule } from 'app.module'
 import * as request from 'supertest'
-import { AmountOfWalletResolver, AuthResolver, GrilleResolver, WinningSequenceResolver } from "resolvers"
-import { Repository } from "typeorm"
+import { AmountOfWalletResolver, AuthResolver, GrilleResolver, WinningSequenceResolver } from 'resolvers'
+import { Repository } from 'typeorm'
 
 describe('WinningSequenceModule (e2e)', () => {
 	let app: INestApplication
@@ -21,7 +21,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					provide: getRepositoryToken(WinningSequence),
 					useClass: Repository
 				},
-				
+
 				AuthResolver,
 				GrilleResolver,
                 AmountOfWalletResolver
@@ -66,7 +66,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    createdAt:"1999-04-25"
+                    createdAt: '1999-04-25'
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -75,14 +75,14 @@ describe('WinningSequenceModule (e2e)', () => {
 			.expect(200)
 	})
 
-    
+
     it('QUERY › getAllWinningSequencesByDate with bad fields as response', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-                    createdAt:"1999-04-25"
+                    createdAt: '1999-04-25'
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -97,8 +97,8 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    startedAt:"2022-05-12",
-                    endedAt:"2022-04-12"
+                    startedAt: '2022-05-12',
+                    endedAt: '2022-04-12'
 
                 },
 				query:
@@ -115,8 +115,8 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    startedAt:"2022-05-12",
-                    endedAt:"2022-04-12"
+                    startedAt: '2022-05-12',
+                    endedAt: '2022-04-12'
 
                 },
 				query:
@@ -132,7 +132,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                  _id:"123"
+                  _id: '123'
 
                 },
 				query:
@@ -148,7 +148,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                 
+
 
                 },
 				query:
@@ -164,7 +164,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                  _id:"123"
+                  _id: '123'
 
                 },
 				query:
@@ -181,7 +181,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                  
+
 
                 },
 				query:
@@ -198,10 +198,10 @@ describe('WinningSequenceModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                       
+
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-                        
+
 					}
 				},
 
@@ -210,7 +210,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation createWinningSequence ($input: CreateWinningSequenceInput!) {createWinningSequence(input:$input) {_id numbers stars createdAt updatedAt deletedAt userContsByRang{rank count} }}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › createWinningSequence with bad fields as response', () => {
 		return request(app.getHttpServer())
@@ -219,10 +219,10 @@ describe('WinningSequenceModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                       
+
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-                        
+
 					}
 				},
 
@@ -231,7 +231,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation createWinningSequence ($input: CreateWinningSequenceInput!) {createWinningSequence(input:$input) {_id number stars createdAt updatedAt deletedAt userContsByRang{rank count} }}'
 			})
 			.expect(400)
-	}) 
+	})
 
     it('MUTATION › deleteWinningSequence', () => {
 		return request(app.getHttpServer())
@@ -239,7 +239,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					_id:"123"
+					_id: '123'
 				},
 
 				query:
@@ -247,7 +247,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation deleteWinningSequence ($_id: ID!) {deleteWinningSequence(_id:$_id)}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › deleteWinningSequence without input', () => {
 		return request(app.getHttpServer())
@@ -255,7 +255,7 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:
@@ -263,7 +263,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation deleteWinningSequence ($_id: ID!) {deleteWinningSequence(_id:$_id)}'
 			})
 			.expect(400)
-	}) 
+	})
 
     it('MUTATION › updateWinningSequence', () => {
 		return request(app.getHttpServer())
@@ -271,11 +271,11 @@ describe('WinningSequenceModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					_id:"123",
-					input:{
+					_id: '123',
+					input: {
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-					
+
 					}
 				},
 
@@ -284,20 +284,20 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation updateWinningSequence($_id: ID!, $input: UpdateWinningSequenceInput) {updateWinningSequence(_id: $_id, input: $input)}'
 			})
 			.expect(200)
-	}) 
+	})
 
-    
+
     it('MUTATION › updateWinningSequence with bad input ', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-					
-					input:{
+
+					input: {
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-					
+
 					}
 				},
 
@@ -306,7 +306,7 @@ describe('WinningSequenceModule (e2e)', () => {
 					'mutation updateWinningSequence($_id: ID!, $input: UpdateWinningSequenceInput) {updateWinningSequence(_id: $_id, input: $input)}'
 			})
 			.expect(400)
-	}) 
+	})
 
 
 

@@ -116,7 +116,7 @@ describe('UserModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					createdAt: "2000-05-22"
+					createdAt: '2000-05-22'
 				},
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -131,7 +131,7 @@ describe('UserModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					createdAt: "2000-05-22"
+					createdAt: '2000-05-22'
 				},
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -179,7 +179,7 @@ describe('UserModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					_id: '123',
-					filter:{
+					filter: {
 						firstName: 'rihab',
 						lastName: 'methnani',
 					}
@@ -198,7 +198,7 @@ describe('UserModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					_id: '123',
-					filter:{
+					filter: {
 						firstName: 'rihab',
 						lastName: 'methnani',
 					}
@@ -217,7 +217,7 @@ describe('UserModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					_id: '123',
-					
+
 				},
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -233,7 +233,7 @@ describe('UserModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					_id: '123',
-					
+
 				},
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -288,7 +288,7 @@ describe('UserModule (e2e)', () => {
 					'mutation createUser ($input: CreateUserInput!) {createUser(input:$input) {_id firstName lastNam resetPasswordToken resetPasswordExpires createdAt updatedAt avatar walletId pseudoName secondeName thirdName termsOfUse birthDate phoneNumber fullName isVerified identityVerified isActive ccLast4 deletedAt userLimitationId local {email password} grilles {_id userId Numbers Stars DrawDate createdAt updatedAt deletedAt status randomCode prise  } favorites {numbers stars} gender address{city town postalAddress} userLimitation{_id limit type userId} wallet{_id totalAmount currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt } }}'
 			})
 			.expect(400)
-	}) 
+	})
 
 	it('MUTATION › updateUser', async () => {
         return await request(app.getHttpServer())
@@ -341,7 +341,7 @@ describe('UserModule (e2e)', () => {
                             postalAddress: 'string'
                         },
                         gender: 'MALE',
-                       
+
                     }
                 },
 
@@ -359,7 +359,7 @@ describe('UserModule (e2e)', () => {
                 operationName: null,
                 variables: {
                     _id: '123',
-                   
+
                 },
 
                 query:
@@ -375,8 +375,8 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                   
-                   
+
+
                 },
 
                 query:
@@ -393,7 +393,7 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    emailToken:"1111111"
+                    emailToken: '1111111'
                 },
 
                 query:
@@ -409,7 +409,7 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    
+
                 },
 
                 query:
@@ -425,10 +425,10 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    input:{
-						email: "rihab@gmail.com",
-						password: "string",
-						birthDate: "1999-04-25"
+                    input: {
+						email: 'rihab@gmail.com',
+						password: 'string',
+						birthDate: '1999-04-25'
 
 					}
                 },
@@ -446,10 +446,10 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    input:{
-						email: "rihab@gmail.com",
-						password: "string",
-						
+                    input: {
+						email: 'rihab@gmail.com',
+						password: 'string',
+
 
 					}
                 },
@@ -460,7 +460,7 @@ describe('UserModule (e2e)', () => {
             })
             .expect(400)
     })
-    
+
 
 	it('MUTATION › refreshToken', async () => {
         return await request(app.getHttpServer())
@@ -468,7 +468,7 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    refreshToken:"11111111"
+                    refreshToken: '11111111'
                 },
 
                 query:
@@ -484,7 +484,7 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                   
+
                 },
 
                 query:
@@ -500,9 +500,9 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    _id:"111",
-					currentPassword:"123",
-					password:"1234"
+                    _id: '111',
+					currentPassword: '123',
+					password: '1234'
                 },
 
                 query:
@@ -518,9 +518,9 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    _id:"111",
-					currentPassword:"123",
-					
+                    _id: '111',
+					currentPassword: '123',
+
                 },
 
                 query:
@@ -536,7 +536,7 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    
+
                 },
 
                 query:
@@ -552,8 +552,8 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    resetPasswordToken:"111111111111",
-					password:"123"
+                    resetPasswordToken: '111111111111',
+					password: '123'
                 },
 
                 query:
@@ -569,8 +569,8 @@ describe('UserModule (e2e)', () => {
             .send({
                 operationName: null,
                 variables: {
-                    resetPasswordToken:"111111111111",
-					 
+                    resetPasswordToken: '111111111111',
+
                 },
 
                 query:
@@ -600,7 +600,7 @@ describe('UserModule (e2e)', () => {
 					'mutation addFavorites ($input: AddFavoritesInput!) {addFavorites(input:$input) {_id firstName lastName resetPasswordToken resetPasswordExpires createdAt updatedAt avatar walletId pseudoName secondeName thirdName termsOfUse birthDate phoneNumber fullName isVerified identityVerified isActive ccLast4 deletedAt userLimitationId local {email password} grilles {_id userId Numbers Stars DrawDate createdAt updatedAt deletedAt status randomCode prise  } favorites {numbers stars} gender address{city town postalAddress} userLimitation{_id limit type userId} wallet{_id totalAmount currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt } }}'
 			})
 			.expect(200)
-	}) 
+	})
 
 	it('MUTATION › addFavorites with bad input ', () => {
 		return request(app.getHttpServer())
@@ -608,7 +608,7 @@ describe('UserModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:

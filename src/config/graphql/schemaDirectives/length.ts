@@ -40,20 +40,20 @@ class LengthDirective extends SchemaDirectiveVisitor {
 	// Replace field.type with a custom GraphQLScalarType that enforces the
 	// length restriction.
 	wrapType(field) {
-		//console.log(this.args.max)
+		// console.log(this.args.max)
 		if (
 			field.type instanceof GraphQLNonNull &&
 			field.type.ofType instanceof GraphQLScalarType
 		) {
-			//console.log(this.args.max)
+			// console.log(this.args.max)
 			field.type = new GraphQLNonNull(
 				new LimitedLengthType(field.type.ofType, this.args.max)
 			)
 		} else if (field.type instanceof GraphQLScalarType) {
-			//console.log(this.args.max)
+			// console.log(this.args.max)
 			field.type = new LimitedLengthType(field.type, this.args.max)
 		} else {
-			//console.log(this.args.max)
+			// console.log(this.args.max)
 			throw new Error(`Not a scalar type: ${field.type}`)
 		}
 	}

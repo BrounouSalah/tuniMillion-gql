@@ -1,4 +1,4 @@
-import { CacheModule, Module, Injectable,Logger } from '@nestjs/common'
+import { CacheModule, Module, Injectable, Logger } from '@nestjs/common'
 import { GraphQLModule } from '@nestjs/graphql'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ScheduleModule, Cron } from '@nestjs/schedule'
@@ -23,19 +23,19 @@ export class TasksService {
 
   @Cron('0 0 * * 1') // Exécuter chaque semaine à 0h00
   async handleCron() {
-   
+
     try {
-		console.log("cron")
+		console.log('cron')
       const userLimitations = await this.userLimitationResolver.getAllUserLimitations();
 
       if (userLimitations.length > 0) {
-        const initialLimit = userLimitations[0].limit; 
+        const initialLimit = userLimitations[0].limit;
 
         for (const userLimitation of userLimitations) {
           const updateInput: UpdateUserLimitationInput = {
             type: TypeLimit.SEMAINE,
             rest: null,
-            limit: initialLimit 
+            limit: initialLimit
           };
 
           await this.userLimitationResolver.updateUserLimitation(userLimitation._id, updateInput);
@@ -63,7 +63,7 @@ export class TasksService {
 			useClass: CacheService
 		}),
 		HttpModule,
-		
+
 	],
 	controllers: [AppController],
 	providers: [DateScalar, UploadScalar, ...Object.values(Resolvers), AppService, TasksService],

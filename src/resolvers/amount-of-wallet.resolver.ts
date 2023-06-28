@@ -15,7 +15,7 @@ export class AmountOfWalletResolver {
 		const { userId } = input
 
 		const existingWallet = await getMongoRepository(AmountOfWallet).findOne({
-			userId: userId,
+			userId,
 			deletedAt: null
 		})
 		console.log('existingWallet', existingWallet)
@@ -35,12 +35,12 @@ export class AmountOfWalletResolver {
 	async addAmount(
 		@Args('input') input: AddAmountInput
 	): Promise<AmountOfWallet> {
-		const { userId, transactionId,amount } = input
+		const { userId, transactionId, amount } = input
 		const wallet = await getMongoRepository(AmountOfWallet).findOne({
-			userId: userId,
+			userId,
 			deletedAt: null
 		})
-     
+
 		if (!wallet) {
 			throw new ForbiddenError('wallet not found.')
 		}
@@ -48,7 +48,7 @@ export class AmountOfWalletResolver {
 			(inCommingTransaction) =>
 				inCommingTransaction.transactionId === input.transactionId
 		)
-        console.log('isNewTransactionIn',!isNewTransactionIn)
+		console.log('isNewTransactionIn', !isNewTransactionIn)
 		if (isNewTransactionIn) {
 			throw new ForbiddenError('transaction already added.')
 		}
@@ -63,59 +63,66 @@ export class AmountOfWalletResolver {
 			AmountOfWallet
 		).findOneAndUpdate(
 			{ userId: wallet.userId },
-			{ $set: { totalAmount: wallet.totalAmount, inCommingTransactions:wallet.inCommingTransactions } },
+			{
+				$set: {
+					totalAmount: wallet.totalAmount,
+					inCommingTransactions: wallet.inCommingTransactions
+				}
+			},
 			{ returnOriginal: false }
 		)
 		return wallet
 	}
 
-    @Mutation()
-    async removeAmount(
-        @Args('input') input: RemoveAmountInput
-    ): Promise<AmountOfWallet> {
-        const { userId,amount } = input
-        const wallet = await getMongoRepository(AmountOfWallet).findOne({
-            userId: userId,
-            deletedAt: null
-        })
-     
-        if (!wallet) {
-            throw new ForbiddenError('wallet not found.')
-        }
-        const isNewTransactionOut = wallet.outGoingTransactions.find(
-            (outGoingTransaction) =>
-                outGoingTransaction.grillId === input.grillId
-        )
-        console.log('isNewTransactionOut',!isNewTransactionOut)
-        if (isNewTransactionOut) {
-            throw new ForbiddenError('transactionOut already added.')
-        }
-        //wallet.totalAmount -= amount
+	@Mutation()
+	async removeAmount(
+		@Args('input') input: RemoveAmountInput
+	): Promise<AmountOfWallet> {
+		const { userId, amount } = input
+		const wallet = await getMongoRepository(AmountOfWallet).findOne({
+			userId,
+			deletedAt: null
+		})
 
-		const updatedTotalAmount = wallet.totalAmount - amount;
+		if (!wallet) {
+			throw new ForbiddenError('wallet not found.')
+		}
+		const isNewTransactionOut = wallet.outGoingTransactions.find(
+			(outGoingTransaction) => outGoingTransaction.grillId === input.grillId
+		)
+		console.log('isNewTransactionOut', !isNewTransactionOut)
+		if (isNewTransactionOut) {
+			throw new ForbiddenError('transactionOut already added.')
+		}
+		// wallet.totalAmount -= amount
+
+		const updatedTotalAmount = wallet.totalAmount - amount
 
 		if (updatedTotalAmount < 0) {
-		  throw new ForbiddenError('Insufficient funds.');
+			throw new ForbiddenError('Insufficient funds.')
 		}
-        const outGoingTransactions = [...wallet.outGoingTransactions,{
-            amount: input.amount,
-            grillId: input.grillId,
-            createdAt: new Date(),
-            currency: input.currency
-        }]
-		
-        const updatedWallet = await getMongoRepository(
-            AmountOfWallet
-        ).findOneAndUpdate(
-            { userId: wallet.userId },
-            { $set: { totalAmount: updatedTotalAmount, outGoingTransactions:outGoingTransactions } },
-            { returnOriginal: false }
-        )
-        return updatedWallet.value
-    }
-	
+		const outGoingTransactions = [
+			...wallet.outGoingTransactions,
+			{
+				amount: input.amount,
+				grillId: input.grillId,
+				createdAt: new Date(),
+				currency: input.currency
+			}
+		]
+
+		const updatedWallet = await getMongoRepository(
+			AmountOfWallet
+		).findOneAndUpdate(
+			{ userId: wallet.userId },
+			{ $set: { totalAmount: updatedTotalAmount, outGoingTransactions } },
+			{ returnOriginal: false }
+		)
+		return updatedWallet.value
+	}
+
 	@Mutation()
-	async deleteWallet(@Args('id') id: string): Promise<Boolean> {
+	async deleteWallet(@Args('id') id: string): Promise<boolean> {
 		const wallet = await getMongoRepository(AmountOfWallet).findOne({ _id: id })
 
 		if (!wallet) {
@@ -149,7 +156,7 @@ export class AmountOfWalletResolver {
 		@Args('userId') userId: string
 	): Promise<AmountOfWallet> {
 		return await getMongoRepository(AmountOfWallet).findOne({
-			where: { userId: userId, deletedAt: null }
+			where: { userId, deletedAt: null }
 		})
 	}
 

@@ -30,7 +30,7 @@ describe('testing grille coimbination and generate Consecutive Strings without l
 })
 
 describe('testing grille coimbination and generate Consecutive Strings with lastPlayedGrille', () => {
-	let grille: Grille = {
+	const grille: Grille = {
 		_id: '123',
 		userId: 'userId',
 		combinations: [
