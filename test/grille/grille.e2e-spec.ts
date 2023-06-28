@@ -1,11 +1,11 @@
-import { Grille } from "@models"
-import { INestApplication } from "@nestjs/common"
-import { TestingModule, Test } from "@nestjs/testing"
-import { getRepositoryToken } from "@nestjs/typeorm"
-import { AppModule } from "app.module"
+import { Grille } from '@models'
+import { INestApplication } from '@nestjs/common'
+import { TestingModule, Test } from '@nestjs/testing'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { AppModule } from 'app.module'
 import * as request from 'supertest'
-import { AmountOfWalletResolver, AuthResolver, GrilleResolver } from "resolvers"
-import { Repository } from "typeorm"
+import { AmountOfWalletResolver, AuthResolver, GrilleResolver } from 'resolvers'
+import { Repository } from 'typeorm'
 import { END_POINT } from '../../src/environments'
 
 
@@ -22,8 +22,8 @@ describe('GrilleModule (e2e)', () => {
 					provide: getRepositoryToken(Grille),
 					useClass: Repository
 				},
-				
-				
+
+
 				AmountOfWalletResolver
 			]
 		}).compile()
@@ -40,7 +40,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    id:"123"
+                    id: '123'
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -55,7 +55,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    
+
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -64,15 +64,15 @@ describe('GrilleModule (e2e)', () => {
 			.expect(400)
 	})
 
-    
+
     it('QUERY › getAllGrilles', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-                    offSet:1,
-                    limit:2
+                    offSet: 1,
+                    limit: 2
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -87,8 +87,8 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    offSet:1,
-                    limit:2
+                    offSet: 1,
+                    limit: 2
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -103,7 +103,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    status:"PENDING"
+                    status: 'PENDING'
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
@@ -119,14 +119,14 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    status:"PENDING"
+                    status: 'PENDING'
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
 					'query getAllGrillesByStatus ($status: Status ) {getAllGrillesByStatus(status: $status ){_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
 			})
 			.expect(400)
-	}) 
+	})
 
 
     it('QUERY › getAllGrillesByUserId', () => {
@@ -135,9 +135,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    userId: "123",
-                    offSet:1,
-                    limit:2
+                    userId: '123',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -153,9 +153,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    userId: "123",
-                    offSet:1,
-                    limit:2
+                    userId: '123',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -171,9 +171,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    paymentStatus: "PAID",
-                    offSet:1,
-                    limit:2
+                    paymentStatus: 'PAID',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -189,9 +189,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    paymentStatus: "PAID",
-                    offSet:1,
-                    limit:2
+                    paymentStatus: 'PAID',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -207,9 +207,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    paymentStatus: "PAID",
-                    offSet:1,
-                    limit:2
+                    paymentStatus: 'PAID',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -225,9 +225,9 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    paymentStatus: "PAID",
-                    offSet:1,
-                    limit:2
+                    paymentStatus: 'PAID',
+                    offSet: 1,
+                    limit: 2
 
                 },
 				query:
@@ -244,10 +244,10 @@ describe('GrilleModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
+                        userId: '123',
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-                        drawDate: "2020-01-01",
+                        drawDate: '2020-01-01',
 					}
 				},
 
@@ -256,7 +256,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation createGrille ($input: CreateGrilleInput!) {createGrille(input:$input) {_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › createGrille with bad fields as response', () => {
 		return request(app.getHttpServer())
@@ -265,10 +265,10 @@ describe('GrilleModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
+                        userId: '123',
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-                        drawDate: "2020-01-01",
+                        drawDate: '2020-01-01',
 					}
 				},
 
@@ -277,7 +277,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation createGrille ($input: CreateGrilleInput!) {createGrille(input:$input) {_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
 			})
 			.expect(400)
-	}) 
+	})
 
     it('MUTATION › deleteGrille', () => {
 		return request(app.getHttpServer())
@@ -285,7 +285,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					_id:"123"
+					_id: '123'
 				},
 
 				query:
@@ -293,7 +293,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation deleteGrille ($_id: ID!) {deleteGrille(_id:$_id)}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › deleteGrille without input ', () => {
 		return request(app.getHttpServer())
@@ -301,7 +301,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:
@@ -309,7 +309,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation deleteGrille ($_id: ID!) {deleteGrille(_id:$_id)}'
 			})
 			.expect(400)
-	}) 
+	})
 
 	it('MUTATION › updateGrille', () => {
 		return request(app.getHttpServer())
@@ -317,12 +317,12 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					userId:"123",
-					input:{
-						userId: "123",
+					userId: '123',
+					input: {
+						userId: '123',
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-						status: "WIN",
+						status: 'WIN',
 					}
 				},
 
@@ -331,9 +331,9 @@ describe('GrilleModule (e2e)', () => {
 					'mutation updateGrille($userId: ID!, $input: UpdateGrilleInput) {updateGrille(userId: $userId, input: $input)}'
 			})
 			.expect(200)
-	}) 
+	})
 
-   
+
 
 
     it('MUTATION › payGrille', () => {
@@ -342,7 +342,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					id:"123"
+					id: '123'
 				},
 
 				query:
@@ -350,7 +350,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation payGrille ($id: ID!) {payGrille(id:$id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
 			})
 			.expect(200)
-	}) 
+	})
 
 	it('MUTATION › payGrille without input ', () => {
 		return request(app.getHttpServer())
@@ -358,7 +358,7 @@ describe('GrilleModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:
@@ -366,7 +366,7 @@ describe('GrilleModule (e2e)', () => {
 					'mutation payGrille ($id: ID!) {payGrille(id:$id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
 			})
 			.expect(400)
-	}) 
+	})
 
 
 

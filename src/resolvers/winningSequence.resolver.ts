@@ -61,7 +61,7 @@ export class WinningSequenceResolver {
 		const winningsequence = await getMongoRepository(WinningSequence).findOne({
 			cache: true,
 			where: {
-				_id: _id,
+				_id,
 				deletedAt: null
 			}
 		})
@@ -88,7 +88,7 @@ export class WinningSequenceResolver {
 			const userId = grille.userId // Récupération de l'identifiant de l'utilisateur de la grille
 
 			if (userSet.has(userId)) {
-				return // Si l'identifiant de l'utilisateur est déjà présent dans l'ensemble, cela signifie que l'utilisateur a déjà été compté. On passe donc à l'itération suivante.
+				return
 			}
 
 			const winningRank = compareGrilleWithWinningSequence(
@@ -134,7 +134,7 @@ export class WinningSequenceResolver {
 		return await getMongoRepository(WinningSequence).findOne({
 			cache: true,
 			where: {
-				_id: _id,
+				_id,
 				deletedAt: null
 			}
 		})
@@ -148,7 +148,7 @@ export class WinningSequenceResolver {
 			cache: true,
 			where: {
 				createdAt: { $gte: new Date(createdAt) },
-				//createdAt: +new Date(createdAt),
+				// createdAt: +new Date(createdAt),
 				deletedAt: null
 			}
 		})
@@ -188,7 +188,7 @@ export class WinningSequenceResolver {
 	}
 
 	@Mutation()
-	async deleteWinningSequence(@Args('_id') _id: string): Promise<Boolean> {
+	async deleteWinningSequence(@Args('_id') _id: string): Promise<boolean> {
 		const winningSequence = await getMongoRepository(WinningSequence).findOne({
 			_id
 		})
@@ -224,11 +224,7 @@ export class WinningSequenceResolver {
 
 			const updateWinning = await getMongoRepository(
 				WinningSequence
-			).findOneAndUpdate(
-				{ _id: _id },
-				{ $set: input },
-				{ returnOriginal: false }
-			)
+			).findOneAndUpdate({ _id }, { $set: input }, { returnOriginal: false })
 			return updateWinning ? true : false
 		} catch (error) {
 			throw new ApolloError(error)

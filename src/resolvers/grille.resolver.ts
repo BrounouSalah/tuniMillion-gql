@@ -55,7 +55,7 @@ export class GrilleResolver {
 		if (!(numbers.length > 4 && stars.length > 1))
 			throw new ForbiddenError('invalid input')
 		if (numbers.length > 4 && stars.length > 1) {
-			let object = gridPrice[stars.length - 2][numbers.length - 5]
+			const object = gridPrice[stars.length - 2][numbers.length - 5]
 			if (!object) throw new ForbiddenError('invalid input')
 
 			const lastPlayedGrille = await getMongoRepository(Grille).findOne({
@@ -111,7 +111,7 @@ export class GrilleResolver {
 			cache: true,
 			where: {
 				deletedAt: null,
-				status: status
+				status
 			},
 			order: {
 				createdAt: 'DESC'
@@ -152,7 +152,7 @@ export class GrilleResolver {
 	}
 
 	@Mutation()
-	async deleteGrille(@Args('_id') _id: string): Promise<Boolean> {
+	async deleteGrille(@Args('_id') _id: string): Promise<boolean> {
 		const grille = await getMongoRepository(Grille).findOne({ _id })
 
 		if (!grille) {
@@ -172,7 +172,7 @@ export class GrilleResolver {
 	async updateGrille(
 		@Args('userId') userId: string,
 		@Args('input') input: UpdateGrilleInput
-	): Promise<Boolean> {
+	): Promise<boolean> {
 		const grille = await getMongoRepository(User).findOne({ _id: userId })
 		if (!grille) {
 			throw new ForbiddenError('Grille not found.')
@@ -204,8 +204,8 @@ export class GrilleResolver {
 			amount,
 			grillId: grille._id
 		}
-		const Removewallet = await this.walletResolver.removeAmount(input)
-		if (!Removewallet) {
+		const removeWallet = await this.walletResolver.removeAmount(input)
+		if (!removeWallet) {
 			throw new ForbiddenError('something happened payment failed')
 		}
 		const updategrille = await getMongoRepository(Grille).findOneAndUpdate(
@@ -227,12 +227,12 @@ export class GrilleResolver {
 		console.log(currentUser)
 		const where = {
 			deletedAt: null,
-			paymentStatus: paymentStatus,
+			paymentStatus,
 			userId: currentUser._id
 		}
 		return await getMongoRepository(Grille).find({
 			cache: true,
-			where: where,
+			where,
 			order: {
 				createdAt: 'DESC'
 			},
@@ -249,12 +249,12 @@ export class GrilleResolver {
 	): Promise<Grille[]> {
 		const where = {
 			deletedAt: null,
-			paymentStatus: paymentStatus
+			paymentStatus
 		}
 
 		return await getMongoRepository(Grille).find({
 			cache: true,
-			where: where,
+			where,
 			order: {
 				createdAt: 'DESC'
 			},

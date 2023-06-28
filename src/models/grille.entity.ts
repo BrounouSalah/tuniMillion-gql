@@ -1,8 +1,8 @@
-import { Expose, plainToClass } from "class-transformer";
-import { Column, Entity, ObjectIdColumn, OneToMany } from "typeorm";
+import { Expose, plainToClass } from 'class-transformer';
+import { Column, Entity, ObjectIdColumn, OneToMany } from 'typeorm';
 import * as uuid from 'uuid';
 import{PaymentStatus, Status} from '../generator/graphql.schema';
-import { Combinations } from "../generator/graphql.schema";
+import { Combinations } from '../generator/graphql.schema';
 
 
 
@@ -13,30 +13,30 @@ import { Combinations } from "../generator/graphql.schema";
 	}
 })
 
-export class Grille{
+export class Grille {
     @Expose()
 	@ObjectIdColumn()
 	_id: string
 
     @Expose()
     @Column()
-    userId:string
+    userId: string
 
     @Expose()
     @Column()
-    numbers:number[]
+    numbers: number[]
 
     @Expose()
     @Column()
-    stars:number[]
+    stars: number[]
 
     @Expose()
     @Column()
-    status:Status 
+    status: Status
 
     @Expose()
     @Column()
-    paymentStatus:PaymentStatus
+    paymentStatus: PaymentStatus
 
     @Expose()
 	@Column()
@@ -44,46 +44,46 @@ export class Grille{
 
     @Expose()
     @Column()
-    prise:number
+    prise: number
 
     @Expose()
     @Column()
-    price:number
+    price: number
 
     @Expose()
     @Column()
-    combinations:Combinations[]
+    combinations: Combinations[]
 
     @Expose()
     @Column()
-    createdAt:Date
+    createdAt: Date
 
     @Expose()
     @Column()
-    updatedAt:Date
+    updatedAt: Date
 
     @Expose()
     @Column()
-    deletedAt:Date
-   
-   
+    deletedAt: Date
+
+
 
 
     constructor(grille: Partial<Grille>) {
-        if (grille){
+        if (grille) {
             Object.assign(this, plainToClass(Grille, grille, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
-            this.status=this.status || Status.PENDING
-            this.paymentStatus=this.paymentStatus || PaymentStatus.NOT_PAIED
+            this.status = this.status || Status.PENDING
+            this.paymentStatus = this.paymentStatus || PaymentStatus.NOT_PAIED
             this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
         }
-       
+
 
     }
 
 
-   
+
 }
 

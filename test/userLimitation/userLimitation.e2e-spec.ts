@@ -1,13 +1,13 @@
-import { UserLimitation } from "@models"
-import { INestApplication } from "@nestjs/common"
-import { Test, TestingModule } from "@nestjs/testing"
-import { getRepositoryToken } from "@nestjs/typeorm"
-import { AppModule } from "app.module"
-import { UserLimitationResolver } from "resolvers"
-import { Repository } from "typeorm"
+import { UserLimitation } from '@models'
+import { INestApplication } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { AppModule } from 'app.module'
+import { UserLimitationResolver } from 'resolvers'
+import { Repository } from 'typeorm'
 import * as request from 'supertest'
 import { END_POINT } from '../../src/environments'
-import { TypeLimit } from "generator/graphql.schema"
+import { TypeLimit } from 'generator/graphql.schema'
 
 
 
@@ -24,8 +24,8 @@ describe('LimitationModule (e2e)', () => {
 					provide: getRepositoryToken(UserLimitation),
 					useClass: Repository
 				},
-				
-				
+
+
 			]
 		}).compile()
 
@@ -41,7 +41,7 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                 id:"123"
+                 id: '123'
 
                 },
 				query:
@@ -57,7 +57,7 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                
+
 
                 },
 				query:
@@ -73,7 +73,7 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    userId:"123"
+                    userId: '123'
 
                 },
 				query:
@@ -83,14 +83,14 @@ describe('LimitationModule (e2e)', () => {
 			.expect(200)
 	})
 
-    
+
     it('QUERY › getUserLimitationByUserId without input', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-                   
+
 
                 },
 				query:
@@ -133,8 +133,8 @@ describe('LimitationModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						limit:10.0
+                        userId: '123',
+						limit: 10.0
 					}
 				},
 
@@ -152,8 +152,8 @@ describe('LimitationModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						limit:10.0
+                        userId: '123',
+						limit: 10.0
 					}
 				},
 
@@ -164,19 +164,19 @@ describe('LimitationModule (e2e)', () => {
 			.expect(400)
 	})
 
-    
+
     it('MUTATION › updateUserLimitation', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-                    id:"123",
+                    id: '123',
 					input: {
-                      
-						limit:10.0,
-                        type:TypeLimit.SEMAINE,
-                        rest:5
+
+						limit: 10.0,
+                        type: TypeLimit.SEMAINE,
+                        rest: 5
 					}
 				},
 
@@ -193,12 +193,12 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                   
+
 					input: {
-                      
-						limit:10.0,
-                        type:TypeLimit.SEMAINE,
-                        rest:5
+
+						limit: 10.0,
+                        type: TypeLimit.SEMAINE,
+                        rest: 5
 					}
 				},
 
@@ -215,8 +215,8 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                    id:"123",
-					
+                    id: '123',
+
 				},
 
 				query:
@@ -232,7 +232,7 @@ describe('LimitationModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                 
+
 				},
 
 				query:
@@ -241,5 +241,5 @@ describe('LimitationModule (e2e)', () => {
 			})
 			.expect(400)
 	})
-    
+
 })

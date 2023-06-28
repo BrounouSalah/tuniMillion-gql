@@ -29,7 +29,7 @@ export class PaymentMethod {
 
 	@Expose()
 	@Column()
-	runPayId: String
+	runPayId: string
 
 	@Expose()
 	@Column()
@@ -61,8 +61,7 @@ export class PaymentMethod {
 
 	@Expose()
 	@Column()
-	customer:Customer
-
+	customer: Customer
 
 	@Expose()
 	@Column()
@@ -70,7 +69,7 @@ export class PaymentMethod {
 	@Expose()
 	@Column()
 	updatedAt: Date
-	
+
 	@Expose()
 	@Column()
 	deletedAt: Date
@@ -88,10 +87,10 @@ export class PaymentMethod {
 			this.runPayId = this.runPayId || ''
 			this.status = this.status || PaymentStatusEnum.Pending
 			this.created = this.created || +new Date()
-			//this.merchantId = this.merchantId || ''
+			// this.merchantId = this.merchantId || ''
 			this.amount = this.amount || { value: 0, currency: Currency.TND }
 			this.paymentData = this.paymentData || {
-				paymentMethod: PaymentDataMethod.bankcard,
+				paymentMethod: PaymentDataMethod.bankcard
 			}
 			this.invoice = this.invoice || {}
 			this.createdAt = this.createdAt || new Date(Date.now())

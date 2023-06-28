@@ -1,6 +1,6 @@
 import { ValidationSchema, registerSchema } from 'class-validator'
 
-const PageName = [
+const pageName = [
 	{
 		type: 'minLength', // validation type. All validation types are listed in ValidationTypes class.
 		constraints: [3],
@@ -13,12 +13,11 @@ const PageName = [
 	}
 ]
 
-
 const createPageValidation: ValidationSchema = {
 	// using interface here is not required, its just for type-safety
 	name: 'createPageRegister', // this is required, and must be unique
 	properties: {
-		PageName
+		pageName
 	}
 }
 
@@ -26,7 +25,7 @@ const updatePageValidation: ValidationSchema = {
 	// using interface here is not required, its just for type-safety
 	name: 'updatePageRegister', // this is required, and must be unique
 	properties: {
-		PageName
+		pageName
 	}
 }
 

@@ -172,7 +172,7 @@ export const sendMail = async (
 			if (err) {
 				console.log(err)
 			} else {
-				//console.log('Message sent: ' + info.response)
+				// console.log('Message sent: ' + info.response)
 			}
 		})
 

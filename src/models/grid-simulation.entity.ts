@@ -1,5 +1,5 @@
-import { Expose, plainToClass } from "class-transformer";
-import { Column, Entity, ObjectIdColumn, OneToMany } from "typeorm";
+import { Expose, plainToClass } from 'class-transformer';
+import { Column, Entity, ObjectIdColumn, OneToMany } from 'typeorm';
 import * as uuid from 'uuid';
 
 
@@ -10,54 +10,54 @@ import * as uuid from 'uuid';
 	}
 })
 
-export class GridSimulation{
+export class GridSimulation {
     @Expose()
 	@ObjectIdColumn()
 	_id: string
 
     @Expose()
     @Column()
-    userId:string
+    userId: string
 
     @Expose()
     @Column()
-    numbers:number[]
+    numbers: number[]
 
     @Expose()
     @Column()
-    stars:number[]
+    stars: number[]
 
     @Expose()
     @Column()
-    price:number
+    price: number
 
 
     @Expose()
     @Column()
-    createdAt:Date
+    createdAt: Date
 
     @Expose()
     @Column()
-    updatedAt:Date
+    updatedAt: Date
 
     @Expose()
     @Column()
-    deletedAt:Date
-   
+    deletedAt: Date
+
 
     constructor(gridSimulation: Partial<GridSimulation>) {
-        if (gridSimulation){
+        if (gridSimulation) {
             Object.assign(this, plainToClass(GridSimulation, gridSimulation, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
             this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
         }
-       
+
 
     }
 
 
-   
+
 }
 

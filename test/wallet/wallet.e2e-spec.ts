@@ -1,13 +1,13 @@
-import { AmountOfWallet } from "@models"
-import { INestApplication } from "@nestjs/common"
-import { Test, TestingModule } from "@nestjs/testing"
-import { getRepositoryToken } from "@nestjs/typeorm"
-import { AppModule } from "app.module"
-import { AmountOfWalletResolver, AuthResolver } from "resolvers"
-import { Repository } from "typeorm"
+import { AmountOfWallet } from '@models'
+import { INestApplication } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { AppModule } from 'app.module'
+import { AmountOfWalletResolver, AuthResolver } from 'resolvers'
+import { Repository } from 'typeorm'
 import * as request from 'supertest'
 import { END_POINT } from '../../src/environments'
-import { Currency } from "generator/graphql.schema"
+import { Currency } from 'generator/graphql.schema'
 
 
 describe('WalletModule (e2e)', () => {
@@ -23,9 +23,9 @@ describe('WalletModule (e2e)', () => {
 					provide: getRepositoryToken(AmountOfWallet),
 					useClass: Repository
 				},
-				
+
 				AuthResolver,
-			
+
 			]
 		}).compile()
 
@@ -41,7 +41,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                  id:"123"
+                  id: '123'
 
                 },
 				query:
@@ -51,14 +51,14 @@ describe('WalletModule (e2e)', () => {
 			.expect(200)
 	})
 
-    
+
     it('QUERY › getWalletById without input', () => {
 		return request(app.getHttpServer())
 			.post(`/${END_POINT}`)
 			.send({
 				operationName: null,
 				variables: {
-                 
+
 
                 },
 				query:
@@ -74,7 +74,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                  userId:"123"
+                  userId: '123'
 
                 },
 				query:
@@ -90,7 +90,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-                
+
 
                 },
 				query:
@@ -133,9 +133,9 @@ describe('WalletModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						totalAmount:11.0,
-                        currency:Currency.TND
+                        userId: '123',
+						totalAmount: 11.0,
+                        currency: Currency.TND
 					}
 				},
 
@@ -144,7 +144,7 @@ describe('WalletModule (e2e)', () => {
 					'mutation createWallet ($input: CreateWalletInput!) {createWallet(input:$input) {_id totalAmount currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt }}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › createWallet without input', () => {
 		return request(app.getHttpServer())
@@ -152,7 +152,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:
@@ -160,7 +160,7 @@ describe('WalletModule (e2e)', () => {
 					'mutation createWallet ($input: CreateWalletInput!) {createWallet(input:$input) {_id totalAmount currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt  }}'
 			})
 			.expect(400)
-	}) 
+	})
 
     it('MUTATION › addAmount', () => {
 		return request(app.getHttpServer())
@@ -169,10 +169,10 @@ describe('WalletModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						amount:11.0,
-                        currency:Currency.TND,
-                        transactionId:"123"
+                        userId: '123',
+						amount: 11.0,
+                        currency: Currency.TND,
+                        transactionId: '123'
 					}
 				},
 
@@ -181,7 +181,7 @@ describe('WalletModule (e2e)', () => {
 					'mutation addAmount ($input: AddAmountInput!) {addAmount(input:$input) {_id totalAmount currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt }}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › addAmount with bad fields as response ', () => {
 		return request(app.getHttpServer())
@@ -190,10 +190,10 @@ describe('WalletModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						amount:11.0,
-                        currency:Currency.TND,
-                        transactionId:"123"
+                        userId: '123',
+						amount: 11.0,
+                        currency: Currency.TND,
+                        transactionId: '123'
 					}
 				},
 
@@ -202,7 +202,7 @@ describe('WalletModule (e2e)', () => {
 					'mutation addAmount ($input: AddAmountInput!) {addAmount(input:$input) {_id totalAmoun currency inCommingTransactions{transactionId amount currency createdAt} outCommingTransactions{grillId amount currency createdAt } createdAt updatedAt deletedAt }}'
 			})
 			.expect(400)
-	}) 
+	})
 
     it('MUTATION › removeAmount', () => {
 		return request(app.getHttpServer())
@@ -211,10 +211,10 @@ describe('WalletModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						amount:11.0,
-                        currency:Currency.TND,
-                        grillId:"123"
+                        userId: '123',
+						amount: 11.0,
+                        currency: Currency.TND,
+                        grillId: '123'
 					}
 				},
 
@@ -233,10 +233,10 @@ describe('WalletModule (e2e)', () => {
 				operationName: null,
 				variables: {
 					input: {
-                        userId: "123",
-						amount:11.0,
-                        currency:Currency.TND,
-                        grillId:"123"
+                        userId: '123',
+						amount: 11.0,
+                        currency: Currency.TND,
+                        grillId: '123'
 					}
 				},
 
@@ -253,7 +253,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					id:"123"
+					id: '123'
 				},
 
 				query:
@@ -261,7 +261,7 @@ describe('WalletModule (e2e)', () => {
 					'mutation deleteWallet ($id: ID!) {deleteWallet(id:$id)}'
 			})
 			.expect(200)
-	}) 
+	})
 
     it('MUTATION › deleteWallet without input', () => {
 		return request(app.getHttpServer())
@@ -269,7 +269,7 @@ describe('WalletModule (e2e)', () => {
 			.send({
 				operationName: null,
 				variables: {
-					
+
 				},
 
 				query:

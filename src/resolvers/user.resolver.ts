@@ -91,9 +91,9 @@ export class UserResolver {
 		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id)
 		return {
 			...currentUser,
-			grilles: grilles,
-			wallet: wallet,
-			userLimitation: userLimitation
+			grilles,
+			wallet,
+			userLimitation
 		}
 	}
 
@@ -231,13 +231,10 @@ export class UserResolver {
 		@Args('input') input: CreateUserInput,
 		@Context('pubsub') pubsub: any,
 		@Context('req') req: any
-
-		//@Context('idLimitation') idLimitation: UserLimitation
 	): Promise<User> {
-		//const { _id } = idLimitation
-		//input.IdUserLimitation = _id
 		try {
-			let { email, password } = input
+			let { email } = input
+			const { password } = input
 			email = email.toLocaleLowerCase()
 			let existedUser
 			existedUser = await getMongoRepository(User).findOne({
@@ -284,21 +281,21 @@ export class UserResolver {
 				})
 			)
 
-			//call create wallet from  amount of wallet and update user with walletId
+			// call create wallet from  amount of wallet and update user with walletId
 			const wallet = await this.walletResolver.createWallet({
 				userId: createdUser._id
 			})
-			//call create user limitation and update user with userLimitationId
+			// call create user limitation and update user with userLimitationId
 			const defaultUserLimitationInput = {
 				userId: createdUser._id,
 				limit: DEFAULTUSERLIMITAMAOUNT
 			}
-			const UserLimitation =
+			const userLimitation =
 				await this.userLimitationResolver.createUserLimitation(
 					defaultUserLimitationInput
 				)
 			createdUser.walletId = wallet._id
-			createdUser.userLimitationId = UserLimitation._id
+			createdUser.userLimitationId = userLimitation._id
 
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: createdUser._id },
@@ -306,7 +303,7 @@ export class UserResolver {
 				{ returnOriginal: false }
 			)
 
-			//get user and return it with new walletId
+			// get user and return it with new walletId
 
 			pubsub.publish(USER_SUBSCRIPTION, { userCreated: createdUser })
 
@@ -328,63 +325,6 @@ export class UserResolver {
 			throw new ApolloError(error)
 		}
 	}
-
-	// @Mutation()
-
-	// async createUserAuth(@Args('input') input: string): Promise<User> {
-	// 	try {
-	// 		let existedUser
-
-	// 		existedUser = await getMongoRepository(User).findOne({
-	// 			where: {
-	// 				'local.email': input.toLocaleLowerCase()
-	// 			}
-	// 		})
-
-	// 		if (
-	// 			existedUser &&
-	// 			existedUser.accountState == AccountStateType.FINALIZED
-	// 		) {
-	// 			return existedUser
-	// 		} else if (
-	// 			existedUser &&
-	// 			existedUser.accountState == AccountStateType.PENDING
-	// 		) {
-	// 			await sendMail(
-	// 				'finalizeRegistration',
-	// 				existedUser,
-	// 				existedUser.local.password
-	// 			)
-	// 			return existedUser
-	// 		} else {
-	// 			let password = generate({
-	// 				length: 10,
-	// 				numbers: true
-	// 			})
-	// 			const createdUser = await getMongoRepository(User).save(
-	// 				new User({
-
-	// 					isVerified: true,
-	// 					local: {
-	// 						email: input.toLocaleLowerCase(),
-	// 						password: await hashPassword(password)
-	// 					},
-
-	// 				})
-	// 			)
-	// 			await this.emailResolver.createEmail({
-	// 				userId: createdUser._id,
-	// 				type: Type.FINALIZE_REGISTRATION
-	// 			}),
-
-	// 			await sendMail('finalizeRegistration', createdUser, password)
-	// 			return createdUser
-	// 		}
-	// 	} catch (error) {
-	// 		throw new ApolloError(error)
-	// 	}
-	// }
-
 	@Mutation()
 	async updateUser(
 		@Args('_id') _id: string,
@@ -642,7 +582,7 @@ export class UserResolver {
 		})
 
 		if (existingFavorites !== -1) {
-			let newFav = [...user.favorites]
+			const newFav = [...user.favorites]
 			newFav.splice(existingFavorites, 1)
 
 			await getMongoRepository(User).findOneAndUpdate(
@@ -651,7 +591,7 @@ export class UserResolver {
 				{ returnOriginal: false }
 			)
 		} else {
-			let favorite = [...user.favorites]
+			const favorite = [...user.favorites]
 			favorite.push({ numbers, stars })
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
@@ -664,7 +604,7 @@ export class UserResolver {
 	}
 
 	@Query()
-	async checkUserByEmail(@Args('email') email: string): Promise<Boolean> {
+	async checkUserByEmail(@Args('email') email: string): Promise<boolean> {
 		try {
 			const user = await getMongoRepository(User).findOne({
 				where: {
