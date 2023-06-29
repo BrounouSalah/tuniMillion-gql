@@ -17,21 +17,17 @@ export class UserLimitationResolver {
 		@Args('input') input: CreateUserLimitationInput
 	): Promise<UserLimitation> {
 		const { userId } = input
-
 		const existingLimitation = await getMongoRepository(UserLimitation).findOne(
 			{
 				userId
 			}
 		)
-
 		if (existingLimitation) {
 			return existingLimitation
 		}
-
 		const res = await getMongoRepository(UserLimitation).save(
 			new UserLimitation(input)
 		)
-
 		return res
 	}
 
@@ -43,15 +39,19 @@ export class UserLimitationResolver {
 		const userLimitation = await getMongoRepository(UserLimitation).findOne({
 			_id: id
 		})
-		console.log('userLimitation', userLimitation, id, input)
+
 		if (!userLimitation) {
 			throw new ForbiddenError('userLimitation not found.')
 		}
+		userLimitation.updatedAt = new Date()
+		userLimitation.limit = input.limit ?? userLimitation.limit
+		userLimitation.type = input.type ?? userLimitation.type
+		userLimitation.rest = input.rest ?? userLimitation.rest
 		const updateUserLimitation = await getMongoRepository(
 			UserLimitation
 		).findOneAndUpdate(
 			{ _id: userLimitation._id },
-			{ $set: input },
+			{ $set: userLimitation },
 			{ returnOriginal: false }
 		)
 		return updateUserLimitation ? true : false
@@ -89,7 +89,6 @@ export class UserLimitationResolver {
 
 		return userlimitation
 	}
-
 	@Query()
 	async getUserLimitationByUserId(
 		@Args('userId') userId: string
@@ -103,15 +102,9 @@ export class UserLimitationResolver {
 	async getAllUserLimitations(): Promise<UserLimitation[]> {
 		const oneMonthAgo = new Date()
 		oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-
-		// await getMongoRepository(UserLimitation).updateMany(
-		//   { createdAt: { $gte: oneMonthAgo } },
-		//   { $set: { rest: null } }
-		// );
-
 		const userLimitations = await getMongoRepository(UserLimitation).find({
 			where: {
-				createdAt: {
+				updatedAt: {
 					$lte: oneMonthAgo
 				},
 				deletedAt: null

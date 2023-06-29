@@ -1,0 +1,35 @@
+input CreateUserNotificationInput {
+	userId: String
+	message: String
+}
+
+input UpdateUserNotificationInput {
+	message: String
+	isOpen: Boolean
+}
+
+type UserNotification {
+	_id: ID!
+	userId: String!
+	message: String!
+	isOpen: Boolean!
+	createdAt: Date!
+	updatedAt: Date!
+	deletedAt: Date
+}
+
+type Query {
+	getUserNotification(id: ID!): UserNotification @isAuthenticated
+	getUserNotificationByUserId(userId: ID!): [UserNotification]! @isAuthenticated
+	getAllUserNotifications: [UserNotification]! @isAuthenticated
+}
+
+type Mutation {
+	createUserNotification(
+		input: CreateUserNotificationInput!
+	): UserNotification! @isAuthenticated
+	updateUserNotification(input: UpdateUserNotificationInput!, id: ID!): Boolean
+		@isAuthenticated
+	deleteUserNotification(id: ID!): Boolean! @isAuthenticated
+	openNotification(id: ID!): UserNotification! @isAuthenticated
+}

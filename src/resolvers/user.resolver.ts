@@ -32,7 +32,9 @@ import {
 	VerificationTypeFilter,
 	AddFavoritesInput,
 	Favorites,
-	User as UserGraph
+	User as UserGraph,
+	VerificationStatus,
+	VerificationProcessInput
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -46,6 +48,7 @@ import { GrilleResolver } from './grille.resolver'
 
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { UserLimitationResolver } from './userLimitation.resolver'
+import { UserNotificationsResolver } from './userNotifications.resolver'
 
 const DEFAULTUSERLIMITAMAOUNT = 5940
 
@@ -67,18 +70,10 @@ export class UserResolver {
 		private userLimitationResolver: UserLimitationResolver,
 
 		@Inject(forwardRef(() => GrilleResolver))
-		private grilleResolver: GrilleResolver
+		private grilleResolver: GrilleResolver,
+		@Inject(forwardRef(() => UserNotificationsResolver))
+		private notificationReolver: UserNotificationsResolver
 	) {}
-
-	// @Query()
-	// async hello(): Promise<string> {
-	// 	return uuid.v1()
-	// }
-
-	// @Query()
-	// async today(): Promise<Date> {
-	// 	return new Date()
-	// }
 	@Query()
 	async me(@Context('currentUser') currentUser: User): Promise<UserGraph> {
 		const grilles = await this.grilleResolver.getAllGrillesByUserId(
@@ -89,11 +84,16 @@ export class UserResolver {
 				currentUser._id
 			)
 		const wallet = await this.walletResolver.getWalletByUserId(currentUser._id)
+		const notifications =
+			await this.notificationReolver.getUserNotificationByUserId(
+				currentUser._id
+			)
 		return {
 			...currentUser,
 			grilles,
 			wallet,
-			userLimitation
+			userLimitation,
+			notifications
 		}
 	}
 
@@ -105,6 +105,19 @@ export class UserResolver {
 			cache: true,
 			where: {
 				createdAt: { $gte: new Date(createdAt) },
+				deletedAt: null
+			}
+		})
+	}
+
+	@Query()
+	async getUsersByVerificationStatus(
+		@Args('input') input: VerificationStatus
+	): Promise<User[]> {
+		return await getMongoRepository(User).find({
+			cache: true,
+			where: {
+				'verificationDoc.verificationStatus': input,
 				deletedAt: null
 			}
 		})
@@ -296,7 +309,17 @@ export class UserResolver {
 				)
 			createdUser.walletId = wallet._id
 			createdUser.userLimitationId = userLimitation._id
-
+			if (createdUser.userVerificationData.verificationImage.length > 0) {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.PROCESSING,
+					verificationMessage: 'Documents are being processed'
+				}
+			} else {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.NO_DOCUMENTS,
+					verificationMessage: 'No Documents are uploaded to verify the account'
+				}
+			}
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: createdUser._id },
 				{ $set: { ...createdUser, walletId: wallet._id } },
@@ -318,9 +341,38 @@ export class UserResolver {
 
 			// await sendSms(input.phoneNumber, emailToken)
 
-			await sendMail('verifyEmail', createdUser, emailToken)
+			// await sendMail('verifyEmail', createdUser, emailToken)
 
 			return createdUser
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+	@Mutation()
+	async verifyUserDocuments(
+		@Args('input') input: VerificationProcessInput
+	): Promise<boolean> {
+		try {
+			const { userId, status, message } = input
+			const user = await getMongoRepository(User).findOne({
+				where: {
+					deletedAt: null,
+					_id: userId
+				}
+			})
+			if (!user) {
+				throw new ForbiddenError('User not found.')
+			}
+			user.verificationDoc = {
+				verificationStatus: status,
+				verificationMessage: message
+			}
+			const updatedUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: { ...user } },
+				{ returnOriginal: false }
+			)
+			return updatedUser ? true : false
 		} catch (error) {
 			throw new ApolloError(error)
 		}

@@ -1,12 +1,13 @@
 {
-	"name": "minebeat-back",
-	"version": "1.0.1",
-	"description": "minebeat backend project",
-	"author": "Friengo",
+	"name": "tunimillion-back",
+	"version": "1.0.0",
+	"description": "tunimillion backend project",
+	"author": "Dundill",
 	"keywords": [
 		"nestjs",
 		"bootstrap",
 		"express",
+		"graphql",
 		"apollo-graphql",
 		"typeorm"
 	],
@@ -81,7 +82,6 @@
 		"graphql-subscriptions": "^2.0.0",
 		"graphql-tools": "^7.0.2",
 		"graphql-type-json": "^0.3.0",
-		"graphql-upload": "^12.0.0",
 		"graphql-voyager": "^1.0.0-rc.28",
 		"handlebars": "^4.4.5",
 		"helmet": "^4.2.0",

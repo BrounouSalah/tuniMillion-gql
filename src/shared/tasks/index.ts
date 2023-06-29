@@ -1,5 +1,7 @@
 import { CronJob } from 'cron'
 import { Logger } from '@nestjs/common'
+import { userLimitationCron } from 'utils/cronJobs/userLimitationsCron'
+import { docVerificationCron } from 'utils/cronJobs/docVerificationCron'
 
 /**
  * Returns any.
@@ -46,13 +48,20 @@ export const interval = () => {
  * @beta
  */
 export const cron = () => {
-	const job = new CronJob({
-		cronTime: '0 0 12 * * MON-FRI',
-		onTick: () => {
-			console.debug('Cron job completed', 'Cron', false)
+	const userLimitJob = new CronJob({
+		cronTime: '0 0 * * *',
+		onTick: async () => {
+			await userLimitationCron()
 		},
-		start: false,
-		timeZone: 'Asia/Ho_Chi_Minh'
+		start: false
 	})
-	job.start()
+	const verificationJob = new CronJob({
+		cronTime: '30 0 * * *',
+		onTick: async () => {
+			await docVerificationCron()
+		},
+		start: false
+	})
+	userLimitJob.start()
+	verificationJob.start()
 }

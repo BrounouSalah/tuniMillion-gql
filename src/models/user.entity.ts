@@ -10,7 +10,8 @@ import {
 	Gender,
 	UserVerificationData,
 	Favorites,
-	Roles
+	Roles,
+	VerificationProcess
 } from '../generator/graphql.schema'
 
 @Entity({
@@ -123,6 +124,10 @@ export class User {
 	@Expose()
 	@Column()
 	grilles: Grille[]
+
+	@Expose()
+	@Column()
+	verificationDoc: VerificationProcess
 
 	@Expose()
 	@Column()

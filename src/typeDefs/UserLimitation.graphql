@@ -1,39 +1,36 @@
-enum TypeLimit{
-    MOIS 
-    AN 
-    SEMAINE 
+enum TypeLimit {
+	MOIS
+	AN
+	SEMAINE
 }
 
 input CreateUserLimitationInput {
-    limit : Float
-    userId:String
-   
+	limit: Float
+	userId: String
 }
 
 input UpdateUserLimitationInput {
-    limit : Float!
-    type : TypeLimit!
-    rest : Float!
-   
+	limit: Float!
+	type: TypeLimit!
+	rest: Float!
 }
 
 type UserLimitation {
-    _id:ID!
-    limit : Float!
-    type : TypeLimit!
-    userId:String!
-   
+	_id: ID!
+	limit: Float!
+	type: TypeLimit!
+	userId: String!
 }
 
-type Query{
-    getUserLimitation(id:ID!):UserLimitation!
-    getUserLimitationByUserId(userId:ID!):UserLimitation!
-    getAllUserLimitations:[UserLimitation!]!
-
+type Query {
+	getUserLimitation(id: ID!): UserLimitation!
+	getUserLimitationByUserId(userId: ID!): UserLimitation!
+	getAllUserLimitations: [UserLimitation!]!
 }
 
-type Mutation{
-    createUserLimitation(input:CreateUserLimitationInput!):UserLimitation!  @isAuthenticated
-    updateUserLimitation(input:UpdateUserLimitationInput! , id:ID!):Boolean
-    deleteUserLimitation(id:ID!):Boolean!
+type Mutation {
+	createUserLimitation(input: CreateUserLimitationInput!): UserLimitation!
+		@isAuthenticated
+	updateUserLimitation(input: UpdateUserLimitationInput!, id: ID!): Boolean
+	deleteUserLimitation(id: ID!): Boolean!
 }

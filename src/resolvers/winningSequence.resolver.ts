@@ -13,7 +13,7 @@ import { getMongoRepository } from 'typeorm'
 import { GrilleResolver } from './grille.resolver'
 import { query } from 'express'
 import { get } from 'http'
-import { getStatistique } from 'utils/helpers/static'
+import { getStatistique } from 'utils/helpers/statistique'
 import { compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
 
 export class WinningSequenceResolver {
