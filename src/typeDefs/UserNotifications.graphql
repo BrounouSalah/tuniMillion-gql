@@ -20,8 +20,9 @@ type UserNotification {
 
 type Query {
 	getUserNotification(id: ID!): UserNotification @isAuthenticated
-	getUserNotificationByUserId(userId: ID!): [UserNotification]! @isAuthenticated
+	getUserNotificationByUserId(userId: ID!, offSet: Int, limit: Int): [UserNotification]! @isAuthenticated
 	getAllUserNotifications: [UserNotification]! @isAuthenticated
+	getClosedUserNotificationNumbersByUserId(userId: ID!): Int! @isAuthenticated
 }
 
 type Mutation {
@@ -32,4 +33,5 @@ type Mutation {
 		@isAuthenticated
 	deleteUserNotification(id: ID!): Boolean! @isAuthenticated
 	openNotification(id: ID!): UserNotification! @isAuthenticated
+	
 }

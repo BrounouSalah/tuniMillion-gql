@@ -3,6 +3,7 @@ import { Args, Mutation, Query } from '@nestjs/graphql'
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import {
 	CreateWinningSequenceInput,
+	PaymentStatus,
 	Statique,
 	UpdateWinningSequenceInput,
 	WinningRank,
@@ -11,10 +12,10 @@ import {
 import { WinningSequence } from 'models/winningSequence.entity'
 import { getMongoRepository } from 'typeorm'
 import { GrilleResolver } from './grille.resolver'
-import { query } from 'express'
-import { get } from 'http'
+
 import { getStatistique } from 'utils/helpers/statistique'
 import { compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
+
 
 export class WinningSequenceResolver {
 	constructor(
@@ -57,7 +58,7 @@ export class WinningSequenceResolver {
 	async getStaticWinningSequence(
 		@Args('_id') _id: string
 	): Promise<WinningSequence> {
-		const grilles = await this.grilleResolver.getAllGrilles()
+		const grilles = await this.grilleResolver.getAllGrilles(undefined, undefined, PaymentStatus.PAID)
 		const winningsequence = await getMongoRepository(WinningSequence).findOne({
 			cache: true,
 			where: {

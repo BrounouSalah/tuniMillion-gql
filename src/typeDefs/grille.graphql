@@ -57,7 +57,7 @@ type Grille{
 
 type Query {
     getGrille(id: ID!): Grille @isAuthenticated
-    getAllGrilles(offSet: Int, limit: Int ): [Grille]
+    getAllGrilles(offSet: Int, limit: Int , paymentStatus: PaymentStatus ): [Grille]
     getAllGrillesByStatus(status:Status):[Grille] 
     getAllGrillesByUserId(userId: ID!, offSet: Int, limit: Int ): [Grille]
     getGrilleByPaymentStatus(paymentStatus:PaymentStatus , offSet: Int, limit: Int):[Grille]

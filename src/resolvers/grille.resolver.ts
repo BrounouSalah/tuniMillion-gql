@@ -88,18 +88,36 @@ export class GrilleResolver {
 	@Query()
 	async getAllGrilles(
 		@Args('offSet') offSet?: number,
-		@Args('limit') limit?: number
+		@Args('limit') limit?: number,
+		@Args('paymentStatus') paymentStatus?: PaymentStatus
 	): Promise<Grille[]> {
-		return getMongoRepository(Grille).find({
+		if (paymentStatus) {
+			return await getMongoRepository(Grille).find({
+				cache: true,
+				where: {
+					deletedAt: null,
+					paymentStatus
+				},
+				order: {
+					createdAt: 'DESC'
+				},
+				skip: offSet,
+				take: limit,
+				
+			})
+		}
+		return await getMongoRepository(Grille).find({
 			cache: true,
 			where: {
-				deletedAt: null
+				deletedAt: null,
+				
 			},
 			order: {
 				createdAt: 'DESC'
 			},
 			skip: offSet,
-			take: limit
+			take: limit,
+			
 		})
 	}
 

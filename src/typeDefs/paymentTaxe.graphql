@@ -1,0 +1,32 @@
+type PaymentTaxe{
+    id: ID!
+    userId:ID!
+    M75: Float!
+    TVA_CUMM: Float!
+    RunpayCost: Float!
+    CAG_CUMM: Float!
+    benefiet: Float!
+    total_ht: Float! 
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date
+}
+
+
+
+
+type PaymentMethods {
+  name: String
+  id: Int
+}
+
+
+type Query{
+    getMethods: [PaymentMethods] 
+   
+}
+
+type Mutation{
+     getValuesFromAmount(paymentMethodId: Int!, amount:Float!, userId:String): PaymentTaxe
+}
+

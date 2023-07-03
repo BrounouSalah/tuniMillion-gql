@@ -52,7 +52,7 @@ export class UserLimitation {
             Object.assign(this, plainToClass(UserLimitation, userLimitations, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
-            this.type = this.type || TypeLimit.MOIS
+            this.type = this.type || TypeLimit.SEMAINE
             this.createdAt = this.createdAt || new Date(Date.now())
             this.createdAt.setDate(this.createdAt.getDate() - 1);
 			this.updatedAt = this.updatedAt || new Date(Date.now())

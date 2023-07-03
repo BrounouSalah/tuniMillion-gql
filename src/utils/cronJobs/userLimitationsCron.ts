@@ -11,7 +11,7 @@ export async function userLimitationCron() {
 
 			for (const userLimitation of userLimitations) {
 				const updateInput: UpdateUserLimitationInput = {
-					type: TypeLimit.MOIS,
+					type: TypeLimit.SEMAINE,
 					rest: null,
 					limit: initialLimit
 				}

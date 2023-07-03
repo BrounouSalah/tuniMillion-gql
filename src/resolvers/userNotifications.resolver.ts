@@ -87,14 +87,21 @@ export class UserNotificationsResolver {
 	}
 	@Query()
 	async getUserNotificationByUserId(
-		@Args('userId') userId: string
+		@Args('userId') userId: string,
+		@Args('limit') limit?: number,
+		@Args('offSet') offSet?: number
 	): Promise<UserNotification[] | []> {
 		const res = await getMongoRepository(UserNotifications).find({
 			where: { userId, deletedAt: null },
 			order: {
 				createdAt: 'DESC'
-			}
+			},
+			skip: offSet,
+			take: limit,
+			
 		})
+		
+			
 		return res ?? []
 	}
 
@@ -130,5 +137,21 @@ export class UserNotificationsResolver {
 			{ returnOriginal: false }
 		)
 		return updateUserNotification.value
+	}
+	@Query()
+	async getClosedUserNotificationNumbersByUserId(
+		@Args('userId') userId: string,
+	): Promise<number> {
+		const res = await getMongoRepository(UserNotifications).find({
+			where: { userId, deletedAt: null,isOpen:false },
+			order: {
+				createdAt: 'DESC'
+			},
+			
+			
+		})
+		
+			
+		return res.length ?? 0
 	}
 }

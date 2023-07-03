@@ -46,7 +46,7 @@ export class UserLimitationResolver {
 		userLimitation.updatedAt = new Date()
 		userLimitation.limit = input.limit ?? userLimitation.limit
 		userLimitation.type = input.type ?? userLimitation.type
-		userLimitation.rest = input.rest ?? userLimitation.rest
+		userLimitation.rest = input.rest 
 		const updateUserLimitation = await getMongoRepository(
 			UserLimitation
 		).findOneAndUpdate(
@@ -100,17 +100,18 @@ export class UserLimitationResolver {
 
 	@Query()
 	async getAllUserLimitations(): Promise<UserLimitation[]> {
-		const oneMonthAgo = new Date()
-		oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-		const userLimitations = await getMongoRepository(UserLimitation).find({
-			where: {
-				updatedAt: {
-					$lte: oneMonthAgo
-				},
-				deletedAt: null
-			}
-		})
+	const oneWeekAgo = new Date();
+	oneWeekAgo.setDate(oneWeekAgo.getDate() - 7); // Subtract 7 days to get one week ago
+	const userLimitations = await getMongoRepository(UserLimitation).find({
+		where: {
+		updatedAt: {
+			$lte: oneWeekAgo, 
+		},
+		deletedAt: null,
+		},
+	});
 
-		return userLimitations
-	}
+  return userLimitations;
+}
+
 }
