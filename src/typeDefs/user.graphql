@@ -8,7 +8,6 @@ enum RecordType {
 	File
 }
 enum Roles {
-	SUPER_ADMIN
 	ADMIN
 	USER
 }
@@ -74,7 +73,21 @@ input UpdateUserInput {
 	thirdName: String
 	lastName: String!
 	email: String!
-	password: String!
+	birthDate: String!
+	phoneNumber: String!
+	address: AddressInput!
+	termsOfUse: Boolean!
+	verification: Verification
+	gender: Gender!
+	identityVerified: Boolean
+}
+input AdminUpdateUserInput {
+	firstName: String!
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	lastName: String!
+	email: String!
 	birthDate: String!
 	phoneNumber: String!
 	address: AddressInput!
@@ -87,7 +100,7 @@ input UpdateUserInput {
 input LoginUserInput {
 	email: String! @length(max: 7)
 	password: String!
-	birthDate: String!
+	birthDate: String
 }
 
 type LoginResponse {
@@ -219,18 +232,38 @@ input VerificationProcessInput {
 	status: VerificationStatus!
 	message: String!
 }
+input AdminCreateUserInput {
+	firstName: String!
+	pseudoName: String
+	secondeName: String
+	thirdName: String
+	lastName: String!
+	email: String!
+	password: String!
+	birthDate: String!
+	phoneNumber: String!
+	address: AddressInput!
+	termsOfUse: Boolean
+	verification: Verification
+	gender: Gender
+	role: Roles
+}
 
 type Query {
 	me: User @isAuthenticated
 	users(offset: Int, limit: Int, filter: FilterInput): [User!]
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
-	user(_id: ID!): User #@isAuthenticated
-	finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
-	finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
-	searchUsersByDate(createdAt: String): [User] @isAuthenticated
+	user(_id: ID!): User @isAuthenticated @hasPermission(permission: "ADMIN")
+	#finalizedUsers(offset: Int, limit: Int): [User!] @isAuthenticated
+	#finalizedUser(_id: ID!, filter: UserFilterInput): User @isAuthenticated
+	searchUsersByDate(createdAt: String): [User]
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 	checkUserByEmail(email: String): Boolean
 	getUsersByVerificationStatus(input: VerificationStatus!): [User]!
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 }
 
 type Mutation {
@@ -243,8 +276,6 @@ type Mutation {
 		input: UpdateUserInput! @validate(schema: "updateUserRegister")
 	): Boolean @isAuthenticated
 	updateUserAvatar(_id: ID!, file: Upload!): Boolean @isAuthenticated
-	deleteUser(_id: ID!): Boolean @isAuthenticated
-	deleteUsers: Boolean! @isAuthenticated
 	verifyEmail(emailToken: String!): Boolean
 	login(
 		input: LoginUserInput! @validate(schema: "loginUserRegister")
@@ -262,6 +293,20 @@ type Mutation {
 	verifyUserDocuments(input: VerificationProcessInput!): Boolean
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
+	adminCreateUser(input: AdminCreateUserInput!): User!
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	adminChangeUserPassword(_id: ID!, password: String!): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	deleteUser(_id: ID!): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	deleteUsers: Boolean! @isAuthenticated @hasPermission(permission: "ADMIN")
+	adminUpdateUser(_id: ID!, input: UpdateUserInput!): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	adminLogin(input: LoginUserInput!): LoginResponse
 }
 
 type Subscription {

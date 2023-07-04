@@ -102,22 +102,19 @@ export class GrilleResolver {
 					createdAt: 'DESC'
 				},
 				skip: offSet,
-				take: limit,
-				
+				take: limit
 			})
 		}
 		return await getMongoRepository(Grille).find({
 			cache: true,
 			where: {
-				deletedAt: null,
-				
+				deletedAt: null
 			},
 			order: {
 				createdAt: 'DESC'
 			},
 			skip: offSet,
-			take: limit,
-			
+			take: limit
 		})
 	}
 
@@ -248,28 +245,6 @@ export class GrilleResolver {
 			paymentStatus,
 			userId: currentUser._id
 		}
-		return await getMongoRepository(Grille).find({
-			cache: true,
-			where,
-			order: {
-				createdAt: 'DESC'
-			},
-			skip: offSet,
-			take: limit
-		})
-	}
-
-	@Query()
-	async getGrilleByPaymentStatus(
-		@Args('paymentStatus') paymentStatus: PaymentStatus,
-		@Args('offSet') offSet?: number,
-		@Args('limit') limit?: number
-	): Promise<Grille[]> {
-		const where = {
-			deletedAt: null,
-			paymentStatus
-		}
-
 		return await getMongoRepository(Grille).find({
 			cache: true,
 			where,

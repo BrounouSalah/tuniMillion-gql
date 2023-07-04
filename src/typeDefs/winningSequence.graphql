@@ -30,8 +30,8 @@ type WinningRankCount {
 	count: Int
 }
 type Statique {
-	numbers:Any
-	stars:Any
+	numbers: Any
+	stars: Any
 }
 
 type WinningSequence {
@@ -58,7 +58,11 @@ type Query {
 type Mutation {
 	createWinningSequence(input: CreateWinningSequenceInput!): WinningSequence
 		@isAuthenticated
-	deleteWinningSequence(_id: ID!): Boolean @isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	deleteWinningSequence(_id: ID!): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 	updateWinningSequence(_id: ID!, input: UpdateWinningSequenceInput): Boolean
 		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 }

@@ -1,72 +1,78 @@
-enum Status{
-    PENDING
-    WIN
-    LOSE
-    
+enum Status {
+	PENDING
+	WIN
+	LOSE
+	JACKPOT
 }
 
-enum PaymentStatus{
-    NOT_PAIED
-    PAID
+enum PaymentStatus {
+	NOT_PAIED
+	PAID
 }
 
 input CreateGrilleInput {
-    userId:String
-    numbers: [Int]
-    stars: [Int]
-    drawDate: Date  
+	userId: String
+	numbers: [Int]
+	stars: [Int]
 }
-
 
 input UpdateGrilleInput {
-    userId:String
-    numbers: [Int]
-    stars: [Int]
-    status:Status
-    
+	userId: String
+	numbers: [Int]
+	stars: [Int]
+	status: Status
 }
-input PayGrilleInput{
-    userId:String
-    
-    
-} 
-type Combinations{
-    numbers: [Int]
-    stars: [Int]
-    tuniMillionsCode: String
-   
+input PayGrilleInput {
+	userId: String
+}
+type Combinations {
+	numbers: [Int]
+	stars: [Int]
+	tuniMillionsCode: String
 }
 
-type Grille{
-    _id: ID!
-    userId: ID!
-    numbers: [Int]
-    stars: [Int]
-    createdAt: Date
-    updatedAt: Date
-    deletedAt: Date
-    status:Status
-    paymentStatus:PaymentStatus
-    randomCode: String
-    combinations: [Combinations]
-    prise:Int
-    price:Float 
-    
-
+type Grille {
+	_id: ID!
+	userId: ID!
+	numbers: [Int]
+	stars: [Int]
+	createdAt: Date
+	updatedAt: Date
+	deletedAt: Date
+	status: Status
+	paymentStatus: PaymentStatus
+	randomCode: String
+	combinations: [Combinations]
+	prise: Int
+	price: Float
 }
 
 type Query {
-    getGrille(id: ID!): Grille @isAuthenticated
-    getAllGrilles(offSet: Int, limit: Int , paymentStatus: PaymentStatus ): [Grille]
-    getAllGrillesByStatus(status:Status):[Grille] 
-    getAllGrillesByUserId(userId: ID!, offSet: Int, limit: Int ): [Grille]
-    getGrilleByPaymentStatus(paymentStatus:PaymentStatus , offSet: Int, limit: Int):[Grille]
-    getGrilleByPaymentStatusAndUserId(paymentStatus:PaymentStatus, offSet: Int, limit: Int):[Grille] @isAuthenticated
+	getGrille(id: ID!): Grille @isAuthenticated
+	getAllGrilles(
+		offSet: Int
+		limit: Int
+		paymentStatus: PaymentStatus
+	): [Grille] @isAuthenticated @hasPermission(permission: "ADMIN")
+	getAllGrillesByStatus(status: Status): [Grille]
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	getAllGrillesByUserId(userId: ID!, offSet: Int, limit: Int): [Grille]
+		@isAuthenticated
+	getGrilleByPaymentStatusAndUserId(
+		paymentStatus: PaymentStatus
+		offSet: Int
+		limit: Int
+	): [Grille] @isAuthenticated
 }
 
 type Mutation {
-    createGrille(input: CreateGrilleInput!): Grille @isAuthenticated
-    deleteGrille(_id: ID!): Boolean @isAuthenticated
-    updateGrille(userId: ID!, input: UpdateGrilleInput): Boolean @isAuthenticated
-    payGrille(id: ID! ): Grille 
+	createGrille(input: CreateGrilleInput!): Grille @isAuthenticated
+	deleteGrille(_id: ID!): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	updateGrille(userId: ID!, input: UpdateGrilleInput): Boolean
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	payGrille(id: ID!): Grille @isAuthenticated
 }

@@ -1,6 +1,7 @@
 import { Args, Mutation, Query } from '@nestjs/graphql'
 import {
 	CreateUserNotificationInput,
+	GetNotificationsResponse,
 	UpdateUserNotificationInput,
 	UserNotification
 } from 'generator/graphql.schema'
@@ -90,19 +91,26 @@ export class UserNotificationsResolver {
 		@Args('userId') userId: string,
 		@Args('limit') limit?: number,
 		@Args('offSet') offSet?: number
-	): Promise<UserNotification[] | []> {
+	): Promise<GetNotificationsResponse> {
 		const res = await getMongoRepository(UserNotifications).find({
 			where: { userId, deletedAt: null },
 			order: {
 				createdAt: 'DESC'
 			},
 			skip: offSet,
-			take: limit,
-			
+			take: limit
 		})
-		
-			
-		return res ?? []
+		const totalCount = await getMongoRepository(UserNotifications).findAndCount(
+			{
+				where: { userId, deletedAt: null }
+			}
+		)
+		const totalClosed = await getMongoRepository(
+			UserNotifications
+		).findAndCount({
+			where: { userId, deletedAt: null, isOpen: false }
+		})
+		return { data: res, totalNotif: totalCount[1], closedNotif: totalClosed[1] }
 	}
 
 	@Query()
@@ -140,18 +148,15 @@ export class UserNotificationsResolver {
 	}
 	@Query()
 	async getClosedUserNotificationNumbersByUserId(
-		@Args('userId') userId: string,
+		@Args('userId') userId: string
 	): Promise<number> {
 		const res = await getMongoRepository(UserNotifications).find({
-			where: { userId, deletedAt: null,isOpen:false },
+			where: { userId, deletedAt: null, isOpen: false },
 			order: {
 				createdAt: 'DESC'
-			},
-			
-			
+			}
 		})
-		
-			
+
 		return res.length ?? 0
 	}
 }

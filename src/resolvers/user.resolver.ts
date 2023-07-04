@@ -34,7 +34,9 @@ import {
 	Favorites,
 	User as UserGraph,
 	VerificationStatus,
-	VerificationProcessInput
+	VerificationProcessInput,
+	AdminCreateUserInput,
+	AdminUpdateUserInput
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -88,12 +90,13 @@ export class UserResolver {
 			await this.notificationReolver.getUserNotificationByUserId(
 				currentUser._id
 			)
+
 		return {
 			...currentUser,
 			grilles,
 			wallet,
 			userLimitation,
-			notifications
+			notifications: notifications.data
 		}
 	}
 
@@ -167,26 +170,26 @@ export class UserResolver {
 		}
 	}
 
-	@Query()
-	async finalizedUsers(
-		@Args('offset') offset: number,
-		@Args('limit') limit: number,
-		@Context('currentUser') currentUser: User
-	): Promise<User[]> {
-		const { _id } = currentUser
-		const users = await getMongoRepository(User).find({
-			where: {
-				accountState: AccountStateType.FINALIZED,
-				deletedAt: null
-			},
+	// @Query()
+	// async finalizedUsers(
+	// 	@Args('offset') offset: number,
+	// 	@Args('limit') limit: number,
+	// 	@Context('currentUser') currentUser: User
+	// ): Promise<User[]> {
+	// 	const { _id } = currentUser
+	// 	const users = await getMongoRepository(User).find({
+	// 		where: {
+	// 			accountState: AccountStateType.FINALIZED,
+	// 			deletedAt: null
+	// 		},
 
-			skip: offset,
-			take: limit,
-			cache: true
-		})
+	// 		skip: offset,
+	// 		take: limit,
+	// 		cache: true
+	// 	})
 
-		return users
-	}
+	// 	return users
+	// }
 
 	@Query()
 	async user(@Args('_id') _id: string): Promise<User> {
@@ -203,41 +206,41 @@ export class UserResolver {
 		}
 	}
 
-	@Query()
-	async finalizedUser(
-		@Args('_id') _id: string,
-		@Args('filter') filter: UserFilterInput
-	): Promise<User> {
-		try {
-			const user = await getMongoRepository(User).findOne({
-				where: {
-					$and: [
-						{ _id },
-						{ accountState: AccountStateType.FINALIZED },
-						{
-							...(filter.firstName
-								? { type: { $regex: filter.firstName, $options: 'i' } }
-								: {})
-						},
-						{
-							...(filter.lastName
-								? { type: { $regex: filter.lastName, $options: 'i' } }
-								: {})
-						},
-						{ deletedAt: null }
-					]
-				}
-			})
+	// @Query()
+	// async finalizedUser(
+	// 	@Args('_id') _id: string,
+	// 	@Args('filter') filter: UserFilterInput
+	// ): Promise<User> {
+	// 	try {
+	// 		const user = await getMongoRepository(User).findOne({
+	// 			where: {
+	// 				$and: [
+	// 					{ _id },
+	// 					{ accountState: AccountStateType.FINALIZED },
+	// 					{
+	// 						...(filter.firstName
+	// 							? { type: { $regex: filter.firstName, $options: 'i' } }
+	// 							: {})
+	// 					},
+	// 					{
+	// 						...(filter.lastName
+	// 							? { type: { $regex: filter.lastName, $options: 'i' } }
+	// 							: {})
+	// 					},
+	// 					{ deletedAt: null }
+	// 				]
+	// 			}
+	// 		})
 
-			if (!user) {
-				throw new ForbiddenError('User not found.')
-			}
+	// 		if (!user) {
+	// 			throw new ForbiddenError('User not found.')
+	// 		}
 
-			return user
-		} catch (error) {
-			throw new ApolloError(error)
-		}
-	}
+	// 		return user
+	// 	} catch (error) {
+	// 		throw new ApolloError(error)
+	// 	}
+	// }
 
 	@Mutation()
 	async createUser(
@@ -349,6 +352,98 @@ export class UserResolver {
 		}
 	}
 	@Mutation()
+	async adminCreateUser(
+		@Args('input') input: AdminCreateUserInput,
+		@Context('pubsub') pubsub: any,
+		@Context('req') req: any
+	): Promise<User> {
+		try {
+			let { email } = input
+			const { password } = input
+			email = email.toLocaleLowerCase()
+			let existedUser
+			existedUser = await getMongoRepository(User).findOne({
+				where: {
+					'local.email': email
+				}
+			})
+
+			if (existedUser) {
+				throw new ForbiddenError('User already exists.')
+			}
+
+			// Is there a Google account with the same email?
+			existedUser = await getMongoRepository(User).findOne({
+				where: {
+					$or: [{ 'google.email': email }, { 'facebook.email': email }]
+				}
+			})
+
+			if (existedUser) {
+				// Let's merge them?
+
+				const updateUser = await getMongoRepository(User).save(
+					new User({
+						...input,
+						local: {
+							email,
+							password: await hashPassword(password)
+						}
+					})
+				)
+
+				return updateUser
+			}
+
+			const createdUser = await getMongoRepository(User).save(
+				new User({
+					...input,
+					isVerified: true,
+					local: {
+						email,
+						password: await hashPassword(password)
+					}
+				})
+			)
+
+			// call create wallet from  amount of wallet and update user with walletId
+			const wallet = await this.walletResolver.createWallet({
+				userId: createdUser._id
+			})
+			// call create user limitation and update user with userLimitationId
+			const defaultUserLimitationInput = {
+				userId: createdUser._id,
+				limit: DEFAULTUSERLIMITAMAOUNT
+			}
+			const userLimitation =
+				await this.userLimitationResolver.createUserLimitation(
+					defaultUserLimitationInput
+				)
+			createdUser.walletId = wallet._id
+			createdUser.userLimitationId = userLimitation._id
+			if (createdUser.userVerificationData.verificationImage.length > 0) {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.PROCESSING,
+					verificationMessage: 'Documents are being processed'
+				}
+			} else {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.NO_DOCUMENTS,
+					verificationMessage: 'No Documents are uploaded to verify the account'
+				}
+			}
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: createdUser._id },
+				{ $set: { ...createdUser, walletId: wallet._id } },
+				{ returnOriginal: false }
+			)
+
+			return createdUser
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+	@Mutation()
 	async verifyUserDocuments(
 		@Args('input') input: VerificationProcessInput
 	): Promise<boolean> {
@@ -367,9 +462,15 @@ export class UserResolver {
 				verificationStatus: status,
 				verificationMessage: message
 			}
+
 			const updatedUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
-				{ $set: { ...user } },
+				{
+					$set: {
+						...user,
+						identityVerified: status === VerificationStatus.ACCEPTED
+					}
+				},
 				{ returnOriginal: false }
 			)
 			return updatedUser ? true : false
@@ -387,10 +488,6 @@ export class UserResolver {
 
 			if (!user) {
 				throw new ForbiddenError('User not found.')
-			} else {
-				if (user.firstName == null && input.firstName != null) {
-					await this.changeUserAccountState(user)
-				}
 			}
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
@@ -403,12 +500,26 @@ export class UserResolver {
 		}
 	}
 
-	async changeUserAccountState(user: User) {
-		await getMongoRepository(User).findOneAndUpdate(
-			{ _id: user._id },
-			{ $set: user },
-			{ returnOriginal: false }
-		)
+	@Mutation()
+	async adminUpdateUser(
+		@Args('_id') _id: string,
+		@Args('input') input: AdminUpdateUserInput
+	): Promise<boolean> {
+		try {
+			const user = await getMongoRepository(User).findOne({ _id })
+
+			if (!user) {
+				throw new ForbiddenError('User not found.')
+			}
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: input },
+				{ returnOriginal: false }
+			)
+			return updateUser ? true : false
+		} catch (error) {
+			throw new ApolloError(error)
+		}
 	}
 
 	@Mutation()
@@ -509,6 +620,27 @@ export class UserResolver {
 	}
 
 	@Mutation()
+	async adminLogin(
+		@Args('input') input: LoginUserInput
+	): Promise<LoginResponse> {
+		const { email, password } = input
+		const user = await getMongoRepository(User).findOne({
+			where: {
+				'local.email': email.toLocaleLowerCase()
+			}
+		})
+
+		if (user && (await comparePassword(password, user.local.password))) {
+			if (user.userRole === 'ADMIN') {
+				return await tradeToken(user)
+			} else {
+				throw new AuthenticationError('Your dont have authorization')
+			}
+		}
+		throw new AuthenticationError('Login failed.')
+	}
+
+	@Mutation()
 	async refreshToken(
 		@Args('refreshToken') refreshToken: string
 	): Promise<RefreshTokenResponse> {
@@ -533,6 +665,31 @@ export class UserResolver {
 
 		if (!(await comparePassword(currentPassword, user.local.password))) {
 			throw new ForbiddenError('Your current password is missing or incorrect.')
+		}
+
+		if (await comparePassword(password, user.local.password)) {
+			throw new ForbiddenError(
+				'Your new password must be different from your previous password.'
+			)
+		}
+		user.local.password = await hashPassword(password)
+		const updateUser = await getMongoRepository(User).findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: user },
+			{ returnOriginal: false }
+		)
+
+		return updateUser ? true : false
+	}
+	@Mutation()
+	async adminChangeUserPassword(
+		@Args('_id') _id: string,
+		@Args('password') password: string
+	): Promise<boolean> {
+		const user = await getMongoRepository(User).findOne({ _id })
+
+		if (!user) {
+			throw new ForbiddenError('User not found.')
 		}
 
 		if (await comparePassword(password, user.local.password)) {
