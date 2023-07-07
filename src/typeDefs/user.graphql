@@ -78,7 +78,7 @@ input UpdateUserInput {
 	address: AddressInput!
 	termsOfUse: Boolean!
 	verification: Verification
-	gender: Gender!
+	gender: Gender
 	identityVerified: Boolean
 }
 input AdminUpdateUserInput {
@@ -249,6 +249,17 @@ input AdminCreateUserInput {
 	role: Roles
 }
 
+type StatsResponse {
+	usersNum: Int!
+	grillesNum: Int!
+	paiedGrillesNum: Int!
+	notPaiedGrillesNum: Int!
+	jackpotGrillesNum: Int!
+	winningGrillesNum: Int!
+	verifiedUsers: Int!
+	nonVerifiedUsers: Int!
+	winningSequencesNum: Int!
+}
 type Query {
 	me: User @isAuthenticated
 	users(offset: Int, limit: Int, filter: FilterInput): [User!]
@@ -262,6 +273,9 @@ type Query {
 		@hasPermission(permission: "ADMIN")
 	checkUserByEmail(email: String): Boolean
 	getUsersByVerificationStatus(input: VerificationStatus!): [User]!
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+	adminStats: StatsResponse!
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
 }

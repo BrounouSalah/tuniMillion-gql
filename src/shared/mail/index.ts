@@ -55,6 +55,7 @@ export const sendMail = async (
 		tls: {
 			ciphers: 'SSLv3'
 		},
+
 		logger: true,
 		debug: true
 	})

@@ -15,7 +15,7 @@ import {
 	UserInputError
 } from 'apollo-server-core'
 
-import { User, UserLimitation } from '@models'
+import { Grille, User, UserLimitation, WinningSequence } from '@models'
 import { comparePassword, hashPassword } from '@utils'
 import { EmailResolver } from './email.resolver'
 import { FileResolver } from './file.resolver'
@@ -36,7 +36,10 @@ import {
 	VerificationStatus,
 	VerificationProcessInput,
 	AdminCreateUserInput,
-	AdminUpdateUserInput
+	AdminUpdateUserInput,
+	StatsResponse,
+	PaymentStatus,
+	Status
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -138,6 +141,7 @@ export class UserResolver {
 			filter.isVerified === undefined
 		) {
 			const users = await getMongoRepository(User).find({
+				where: { deletedAt: null },
 				skip: offset,
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
@@ -147,6 +151,7 @@ export class UserResolver {
 		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
 			const users = await getMongoRepository(User).find({
 				where: {
+					deletedAt: null,
 					identityVerified: filter.isVerified
 				},
 
@@ -159,6 +164,7 @@ export class UserResolver {
 		} else {
 			const users = await getMongoRepository(User).find({
 				where: {
+					deletedAt: null,
 					isVerified: filter.isVerified
 				},
 				skip: offset,
@@ -824,6 +830,53 @@ export class UserResolver {
 				return true
 			}
 			return false
+		} catch (error) {
+			throw new ForbiddenError(error)
+		}
+	}
+	@Query()
+	async adminStats(): Promise<StatsResponse> {
+		try {
+			const [, usersNum] = await getMongoRepository(User).findAndCount({
+				where: { deletedAt: null }
+			})
+			const [, verifiedUsers] = await getMongoRepository(User).findAndCount({
+				where: { deletedAt: null, identityVerified: true }
+			})
+			const [, nonVerifiedUsers] = await getMongoRepository(User).findAndCount({
+				where: { deletedAt: null, identityVerified: false }
+			})
+			const [, grillesNum] = await getMongoRepository(Grille).findAndCount({
+				where: { deletedAt: null }
+			})
+			const [, paiedGrillesNum] = await getMongoRepository(Grille).findAndCount(
+				{ where: { deletedAt: null, paymentStatus: PaymentStatus.PAID } }
+			)
+			const [, notPaiedGrillesNum] = await getMongoRepository(
+				Grille
+			).findAndCount({
+				where: { deletedAt: null, paymentStatus: PaymentStatus.NOT_PAIED }
+			})
+			const [, jackpotGrillesNum] = await getMongoRepository(
+				Grille
+			).findAndCount({ where: { deletedAt: null, status: Status.JACKPOT } })
+			const [, winningGrillesNum] = await getMongoRepository(
+				Grille
+			).findAndCount({ where: { deletedAt: null, status: Status.WIN } })
+			const [, winningSequencesNum] = await getMongoRepository(
+				WinningSequence
+			).findAndCount({ where: { deletedAt: null } })
+			return {
+				usersNum,
+				grillesNum,
+				paiedGrillesNum,
+				notPaiedGrillesNum,
+				jackpotGrillesNum,
+				winningGrillesNum,
+				verifiedUsers,
+				nonVerifiedUsers,
+				winningSequencesNum
+			}
 		} catch (error) {
 			throw new ForbiddenError(error)
 		}
