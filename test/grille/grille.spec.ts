@@ -33,6 +33,7 @@ describe('testing grille coimbination and generate Consecutive Strings with last
 	const grille: Grille = {
 		_id: '123',
 		userId: 'userId',
+		winningSequenceId:"123",
 		combinations: [
 			{
 				tuniMillionsCode: 'F BBB 00001'
