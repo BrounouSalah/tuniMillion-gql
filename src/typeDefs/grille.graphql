@@ -1,8 +1,9 @@
-enum Status {
-	PENDING
-	WIN
-	LOSE
+enum Status{
+    PENDING
+    WIN
+    LOSE
 	JACKPOT
+    
 }
 
 enum PaymentStatus {
@@ -30,10 +31,19 @@ type Combinations {
 	stars: [Int]
 	tuniMillionsCode: String
 }
+type MetaData{
+	M75: Float!
+    TVA_CUMM: Float!
+    RunpayCost: Float!
+    CAG_CUMM: Float!
+    benefiet: Float!
+    total_ht: Float! 
+}
 
 type Grille {
 	_id: ID!
 	userId: ID!
+	winningSequenceId: ID!
 	numbers: [Int]
 	stars: [Int]
 	createdAt: Date
@@ -45,6 +55,9 @@ type Grille {
 	combinations: [Combinations]
 	prise: Int
 	price: Float
+	metaData:MetaData
+	winningStars:[Int]
+	winningNumbers:[Int]
 }
 
 type Query {
@@ -64,6 +77,7 @@ type Query {
 		offSet: Int
 		limit: Int
 	): [Grille] @isAuthenticated
+	getGrilleByPaymentStatusAndStatus(paymentStatus: PaymentStatus, status: Status):[Grille] @isAuthenticated
 }
 
 type Mutation {

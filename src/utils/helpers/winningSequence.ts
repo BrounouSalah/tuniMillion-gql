@@ -1,4 +1,5 @@
-import { WinningRank } from 'generator/graphql.schema'
+import { Status, WinningRank } from 'generator/graphql.schema'
+import { Grille } from 'generator/graphql.schema'
 
 export const compareGrilleWithWinningSequence = (grille, winningSequence) => {
 	const matchingNumbers = grille.numbers.filter((number) =>
@@ -39,4 +40,37 @@ export const compareGrilleWithWinningSequence = (grille, winningSequence) => {
 	} else {
 		return WinningRank.NONE
 	}
+}
+
+export const compareGrille=(grille, winningSequence)=>{
+	const winningNumbers = grille.numbers.filter(val => winningSequence.numbers.includes(val))
+	const winningStars = grille.stars.filter(val => winningSequence.stars.includes(val))
+	const numWinningNumbers= winningNumbers.length
+	const numWinningStars= winningStars.length
+
+	if (numWinningNumbers === 5 && numWinningStars === 2) {
+		return  {
+			winningNumbers,
+			winningStars,
+			grilleStatus:Status.JACKPOT
+		}
+	}else if (numWinningNumbers === 0 || (numWinningNumbers === 1 && numWinningStars <= 1)
+	){
+		return  {
+			winningNumbers,
+			winningStars,
+			grilleStatus:Status.LOSE
+		}
+	}else {
+		return  {
+			winningNumbers,
+			winningStars,
+			grilleStatus:Status.WIN
+		}
+	}
+		
+	
+
+
+
 }

@@ -5,6 +5,7 @@ import {
 	CreateWinningSequenceInput,
 	PaymentStatus,
 	Statique,
+	Status,
 	UpdateWinningSequenceInput,
 	WinningRank,
 	WinningRankCount
@@ -14,7 +15,9 @@ import { getMongoRepository } from 'typeorm'
 import { GrilleResolver } from './grille.resolver'
 
 import { getStatistique } from 'utils/helpers/statistique'
-import { compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
+import { compareGrille, compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
+import { Grille } from '@models'
+import { TotalCagnoteAmount } from 'utils/helpers/cagnoteAmount'
 
 
 export class WinningSequenceResolver {
@@ -49,9 +52,39 @@ export class WinningSequenceResolver {
 			)
 		}
 
-		return await getMongoRepository(WinningSequence).save(
+
+		const response=  await getMongoRepository(WinningSequence).save(
 			new WinningSequence({ ...input })
+
 		)
+
+
+
+		const paidGrilles = await this.grilleResolver.getGrilleByPaymentStatusAndStatus(Status.PENDING,PaymentStatus.PAID )
+		 for(const grille of paidGrilles){
+			const result = compareGrille(grille, response)
+			const singleGrille = await getMongoRepository(Grille).findOne({ _id: grille._id })
+		if (!singleGrille) {
+			throw new ForbiddenError('Grille not found.')
+		}
+		let data = {
+			...singleGrille,
+			winningSequenceId:response._id,
+			winningNumbers:result.winningNumbers,
+			winningStars:result.winningStars,
+			status:result.grilleStatus
+		}
+		
+		await getMongoRepository(Grille).findOneAndUpdate(
+			{ _id: grille._id },
+			{ $set: {...data} },
+			{ returnOriginal: false }
+		)
+			
+			
+		 }
+		 return response
+
 	}
 
 	@Query()
@@ -101,7 +134,16 @@ export class WinningSequenceResolver {
 				rankCounts[winningRank] += 1 // Incrémentation du compteur correspondant au winningRank dans rankCounts
 				userSet.add(userId) // Ajout de l'identifiant de l'utilisateur à l'ensemble pour éviter de les compter à nouveau
 			}
+			
+
+			 getMongoRepository(Grille).findOneAndUpdate(
+				{ _id: grille._id },
+				{ $set: { status: grille.status }},
+				{ returnOriginal: false }
+			)
 		})
+			
+		
 
 		const counts = Object.entries(rankCounts).map(([rank, count]) => ({
 			rank: rank as WinningRank,
@@ -115,6 +157,7 @@ export class WinningSequenceResolver {
 			{ $set: { userContsByRang: counts } },
 			{ returnOriginal: false }
 		)
+
 		return updatedwinningsequence.value
 	}
 

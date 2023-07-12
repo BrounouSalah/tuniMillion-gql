@@ -4,7 +4,7 @@ import { TestingModule, Test } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { AppModule } from 'app.module'
 import * as request from 'supertest'
-import { AmountOfWalletResolver, AuthResolver, GrilleResolver } from 'resolvers'
+import { AmountOfWalletResolver, AuthResolver, GrilleResolver, PaymentTaxeResolver } from 'resolvers'
 import { Repository } from 'typeorm'
 import { END_POINT } from '../../src/environments'
 
@@ -24,7 +24,8 @@ describe('GrilleModule (e2e)', () => {
 				},
 
 
-				AmountOfWalletResolver
+				AmountOfWalletResolver,
+				PaymentTaxeResolver
 			]
 		}).compile()
 
@@ -44,7 +45,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getGrille ($id: ID!) {getGrille(id: $id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getGrille ($id: ID!) {getGrille(id: $id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price  winningSequenceId } }'
 			})
 			.expect(200)
 	})
@@ -76,7 +77,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getAllGrilles ($offSet: Int, $limit: Int ) {getAllGrilles(offSet: $offSet , limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getAllGrilles ($offSet: Int, $limit: Int ) {getAllGrilles(offSet: $offSet , limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price  winningSequenceId } }'
 			})
 			.expect(200)
 	})
@@ -92,7 +93,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getAllGrilles ($offSet: Int, $limit: Int ) {getAllGrilles(offSet: $offSet , limit: $limit ){_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getAllGrilles ($offSet: Int, $limit: Int ) {getAllGrilles(offSet: $offSet , limit: $limit ){_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId  } }'
 			})
 			.expect(400)
 	})
@@ -107,7 +108,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getAllGrillesByStatus ($status: Status ) {getAllGrillesByStatus(status: $status ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getAllGrillesByStatus ($status: Status ) {getAllGrillesByStatus(status: $status ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId  } }'
 			})
 			.expect(200)
 	})
@@ -123,7 +124,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getAllGrillesByStatus ($status: Status ) {getAllGrillesByStatus(status: $status ){_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getAllGrillesByStatus ($status: Status ) {getAllGrillesByStatus(status: $status ){_id userId number stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId  } }'
 			})
 			.expect(400)
 	})
@@ -142,7 +143,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getAllGrillesByUserId ($userId: ID!, $offSet: Int, $limit: Int ) {getAllGrillesByUserId(userId: $userId , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getAllGrillesByUserId ($userId: ID!, $offSet: Int, $limit: Int ) {getAllGrillesByUserId(userId: $userId , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId  } }'
 			})
 			.expect(200)
 	})
@@ -178,7 +179,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getGrilleByPaymentStatus ($paymentStatus: PaymentStatus, $offSet: Int, $limit: Int ) {getGrilleByPaymentStatus(paymentStatus: $paymentStatus , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getGrilleByPaymentStatus ($paymentStatus: PaymentStatus, $offSet: Int, $limit: Int ) {getGrilleByPaymentStatus(paymentStatus: $paymentStatus , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price  winningSequenceId } }'
 			})
 			.expect(200)
 	})
@@ -214,7 +215,7 @@ describe('GrilleModule (e2e)', () => {
                 },
 				query:
 					// tslint:disable-next-line:max-line-length
-					'query getGrilleByPaymentStatusAndUserId ($paymentStatus: PaymentStatus, $offSet: Int, $limit: Int ) {getGrilleByPaymentStatusAndUserId(paymentStatus: $paymentStatus , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price   } }'
+					'query getGrilleByPaymentStatusAndUserId ($paymentStatus: PaymentStatus, $offSet: Int, $limit: Int ) {getGrilleByPaymentStatusAndUserId(paymentStatus: $paymentStatus , offSet: $offSet, limit: $limit ){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId   } }'
 			})
 			.expect(200)
 	})
@@ -247,13 +248,13 @@ describe('GrilleModule (e2e)', () => {
                         userId: '123',
 						numbers: [1, 2, 3, 4, 5],
 						stars : [1, 2],
-                        drawDate: '2020-01-01',
+                        
 					}
 				},
 
 				query:
 					// tslint:disable-next-line:max-line-length
-					'mutation createGrille ($input: CreateGrilleInput!) {createGrille(input:$input) {_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
+					'mutation createGrille ($input: CreateGrilleInput!) {createGrille(input:$input) {_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId metaData{M75 TVA_CUMM RunpayCost CAG_CUMM benefiet total_ht} winningStars winningNumbers}}'
 			})
 			.expect(200)
 	})
@@ -347,7 +348,7 @@ describe('GrilleModule (e2e)', () => {
 
 				query:
 					// tslint:disable-next-line:max-line-length
-					'mutation payGrille ($id: ID!) {payGrille(id:$id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price }}'
+					'mutation payGrille ($id: ID!) {payGrille(id:$id){_id userId numbers stars createdAt updatedAt deletedAt status paymentStatus randomCode combinations{numbers stars tuniMillionsCode} prise price winningSequenceId }}'
 			})
 			.expect(200)
 	})
