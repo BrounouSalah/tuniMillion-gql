@@ -1,27 +1,33 @@
 import { Args, Mutation, Query, Context } from '@nestjs/graphql'
-import { getMongoRepository } from 'typeorm'
+import {getMongoRepository } from 'typeorm'
 import { Grille } from '../models/grille.entity'
 import {
-	Amount,
+	
 	CreateGrilleInput,
-	PayGrilleInput,
 	PaymentStatus,
 	RemoveAmountInput,
 	Status,
 	UpdateGrilleInput
 } from 'generator/graphql.schema'
-import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { Inject, NotFoundException, forwardRef } from '@nestjs/common'
-import { AmountOfWallet, User } from '@models'
+import {  ForbiddenError } from 'apollo-server-express'
+import { HttpService, Inject, NotFoundException, forwardRef } from '@nestjs/common'
+import { User } from '@models'
 
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { generateCombinations, gridPrices } from 'utils/helpers/grille'
+import { PaymentTaxeResolver } from './paymentTaxe.resolver'
+import { TotalCagnoteAmount } from 'utils/helpers/cagnoteAmount'
 
 export class GrilleResolver {
 	constructor(
+		// private httpService: HttpService,
 		@Inject(forwardRef(() => AmountOfWalletResolver))
-		private walletResolver: AmountOfWalletResolver
+		private walletResolver: AmountOfWalletResolver,
+	
+		@Inject(forwardRef(() => PaymentTaxeResolver))
+		private paymentTaxeResolver: PaymentTaxeResolver
 	) {}
+
 	@Mutation()
 	async createGrille(
 		@Args('input') input: CreateGrilleInput,
@@ -183,22 +189,7 @@ export class GrilleResolver {
 		return updateGrille ? true : false
 	}
 
-	@Mutation()
-	async updateGrille(
-		@Args('userId') userId: string,
-		@Args('input') input: UpdateGrilleInput
-	): Promise<boolean> {
-		const grille = await getMongoRepository(User).findOne({ _id: userId })
-		if (!grille) {
-			throw new ForbiddenError('Grille not found.')
-		}
-		const updateGrille = await getMongoRepository(Grille).findOneAndUpdate(
-			{ userId: grille._id },
-			{ $set: input },
-			{ returnOriginal: false }
-		)
-		return updateGrille ? true : false
-	}
+
 
 	@Mutation()
 	async payGrille(@Args('id') id: string): Promise<Grille> {
@@ -223,11 +214,14 @@ export class GrilleResolver {
 		if (!removeWallet) {
 			throw new ForbiddenError('something happened payment failed')
 		}
+		const taxe= await this.paymentTaxeResolver.getValuesFromAmount(3, amount,userId)
+		
 		const updategrille = await getMongoRepository(Grille).findOneAndUpdate(
 			{ _id: grille._id },
-			{ $set: { paymentStatus: PaymentStatus.PAID } },
+			{ $set: { paymentStatus: PaymentStatus.PAID , metaData: taxe} },
 			{ returnOriginal: false }
 		)
+		
 
 		return updategrille.value
 	}
@@ -255,4 +249,26 @@ export class GrilleResolver {
 			take: limit
 		})
 	}
+
+	@Query()
+	async getGrilleByPaymentStatusAndStatus(
+		@Args('status') status: Status, 
+		@Args('paymentStatus') paymentStatus: PaymentStatus): Promise<Grille[]> {
+			const grilles = await getMongoRepository(Grille).find ({
+				cache: true,
+				where:{
+					deletedAt: null,
+					status,
+					paymentStatus
+				},
+				
+				
+			})
+			// const totalAmount = TotalCagnoteAmount(grilles)
+			// console.log(totalAmount)
+			return grilles
+		
+
+	}
+	
 }

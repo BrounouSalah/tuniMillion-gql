@@ -1,5 +1,5 @@
 type PaymentTaxe{
-    id: ID!
+    _id: ID!
     userId:ID!
     M75: Float!
     TVA_CUMM: Float!
@@ -10,6 +10,14 @@ type PaymentTaxe{
     createdAt: Date
     updatedAt: Date
     deletedAt: Date
+}
+type CagnoteAmount{
+    totalCAG_CUMM: Float!
+    totalM75: Float!
+    totalTVA_CUMM: Float!
+    totalRunpayCost: Float!
+    TotalBenefiet: Float!
+    total_ht: Float!
 }
 
 
@@ -23,6 +31,7 @@ type PaymentMethods {
 
 type Query{
     getMethods: [PaymentMethods] 
+    getCagnoteAmount:CagnoteAmount
    
 }
 

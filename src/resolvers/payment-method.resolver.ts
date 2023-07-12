@@ -6,7 +6,8 @@ import {
 	AddAmountInput,
 	AmountInput,
 	PaymentInput,
-	PaymentStatusEnum
+	PaymentStatusEnum,
+	PaymentTaxe
 } from 'generator/graphql.schema'
 import { getMongoRepository } from 'typeorm'
 import { PaymentMethod } from 'models/payment-method.entity'
@@ -18,6 +19,7 @@ import { User, UserLimitation } from '@models'
 
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { compareValues } from 'utils/helpers/payment'
+import { PaymentTaxeResolver } from './paymentTaxe.resolver'
 
 @Resolver()
 export class PaymentMethodResolver {
@@ -27,7 +29,10 @@ export class PaymentMethodResolver {
 		private userLimitation: UserLimitationResolver,
 
 		@Inject(forwardRef(() => AmountOfWalletResolver))
-		private walletResolver: AmountOfWalletResolver
+		private walletResolver: AmountOfWalletResolver,
+
+		@Inject(forwardRef(() => PaymentTaxeResolver))
+		private paymentTaxeResolver: PaymentTaxeResolver
 	) {}
 
 	@Query('getPaymentDetails')
@@ -48,7 +53,7 @@ export class PaymentMethodResolver {
 			)
 			.pipe(map((runPayResponse) => runPayResponse.data))
 			.toPromise()
-
+				
 		const userLimitation = await this.userLimitation.getUserLimitationByUserId(
 			paymentMethodResult.userId
 		)
@@ -72,9 +77,11 @@ export class PaymentMethodResolver {
 			)
 
 			if (
-				updatedPaymentMethod.resultCode === PaymentStatusEnum.Settled ||
-				updatedPaymentMethod.status === PaymentStatusEnum.Settled
+				updatedPaymentMethod.resultCode === PaymentStatusEnum.Pending ||
+				updatedPaymentMethod.status === PaymentStatusEnum.Pending
 			) {
+				const paymentTaxe= await this.paymentTaxeResolver.getValuesFromAmount(3, updatedPaymentMethod.amount.value, updatedPaymentMethod.userId)
+				console.log('paymentTaxe:', paymentTaxe)
 				const userId = updatedPaymentMethod.userId
 				const amount = updatedPaymentMethod.amount.value
 				const currency = updatedPaymentMethod.amount.currency
@@ -92,6 +99,9 @@ export class PaymentMethodResolver {
 					{ $set: { rest: newRest } },
 					{ returnOriginal: false }
 				)
+			
+				
+				
 			}
 
 			return updatedPaymentMethod

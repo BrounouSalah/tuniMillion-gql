@@ -1,7 +1,7 @@
 import { Expose, plainToClass } from 'class-transformer';
 import { Column, Entity, ObjectIdColumn, OneToMany } from 'typeorm';
 import * as uuid from 'uuid';
-import{PaymentStatus, Status} from '../generator/graphql.schema';
+import{MetaData, PaymentStatus, Status} from '../generator/graphql.schema';
 import { Combinations } from '../generator/graphql.schema';
 
 
@@ -21,6 +21,10 @@ export class Grille {
     @Expose()
     @Column()
     userId: string
+
+    @Expose()
+    @Column()
+    winningSequenceId: string
 
     @Expose()
     @Column()
@@ -56,6 +60,18 @@ export class Grille {
 
     @Expose()
     @Column()
+    metaData: MetaData
+
+    @Expose()
+    @Column()
+    winningStars: number[]
+    
+    @Expose()
+    @Column()
+    winningNumbers: number[]
+
+    @Expose()
+    @Column()
     createdAt: Date
 
     @Expose()
@@ -74,6 +90,7 @@ export class Grille {
             Object.assign(this, plainToClass(Grille, grille, {excludeExtraneousValues: true}))
 
 			this._id = this._id || uuid.v1()
+            this.winningSequenceId = this.winningSequenceId || null
             this.status = this.status || Status.PENDING
             this.paymentStatus = this.paymentStatus || PaymentStatus.NOT_PAIED
             this.createdAt = this.createdAt || new Date(Date.now())

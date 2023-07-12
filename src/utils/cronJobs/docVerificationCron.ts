@@ -6,15 +6,20 @@ import {
 	GrilleResolver,
 	UserLimitationResolver,
 	UserNotificationsResolver,
-	UserResolver
+	UserResolver,
+	PaymentTaxeResolver
 } from 'resolvers'
+import { HttpService } from '@nestjs/axios'
+
 
 export async function docVerificationCron() {
 	const emailResolver = new EmailResolver()
 	const fileResolver = new FileResolver()
+	const httpService = new HttpService()
 	const walletResolver = new AmountOfWalletResolver()
+	const paymentTaxeResolver= new PaymentTaxeResolver(httpService )
+	const grilleResolver = new GrilleResolver(walletResolver,paymentTaxeResolver)
 	const userLimitationResolver = new UserLimitationResolver()
-	const grilleResolver = new GrilleResolver(walletResolver)
 	const notifResolver = new UserNotificationsResolver()
 	const userResolver = new UserResolver(
 		emailResolver,
