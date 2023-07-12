@@ -6,6 +6,7 @@ describe('testing cagnote amount', () => {
         const grille1: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                 M75: 1,
                 TVA_CUMM: 2.2,
@@ -18,6 +19,7 @@ describe('testing cagnote amount', () => {
         const grille2: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                 M75: 12.55,
                 TVA_CUMM: 1.44,
@@ -55,6 +57,7 @@ describe('testing cagnote amount', () => {
         const grille1: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                 M75: 1,
                 TVA_CUMM: 2.2,
@@ -67,6 +70,7 @@ describe('testing cagnote amount', () => {
         const grille2: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                 M75: 12.55,
                 TVA_CUMM: 1.44,
@@ -103,6 +107,7 @@ describe('testing cagnote amount', () => {
         const grille1: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                 M75: 1,
                 TVA_CUMM: 2.2,
@@ -115,6 +120,7 @@ describe('testing cagnote amount', () => {
         const grille2: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
                
                 RunpayCost: 11,
@@ -150,6 +156,7 @@ describe('testing cagnote amount', () => {
         const grille1: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
               
             } as MetaData
@@ -157,6 +164,7 @@ describe('testing cagnote amount', () => {
         const grille2: Grille={
             _id: '123',
             userId: 'userId',
+            winningSequenceId:"123",
             metaData:{
               
             } as MetaData
