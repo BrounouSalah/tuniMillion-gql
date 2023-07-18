@@ -15,15 +15,24 @@ import { getMongoRepository } from 'typeorm'
 import { GrilleResolver } from './grille.resolver'
 
 import { getStatistique } from 'utils/helpers/statistique'
-import { compareGrille, compareGrilleWithWinningSequence } from 'utils/helpers/winningSequence'
-import { Grille } from '@models'
+import {
+	compareGrille,
+	compareGrilleWithWinningSequence
+} from 'utils/helpers/winningSequence'
+import { AmountOfWallet, Grille } from '@models'
 import { TotalCagnoteAmount } from 'utils/helpers/cagnoteAmount'
-
+import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
+import { calculateMoneyAmout } from 'utils/helpers/winningMoneyAmout'
+import { PaymentTaxeResolver } from './paymentTaxe.resolver'
 
 export class WinningSequenceResolver {
 	constructor(
 		@Inject(forwardRef(() => GrilleResolver))
-		private grilleResolver: GrilleResolver
+		private grilleResolver: GrilleResolver,
+		@Inject(forwardRef(() => AmountOfWalletResolver))
+		private walletResolver: AmountOfWalletResolver,
+		@Inject(forwardRef(() => PaymentTaxeResolver))
+		private cagnoteResolver: PaymentTaxeResolver
 	) {}
 
 	@Mutation()
@@ -31,7 +40,7 @@ export class WinningSequenceResolver {
 		@Args('input') input: CreateWinningSequenceInput
 	): Promise<WinningSequence> {
 		const { numbers, stars } = input
-
+		const totalCagnote = await this.cagnoteResolver.getCagnoteAmount()
 		if (
 			numbers.some((number) => number < 1 || number > 50) ||
 			new Set(numbers).size !== numbers.length ||
@@ -52,46 +61,81 @@ export class WinningSequenceResolver {
 			)
 		}
 
-
-		const response=  await getMongoRepository(WinningSequence).save(
-			new WinningSequence({ ...input })
-
+		const response = await getMongoRepository(WinningSequence).save(
+			new WinningSequence({ ...input, metaData: totalCagnote })
 		)
 
-
-
-		const paidGrilles = await this.grilleResolver.getGrilleByPaymentStatusAndStatus(Status.PENDING,PaymentStatus.PAID )
-		 for(const grille of paidGrilles){
+		const paidGrilles =
+			await this.grilleResolver.getGrilleByPaymentStatusAndStatus(
+				Status.PENDING,
+				PaymentStatus.PAID
+			)
+		for (const grille of paidGrilles) {
 			const result = compareGrille(grille, response)
-			const singleGrille = await getMongoRepository(Grille).findOne({ _id: grille._id })
-		if (!singleGrille) {
-			throw new ForbiddenError('Grille not found.')
-		}
-		let data = {
-			...singleGrille,
-			winningSequenceId:response._id,
-			winningNumbers:result.winningNumbers,
-			winningStars:result.winningStars,
-			status:result.grilleStatus
-		}
-		
-		await getMongoRepository(Grille).findOneAndUpdate(
-			{ _id: grille._id },
-			{ $set: {...data} },
-			{ returnOriginal: false }
-		)
-			
-			
-		 }
-		 return response
+			if (
+				result.grilleStatus === Status.WIN ||
+				result.grilleStatus === Status.JACKPOT
+			) {
+				const userWallet = await this.walletResolver.getWalletByUserId(
+					grille.userId
+				)
 
+				const updateWallet = await getMongoRepository(
+					AmountOfWallet
+				).findOneAndUpdate(
+					{ _id: userWallet._id },
+					{
+						$set: {
+							totalAmount:
+								userWallet.totalAmount +
+								calculateMoneyAmout(
+									totalCagnote.totalCAG_CUMM,
+									result.winningNumbers.length,
+									result.winningStars.length
+								)
+							//inCommingTransactions: wallet.inCommingTransactions
+						}
+					},
+					{ returnOriginal: false }
+				)
+			}
+			const singleGrille = await getMongoRepository(Grille).findOne({
+				_id: grille._id
+			})
+			if (!singleGrille) {
+				throw new ForbiddenError('Grille not found.')
+			}
+			let data = {
+				...singleGrille,
+				winningSequenceId: response._id,
+				winningNumbers: result.winningNumbers,
+				winningStars: result.winningStars,
+				status: result.grilleStatus,
+				winningPrice: calculateMoneyAmout(
+					totalCagnote.totalCAG_CUMM,
+					result.winningNumbers.length,
+					result.winningStars.length
+				)
+			}
+
+			await getMongoRepository(Grille).findOneAndUpdate(
+				{ _id: grille._id },
+				{ $set: { ...data } },
+				{ returnOriginal: false }
+			)
+		}
+		return response
 	}
 
 	@Query()
 	async getStaticWinningSequence(
 		@Args('_id') _id: string
 	): Promise<WinningSequence> {
-		const grilles = await this.grilleResolver.getAllGrilles(undefined, undefined, PaymentStatus.PAID)
+		const grilles = await this.grilleResolver.getAllGrilles(
+			undefined,
+			undefined,
+			PaymentStatus.PAID
+		)
 		const winningsequence = await getMongoRepository(WinningSequence).findOne({
 			cache: true,
 			where: {
@@ -134,16 +178,13 @@ export class WinningSequenceResolver {
 				rankCounts[winningRank] += 1 // Incrémentation du compteur correspondant au winningRank dans rankCounts
 				userSet.add(userId) // Ajout de l'identifiant de l'utilisateur à l'ensemble pour éviter de les compter à nouveau
 			}
-			
 
-			 getMongoRepository(Grille).findOneAndUpdate(
+			getMongoRepository(Grille).findOneAndUpdate(
 				{ _id: grille._id },
-				{ $set: { status: grille.status }},
+				{ $set: { status: grille.status } },
 				{ returnOriginal: false }
 			)
 		})
-			
-		
 
 		const counts = Object.entries(rankCounts).map(([rank, count]) => ({
 			rank: rank as WinningRank,
