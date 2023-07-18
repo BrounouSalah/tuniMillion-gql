@@ -138,7 +138,8 @@ export class UserResolver {
 		if (
 			filter &&
 			filter.type === undefined &&
-			filter.isVerified === undefined
+			filter.isVerified === undefined &&
+			filter.region === undefined
 		) {
 			const users = await getMongoRepository(User).find({
 				where: { deletedAt: null },
@@ -147,32 +148,59 @@ export class UserResolver {
 				cache: true // 1000: 60000 / 1 minute
 			})
 
-			return users
+			const fullUser: User[] = []
+			for (const user of users) {
+				const userGrille = await this.grilleResolver.getAllGrillesByUserId(
+					user._id
+				)
+				fullUser.push({ ...user, grilles: userGrille })
+			}
+			return fullUser
 		} else if (filter && filter.type === VerificationTypeFilter.IDENTITY) {
+			const whereCondition = filter.region
+				? {
+						deletedAt: null,
+						'address.city': filter.region,
+						identityVerified: filter.isVerified ?? filter.isVerified
+				  }
+				: {
+						deletedAt: null,
+
+						identityVerified: filter.isVerified ?? filter.isVerified
+				  }
 			const users = await getMongoRepository(User).find({
-				where: {
-					deletedAt: null,
-					identityVerified: filter.isVerified
-				},
+				where: whereCondition,
 
 				skip: offset,
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
 			})
-
-			return users
+			const fullUser: User[] = []
+			for (const user of users) {
+				const userGrille = await this.grilleResolver.getAllGrillesByUserId(
+					user._id
+				)
+				fullUser.push({ ...user, grilles: userGrille })
+			}
+			return fullUser
 		} else {
 			const users = await getMongoRepository(User).find({
 				where: {
-					deletedAt: null,
-					isVerified: filter.isVerified
+					'address.city': filter.region,
+					deletedAt: null
 				},
 				skip: offset,
 				take: limit,
 				cache: true // 1000: 60000 / 1 minute
 			})
-
-			return users
+			const fullUser: User[] = []
+			for (const user of users) {
+				const userGrille = await this.grilleResolver.getAllGrillesByUserId(
+					user._id
+				)
+				fullUser.push({ ...user, grilles: userGrille })
+			}
+			return fullUser
 		}
 	}
 

@@ -1,5 +1,5 @@
-import { Expose, plainToClass } from "class-transformer";
-import { Column, Entity, ObjectIdColumn } from "typeorm";
+import { Expose, plainToClass } from 'class-transformer';
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
 import * as uuid from 'uuid';
 
 @Entity({

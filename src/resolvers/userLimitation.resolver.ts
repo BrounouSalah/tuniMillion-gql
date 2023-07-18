@@ -46,7 +46,7 @@ export class UserLimitationResolver {
 		userLimitation.updatedAt = new Date()
 		userLimitation.limit = input.limit ?? userLimitation.limit
 		userLimitation.type = input.type ?? userLimitation.type
-		userLimitation.rest = input.rest 
+		userLimitation.rest = input.rest
 		const updateUserLimitation = await getMongoRepository(
 			UserLimitation
 		).findOneAndUpdate(
@@ -105,7 +105,7 @@ export class UserLimitationResolver {
 	const userLimitations = await getMongoRepository(UserLimitation).find({
 		where: {
 		updatedAt: {
-			$lte: oneWeekAgo, 
+			$lte: oneWeekAgo,
 		},
 		deletedAt: null,
 		},

@@ -226,6 +226,7 @@ enum VerificationTypeFilter {
 input FilterInput {
 	isVerified: Boolean
 	type: VerificationTypeFilter
+	region: String
 }
 input VerificationProcessInput {
 	userId: ID!
