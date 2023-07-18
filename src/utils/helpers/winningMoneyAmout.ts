@@ -13,9 +13,7 @@ export const calculateMoneyAmout = (
 	winningNumbers: number,
 	winningStars: number
 ): number => {
-	console.log(cagnoteAmount, winningNumbers, winningStars)
 	const winningNumberMultiplier = multipliers.winningNumbers[winningNumbers]
-	console.log(winningNumberMultiplier)
 	if (winningNumberMultiplier && winningNumberMultiplier[winningStars]) {
 		return cagnoteAmount * winningNumberMultiplier[winningStars]
 	} else {

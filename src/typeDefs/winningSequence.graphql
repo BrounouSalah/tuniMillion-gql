@@ -43,6 +43,15 @@ type WinningSequence {
 	deletedAt: Date
 	userContsByRang: [WinningRankCount]
 }
+type SimulationResponse {
+	winningNumbers: [Int]!
+	winningStars: [Int]!
+	winningValue: Float!
+}
+input SimulationInput {
+	numbers: [Int]!
+	stars: [Int]!
+}
 type Query {
 	getAllWinningSequences: [WinningSequence]
 	getAllWinningSequencesByDate(createdAt: String): [WinningSequence]
@@ -65,4 +74,5 @@ type Mutation {
 	updateWinningSequence(_id: ID!, input: UpdateWinningSequenceInput): Boolean
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
+	getSimulation(input: SimulationInput!): SimulationResponse!
 }

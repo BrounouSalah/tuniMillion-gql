@@ -4,6 +4,8 @@ import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import {
 	CreateWinningSequenceInput,
 	PaymentStatus,
+	SimulationInput,
+	SimulationResponse,
 	Statique,
 	Status,
 	UpdateWinningSequenceInput,
@@ -24,6 +26,7 @@ import { TotalCagnoteAmount } from 'utils/helpers/cagnoteAmount'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { calculateMoneyAmout } from 'utils/helpers/winningMoneyAmout'
 import { PaymentTaxeResolver } from './paymentTaxe.resolver'
+import { simulation } from 'utils/helpers/simultation'
 
 export class WinningSequenceResolver {
 	constructor(
@@ -324,5 +327,34 @@ export class WinningSequenceResolver {
 			}
 		})
 		return getStatistique(winningSequnences)
+	}
+	@Mutation()
+	async getSimulation(
+		@Args('input') input: SimulationInput
+	): Promise<SimulationResponse> {
+		const { numbers, stars } = input
+		try {
+			const winningSequence = await getMongoRepository(WinningSequence).findOne(
+				{
+					where: { deletedAt: null },
+					order: {
+						createdAt: 'DESC'
+					}
+				}
+			)
+			console.log(winningSequence)
+			if (!winningSequence) {
+				throw new ForbiddenError('winningSequence not found.')
+			}
+			const response = simulation(
+				numbers,
+				stars,
+				winningSequence.metaData.totalCAG_CUMM,
+				winningSequence
+			)
+			return response
+		} catch (error) {
+			throw new ApolloError(error)
+		}
 	}
 }
