@@ -523,9 +523,16 @@ export class UserResolver {
 			if (!user) {
 				throw new ForbiddenError('User not found.')
 			}
+
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: user._id },
-				{ $set: input },
+				{
+					$set: {
+						...input,
+						address: input.address,
+						userVerificationData: input.verification
+					}
+				},
 				{ returnOriginal: false }
 			)
 			return updateUser ? true : false
