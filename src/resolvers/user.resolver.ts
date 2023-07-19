@@ -323,6 +323,7 @@ export class UserResolver {
 			const createdUser = await getMongoRepository(User).save(
 				new User({
 					...input,
+					userVerificationData: { ...input.verification },
 					isVerified: true,
 					local: {
 						email,
