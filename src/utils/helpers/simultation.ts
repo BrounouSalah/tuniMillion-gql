@@ -22,6 +22,7 @@ export const simulation = (
 	return {
 		winningNumbers: resp.winningNumbers,
 		winningStars: resp.winningStars,
-		winningValue: response
+		winningValue: response,
+		winningCode: winningSequence.winningCode
 	}
 }

@@ -1,5 +1,9 @@
 import { Expose, plainToClass } from 'class-transformer'
-import { CagnoteAmount, WinningRankCount } from 'generator/graphql.schema'
+import {
+	CagnoteAmount,
+	WinningCode,
+	WinningRankCount
+} from 'generator/graphql.schema'
 import { Column, Entity, ObjectIdColumn } from 'typeorm'
 import * as uuid from 'uuid'
 
@@ -29,6 +33,10 @@ export class WinningSequence {
 	@Expose()
 	@Column()
 	metaData: CagnoteAmount
+
+	@Expose()
+	@Column()
+	winningCode: WinningCode
 
 	@Expose()
 	@Column()
