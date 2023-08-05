@@ -27,6 +27,7 @@ import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { calculateMoneyAmout } from 'utils/helpers/winningMoneyAmout'
 import { PaymentTaxeResolver } from './paymentTaxe.resolver'
 import { simulation } from 'utils/helpers/simultation'
+import { GetRandomCombination } from 'utils/helpers/getRandomCombination'
 
 export class WinningSequenceResolver {
 	constructor(
@@ -64,15 +65,37 @@ export class WinningSequenceResolver {
 			)
 		}
 
-		const response = await getMongoRepository(WinningSequence).save(
-			new WinningSequence({ ...input, metaData: totalCagnote })
-		)
-
 		const paidGrilles =
 			await this.grilleResolver.getGrilleByPaymentStatusAndStatus(
 				Status.PENDING,
 				PaymentStatus.PAID
 			)
+		const winningCode = GetRandomCombination(paidGrilles)
+		const winningAmout = totalCagnote.totalCAG_CUMM * 0.14
+		const winningCodeWallet = await this.walletResolver.getWalletByUserId(
+			winningCode.userId
+		)
+		await getMongoRepository(AmountOfWallet).findOneAndUpdate(
+			{ _id: winningCodeWallet._id },
+			{
+				$set: {
+					totalAmount: winningCodeWallet.totalAmount + winningAmout
+				}
+			},
+			{ returnOriginal: false }
+		)
+		const winningCod = {
+			tunimillionCode: winningCode.winningCode,
+			userId: winningCode.userId,
+			grilleId: winningCode.grilleId
+		}
+		const response = await getMongoRepository(WinningSequence).save(
+			new WinningSequence({
+				...input,
+				metaData: totalCagnote,
+				winningCode: winningCod
+			 })
+		)
 		for (const grille of paidGrilles) {
 			const result = compareGrille(grille, response)
 			if (
@@ -114,6 +137,7 @@ export class WinningSequenceResolver {
 				winningNumbers: result.winningNumbers,
 				winningStars: result.winningStars,
 				status: result.grilleStatus,
+
 				winningPrice: calculateMoneyAmout(
 					totalCagnote.totalCAG_CUMM,
 					result.winningNumbers.length,

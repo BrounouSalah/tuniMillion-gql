@@ -42,6 +42,7 @@ type WinningSequence {
 	updatedAt: Date
 	deletedAt: Date
 	userContsByRang: [WinningRankCount]
+	winningCode: WinningCode
 }
 type SimulationResponse {
 	winningNumbers: [Int]!
@@ -51,6 +52,11 @@ type SimulationResponse {
 input SimulationInput {
 	numbers: [Int]!
 	stars: [Int]!
+}
+type WinningCode {
+	tunimillionCode: String!
+	userId: String!
+	grilleId: String!
 }
 type Query {
 	getAllWinningSequences: [WinningSequence]
