@@ -94,7 +94,7 @@ export class WinningSequenceResolver {
 				...input,
 				metaData: totalCagnote,
 				winningCode: winningCod
-			 })
+			})
 		)
 		for (const grille of paidGrilles) {
 			const result = compareGrille(grille, response)
@@ -119,7 +119,7 @@ export class WinningSequenceResolver {
 									result.winningNumbers.length,
 									result.winningStars.length
 								)
-							//inCommingTransactions: wallet.inCommingTransactions
+							// inCommingTransactions: wallet.inCommingTransactions
 						}
 					},
 					{ returnOriginal: false }
@@ -131,7 +131,7 @@ export class WinningSequenceResolver {
 			if (!singleGrille) {
 				throw new ForbiddenError('Grille not found.')
 			}
-			let data = {
+			const data = {
 				...singleGrille,
 				winningSequenceId: response._id,
 				winningNumbers: result.winningNumbers,
@@ -351,6 +351,20 @@ export class WinningSequenceResolver {
 			}
 		})
 		return getStatistique(winningSequnences)
+	}
+	@Query()
+	async getLastPlayedWinningSequence(): Promise<any> {
+		const winningSequnences = await getMongoRepository(WinningSequence).findOne(
+			{
+				where: {
+					deletedAt: null
+				},
+				order: {
+					createdAt: 'DESC'
+				}
+			}
+		)
+		return winningSequnences
 	}
 	@Mutation()
 	async getSimulation(

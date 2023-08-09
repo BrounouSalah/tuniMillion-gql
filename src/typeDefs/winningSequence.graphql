@@ -48,6 +48,7 @@ type SimulationResponse {
 	winningNumbers: [Int]!
 	winningStars: [Int]!
 	winningValue: Float!
+	winningCode: WinningCode!
 }
 input SimulationInput {
 	numbers: [Int]!
@@ -67,7 +68,8 @@ type Query {
 	): [WinningSequence]
 	getWinningSequneceById(_id: ID!): WinningSequence @isAuthenticated
 	getStaticWinningSequence(_id: ID!): WinningSequence @isAuthenticated
-	getWinningStatique: Statique @isAuthenticated
+	getWinningStatique: Statique 
+	getLastPlayedWinningSequence: WinningSequence 
 }
 
 type Mutation {
