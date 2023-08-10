@@ -40,7 +40,8 @@ import {
 	StatsResponse,
 	PaymentStatus,
 	Status,
-	Roles
+	Roles,
+	Gender
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -394,9 +395,22 @@ export class UserResolver {
 			throw new ApolloError(error)
 		}
 	}
-	async createUserOnStart(
-		@Args('input') input: AdminCreateUserInput
-	): Promise<User> {
+	@Query()
+	async createUserOnStart(): Promise<User> {
+		const input = {
+			firstName: 'admin',
+			lastName: 'admin',
+			email: 'admin@tunimillion.com',
+			password: 'tunimillionAdmin',
+			birthDate: '1999-10-10',
+			phoneNumber: '11111111',
+			address: {
+				city: 'sousse',
+				town: 'sousse',
+				postalAddress: '4012'
+			},
+			gender: Gender.MALE
+		}
 		try {
 			let { email } = input
 			const { password } = input
