@@ -35,7 +35,9 @@ import {
 	STATIC
 } from 'environments'
 import { getConnection } from 'typeorm'
-import { createAdminUser } from 'utils/helpers/createAdminUser'
+
+import { UserResolver } from 'resolvers'
+import { Gender, Roles } from 'generator/graphql.schema'
 
 declare const module: any
 
@@ -141,7 +143,25 @@ async function bootstrap() {
 
 			next()
 		})
-
+		const userResolver = app.get(UserResolver)
+		const input = {
+			firstName: 'admin',
+			lastName: 'admin',
+			email: 'admin@tunimillion.com',
+			password: 'tunimillionAdmin',
+			birthDate: '1999-10-10',
+			phoneNumber: '11111111',
+			address: {
+				city: 'sousse',
+				town: 'sousse',
+				postalAddress: '4012'
+			},
+			gender: Gender.MALE
+		}
+		const user = await userResolver.getUserByEmail(input.email)
+		if (!user) {
+			await userResolver.createUserOnStart(input)
+		}
 		// NOTE: size limit
 		app.use('*', (req, res, next) => {
 			const query = req.query.query || req.body.query || ''
@@ -179,7 +199,7 @@ async function bootstrap() {
 				false
 			)
 		app.enableCors()
-		await createAdminUser()
+
 		const server = await app.listen(PORT!)
 	} catch (error) {
 		// logger.error(error)

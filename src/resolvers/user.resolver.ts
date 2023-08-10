@@ -39,7 +39,8 @@ import {
 	AdminUpdateUserInput,
 	StatsResponse,
 	PaymentStatus,
-	Status
+	Status,
+	Roles
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -438,6 +439,7 @@ export class UserResolver {
 				new User({
 					...input,
 					isVerified: true,
+					userRole: Roles.ADMIN,
 					local: {
 						email,
 						password: await hashPassword(password)
