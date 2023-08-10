@@ -35,6 +35,7 @@ import {
 	STATIC
 } from 'environments'
 import { getConnection } from 'typeorm'
+import { createAdminUser } from 'utils/helpers/createAdminUser'
 
 declare const module: any
 
@@ -177,7 +178,8 @@ async function bootstrap() {
 				'Bootstrap',
 				false
 			)
-                app.enableCors()
+		app.enableCors()
+		await createAdminUser()
 		const server = await app.listen(PORT!)
 	} catch (error) {
 		// logger.error(error)

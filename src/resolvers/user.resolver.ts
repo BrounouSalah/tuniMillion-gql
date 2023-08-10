@@ -102,7 +102,14 @@ export class UserResolver {
 			notifications: notifications.data
 		}
 	}
-
+	async getUserByEmail(@Args('email') email: string): Promise<User> {
+		return await getMongoRepository(User).findOne({
+			cache: true,
+			where: {
+				'local.email': email
+			}
+		})
+	}
 	@Query()
 	async searchUsersByDate(
 		@Args('createdAt') createdAt: string
@@ -380,6 +387,95 @@ export class UserResolver {
 			// await sendSms(input.phoneNumber, emailToken)
 
 			// await sendMail('verifyEmail', createdUser, emailToken)
+
+			return createdUser
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+	async createUserOnStart(
+		@Args('input') input: AdminCreateUserInput
+	): Promise<User> {
+		try {
+			let { email } = input
+			const { password } = input
+			email = email.toLocaleLowerCase()
+			let existedUser
+			existedUser = await getMongoRepository(User).findOne({
+				where: {
+					'local.email': email
+				}
+			})
+
+			if (existedUser) {
+				throw new ForbiddenError('User already exists.')
+			}
+
+			// Is there a Google account with the same email?
+			existedUser = await getMongoRepository(User).findOne({
+				where: {
+					$or: [{ 'google.email': email }, { 'facebook.email': email }]
+				}
+			})
+
+			if (existedUser) {
+				// Let's merge them?
+
+				const updateUser = await getMongoRepository(User).save(
+					new User({
+						...input,
+						local: {
+							email,
+							password: await hashPassword(password)
+						}
+					})
+				)
+
+				return updateUser
+			}
+
+			const createdUser = await getMongoRepository(User).save(
+				new User({
+					...input,
+					isVerified: true,
+					local: {
+						email,
+						password: await hashPassword(password)
+					}
+				})
+			)
+
+			// call create wallet from  amount of wallet and update user with walletId
+			const wallet = await this.walletResolver.createWallet({
+				userId: createdUser._id
+			})
+			// call create user limitation and update user with userLimitationId
+			const defaultUserLimitationInput = {
+				userId: createdUser._id,
+				limit: DEFAULTUSERLIMITAMAOUNT
+			}
+			const userLimitation =
+				await this.userLimitationResolver.createUserLimitation(
+					defaultUserLimitationInput
+				)
+			createdUser.walletId = wallet._id
+			createdUser.userLimitationId = userLimitation._id
+			if (createdUser.userVerificationData.verificationImage.length > 0) {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.PROCESSING,
+					verificationMessage: 'Documents are being processed'
+				}
+			} else {
+				createdUser.verificationDoc = {
+					verificationStatus: VerificationStatus.NO_DOCUMENTS,
+					verificationMessage: 'No Documents are uploaded to verify the account'
+				}
+			}
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: createdUser._id },
+				{ $set: { ...createdUser, walletId: wallet._id } },
+				{ returnOriginal: false }
+			)
 
 			return createdUser
 		} catch (error) {
