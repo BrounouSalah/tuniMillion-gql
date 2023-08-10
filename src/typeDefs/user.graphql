@@ -262,7 +262,6 @@ type StatsResponse {
 	winningSequencesNum: Int!
 }
 type Query {
-	createUserOnStart: User
 	me: User @isAuthenticated
 	users(offset: Int, limit: Int, filter: FilterInput): [User!]
 		@isAuthenticated

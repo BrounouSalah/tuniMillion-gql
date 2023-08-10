@@ -40,8 +40,7 @@ import {
 	StatsResponse,
 	PaymentStatus,
 	Status,
-	Roles,
-	Gender
+	Roles
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -332,7 +331,11 @@ export class UserResolver {
 			const createdUser = await getMongoRepository(User).save(
 				new User({
 					...input,
-					userVerificationData: { ...input.verification },
+					userVerificationData: {
+						...(input.verification
+							? { ...input.verification }
+							: { type: '', verificationImage: [] })
+					},
 					isVerified: true,
 					local: {
 						email,
@@ -356,7 +359,8 @@ export class UserResolver {
 				)
 			createdUser.walletId = wallet._id
 			createdUser.userLimitationId = userLimitation._id
-			if (createdUser.userVerificationData.verificationImage.length > 0) {
+
+			if (createdUser?.userVerificationData?.verificationImage?.length > 0) {
 				createdUser.verificationDoc = {
 					verificationStatus: VerificationStatus.PROCESSING,
 					verificationMessage: 'Documents are being processed'
@@ -395,22 +399,9 @@ export class UserResolver {
 			throw new ApolloError(error)
 		}
 	}
-	@Query()
-	async createUserOnStart(): Promise<User> {
-		const input = {
-			firstName: 'admin',
-			lastName: 'admin',
-			email: 'admin@tunimillion.com',
-			password: 'tunimillionAdmin',
-			birthDate: '1999-10-10',
-			phoneNumber: '11111111',
-			address: {
-				city: 'sousse',
-				town: 'sousse',
-				postalAddress: '4012'
-			},
-			gender: Gender.MALE
-		}
+	async createUserOnStart(
+		@Args('input') input: AdminCreateUserInput
+	): Promise<User> {
 		try {
 			let { email } = input
 			const { password } = input

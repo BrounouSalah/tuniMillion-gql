@@ -143,7 +143,25 @@ async function bootstrap() {
 
 			next()
 		})
-
+		const userResolver = app.get(UserResolver)
+		const input = {
+			firstName: 'admin',
+			lastName: 'admin',
+			email: 'admin@tunimillion.com',
+			password: 'tunimillionAdmin',
+			birthDate: '1999-10-10',
+			phoneNumber: '11111111',
+			address: {
+				city: 'sousse',
+				town: 'sousse',
+				postalAddress: '4012'
+			},
+			gender: Gender.MALE
+		}
+		const user = await userResolver.getUserByEmail(input.email)
+		if (!user) {
+			await userResolver.createUserOnStart(input)
+		}
 		// NOTE: size limit
 		app.use('*', (req, res, next) => {
 			const query = req.query.query || req.body.query || ''
