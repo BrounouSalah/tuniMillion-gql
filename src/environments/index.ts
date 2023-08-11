@@ -44,9 +44,10 @@ const PAYMASTER_TOKEN: string =
 
 // mongodb
 // MONGODB_CONNECTION_STRING="mongodb://MinebeatRoot:MinebeatRootPass@mongo:27017/"
-const MONGO_URL: string = +process.env.MONGO_PORT
-	? `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`
-	: MLAB_URL
+// const MONGO_URL: string = +process.env.MONGO_PORT
+// 	? `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`
+// 	: MLAB_URL
+const MONGO_URL: string = `mongodb://tunimillions:zaWbn6HOhpCjGyf27v40@node1-bb35e9811732f4a0.database.cloud.ovh.net/Tunimillion?replicaSet=replicaset&tls=true&authSource=admin`
 const MONGO_DB_NAME: string = process.env.MONGO_DATABASE ?? 'test'
 const MONGO_PORT: number = +process.env.MONGO_PORT || 11049
 const MONGO_DB: string = process.env.MONGO_PORT ? 'chnirt-nest' : MLAB_DATABASE
