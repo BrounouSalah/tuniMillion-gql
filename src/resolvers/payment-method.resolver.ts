@@ -20,6 +20,7 @@ import { User, UserLimitation } from '@models'
 import { AmountOfWalletResolver } from './amount-of-wallet.resolver'
 import { compareValues } from 'utils/helpers/payment'
 import { PaymentTaxeResolver } from './paymentTaxe.resolver'
+import { MERCHANT_ID, PAYMASTER_TOKEN } from '@environments'
 
 @Resolver()
 export class PaymentMethodResolver {
@@ -47,13 +48,13 @@ export class PaymentMethodResolver {
 				`https://psp.paymaster.tn/api/v2/payments/${paymentMethodResult.runPayId}`,
 				{
 					headers: {
-						Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`
+						Authorization: `Bearer ${PAYMASTER_TOKEN}`
 					}
 				}
 			)
 			.pipe(map((runPayResponse) => runPayResponse.data))
 			.toPromise()
-				
+
 		const userLimitation = await this.userLimitation.getUserLimitationByUserId(
 			paymentMethodResult.userId
 		)
@@ -80,7 +81,11 @@ export class PaymentMethodResolver {
 				updatedPaymentMethod.resultCode === PaymentStatusEnum.Pending ||
 				updatedPaymentMethod.status === PaymentStatusEnum.Pending
 			) {
-				const paymentTaxe= await this.paymentTaxeResolver.getValuesFromAmount(3, updatedPaymentMethod.amount.value, updatedPaymentMethod.userId)
+				const paymentTaxe = await this.paymentTaxeResolver.getValuesFromAmount(
+					3,
+					updatedPaymentMethod.amount.value,
+					updatedPaymentMethod.userId
+				)
 				console.log('paymentTaxe:', paymentTaxe)
 				const userId = updatedPaymentMethod.userId
 				const amount = updatedPaymentMethod.amount.value
@@ -99,9 +104,6 @@ export class PaymentMethodResolver {
 					{ $set: { rest: newRest } },
 					{ returnOriginal: false }
 				)
-			
-				
-				
 			}
 
 			return updatedPaymentMethod
@@ -158,15 +160,15 @@ export class PaymentMethodResolver {
 						'https://psp.paymaster.tn/api/v2/invoices',
 						{
 							...paymentMethodInput,
-							merchantId: process.env.MERCHANT_ID,
+							merchantId: MERCHANT_ID,
 							protocol: {
-								returnUrl: `http://tunimillions.com/payment/success/${paymentMethod._id}`,
+								returnUrl: `https://tunimillions.com/payment/success/${paymentMethod._id}`,
 								callbackUrl: `https://tunimillions.com/tunimillions/payment/cancel/${paymentMethod._id}`
 							}
 						},
 						{
 							headers: {
-								Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
+								Authorization: `Bearer ${PAYMASTER_TOKEN}`,
 								'Content-Type': 'application/json',
 								'Idempotency-Key': paymentMethod._id
 							}
@@ -202,7 +204,7 @@ export class PaymentMethodResolver {
 	@Mutation('completePayment')
 	async completePayment(@Args('id') _id: string) {
 		const headers = {
-			Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
+			Authorization: `Bearer ${PAYMASTER_TOKEN}`,
 			'Content-Type': 'application/json',
 			Accept: 'application/json'
 		}
@@ -226,7 +228,7 @@ export class PaymentMethodResolver {
 	@Mutation(() => Boolean)
 	async cancelPayment(@Args('id') _id: string) {
 		const headers = {
-			Authorization: `Bearer ${process.env.PAYMASTER_TOKEN}`,
+			Authorization: `Bearer ${PAYMASTER_TOKEN}`,
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
 			'Idempotency-Key': +new Date().toISOString()

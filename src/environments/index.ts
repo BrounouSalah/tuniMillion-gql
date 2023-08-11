@@ -36,6 +36,11 @@ const MLAB_URL =
 // 	: MLAB_URL
 // const MONGO_PORT: number = +process.env.MONGO_PORT || 11049
 // const MONGO_DB: string = process.env.MONGO_PORT ? 'chnirt-nest' : MLAB_DATABASE
+const MERCHANT_ID: string =
+	process.env.MERCHANT_ID || '367435c9-0c33-4dc8-8f0f-e6246e3f25a9'
+const PAYMASTER_TOKEN: string =
+	process.env.PAYMASTER_TOKEN ||
+	'4a286462e7b769ce831bc0294492854c58dafb88b26a886ae9bbc297bb7fde14a2bd7b3b1d9fb360f1b1179b0b431cfec729'
 
 // mongodb
 // MONGODB_CONNECTION_STRING="mongodb://MinebeatRoot:MinebeatRootPass@mongo:27017/"
@@ -66,11 +71,14 @@ const RESETPASS_TOKEN_SECRET: string =
 const BCRYPT_SALT: number = +process.env.BCRYPT_SALT || 10
 
 // nodemailer
-const NODEMAILER_USER: string = process.env.NODEMAILER_USER || 'xxx'
-const NODEMAILER_PASS: string = process.env.NODEMAILER_PASS || 'xxx'
-const NODEMAILER_HOST: string = process.env.NODEMAILER_HOST || 'xxx'
-const NODEMAILER_PORT: string = process.env.NODEMAILER_PORT || 'xxx'
-const TUNIMILLION_BASEURL: string = process.env.TUNIMILLION_BASEURL
+const NODEMAILER_USER: string =
+	process.env.NODEMAILER_USER || 'info@tunimillions.com'
+const NODEMAILER_PASS: string = process.env.NODEMAILER_PASS || '54S2WMXVgx'
+const NODEMAILER_HOST: string =
+	process.env.NODEMAILER_HOST || 'pro1.mail.ovh.net'
+const NODEMAILER_PORT: string = process.env.NODEMAILER_PORT || '587'
+const TUNIMILLION_BASEURL: string =
+	process.env.TUNIMILLION_BASEURL || 'https://tunimillions.com'
 
 // cloudinary
 const CLOUDINARY_NAME: string = process.env.CLOUDINARY_NAME || 'chnirt'
@@ -157,5 +165,7 @@ export {
 	GOOGLE_APPLICATION_CREDENTIALS,
 	STRIPE_PUBLIC_KEY,
 	STRIPE_SECRET_KEY,
-	STRIPE_PLAN
+	STRIPE_PLAN,
+	MERCHANT_ID,
+	PAYMASTER_TOKEN
 }
