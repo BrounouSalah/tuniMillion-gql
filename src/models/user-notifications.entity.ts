@@ -24,6 +24,10 @@ export class UserNotifications {
 
 	@Expose()
 	@Column()
+	title: string
+
+	@Expose()
+	@Column()
 	message: string
 
 	@Expose()
