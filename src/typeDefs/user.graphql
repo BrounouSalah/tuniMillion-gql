@@ -218,6 +218,7 @@ type User {
 	userRole: Roles
 	verificationDoc: VerificationProcess!
 	notifications: [UserNotification]!
+	lastLogin: Date
 }
 enum VerificationTypeFilter {
 	EMAIL
@@ -279,6 +280,9 @@ type Query {
 	adminStats: StatsResponse!
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
+	getAllUsers: [User]!
+		@isAuthenticated
+		
 }
 
 type Mutation {

@@ -131,6 +131,10 @@ export class User {
 
 	@Expose()
 	@Column()
+	lastLoginDate: Date
+
+	@Expose()
+	@Column()
 	createdAt: Date
 
 	@Expose()

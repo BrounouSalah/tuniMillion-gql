@@ -28,6 +28,11 @@ import { calculateMoneyAmout } from 'utils/helpers/winningMoneyAmout'
 import { PaymentTaxeResolver } from './paymentTaxe.resolver'
 import { simulation } from 'utils/helpers/simultation'
 import { GetRandomCombination } from 'utils/helpers/getRandomCombination'
+import { UserNotificationsResolver } from './userNotifications.resolver'
+import { generateToken } from '@auth'
+import { sendMail } from '@shared'
+import { UserResolver } from './user.resolver'
+
 
 export class WinningSequenceResolver {
 	constructor(
@@ -36,7 +41,11 @@ export class WinningSequenceResolver {
 		@Inject(forwardRef(() => AmountOfWalletResolver))
 		private walletResolver: AmountOfWalletResolver,
 		@Inject(forwardRef(() => PaymentTaxeResolver))
-		private cagnoteResolver: PaymentTaxeResolver
+		private cagnoteResolver: PaymentTaxeResolver,
+		@Inject(forwardRef(() => UserNotificationsResolver))
+		private notificationResolver: UserNotificationsResolver,
+		@Inject(forwardRef(() => UserResolver))
+		private userResolver: UserResolver
 	) {}
 
 	@Mutation()
@@ -97,6 +106,7 @@ export class WinningSequenceResolver {
 			})
 		)
 		for (const grille of paidGrilles) {
+			
 			const result = compareGrille(grille, response)
 			if (
 				result.grilleStatus === Status.WIN ||
@@ -124,6 +134,19 @@ export class WinningSequenceResolver {
 					},
 					{ returnOriginal: false }
 				)
+				const input ={
+					title:"Félicitations! Vous avez gagné sur Tunimillions!",
+					message:`Cher(e) gagnant(e),
+					Bravo pour votre victoire! Contactez-nous pour réclamer votre prix et continuez à jouer pour plus de chances et de succès.
+					"L'équipe Tunimillions".
+					`,
+					userId:grille.userId
+				}
+					await this.notificationResolver.createUserNotification(input)
+					const user= await this.userResolver.user(grille.userId)
+					const emailToken = await generateToken(user, 'emailToken')
+					await sendMail('gagnant', user, emailToken)
+
 			}
 			const singleGrille = await getMongoRepository(Grille).findOne({
 				_id: grille._id

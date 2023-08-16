@@ -5,7 +5,7 @@ dotenv.config()
 const NODE_ENV: string = process.env.NODE_ENV || 'development'
 
 // author
-const AUTHOR: string = process.env.AUTHOR || 'Chnirt'
+const AUTHOR: string = process.env.AUTHOR || 'Tunimillion'
 
 // application
 const PRIMARY_COLOR: string = process.env.PRIMARY_COLOR || '#87e8de'
@@ -31,9 +31,9 @@ const MLAB_URL =
 	`mongodb://${MLAB_USER}:${MLAB_PASS}@${MLAB_HOST}:${MLAB_PORT}/${MLAB_DATABASE}`
 
 // //mongodb
-// const MONGO_URL: string = +process.env.MONGO_PORT
-// 	? `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`
-// 	: MLAB_URL
+const MONGO_URL: string = +process.env.MONGO_PORT
+	? `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`
+	: MLAB_URL
 // const MONGO_PORT: number = +process.env.MONGO_PORT || 11049
 // const MONGO_DB: string = process.env.MONGO_PORT ? 'chnirt-nest' : MLAB_DATABASE
 const MERCHANT_ID: string =
@@ -47,7 +47,7 @@ const PAYMASTER_TOKEN: string =
 // const MONGO_URL: string = +process.env.MONGO_PORT
 // 	? `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`
 // 	: MLAB_URL
-const MONGO_URL: string = `mongodb://tunimillions:zaWbn6HOhpCjGyf27v40@node1-bb35e9811732f4a0.database.cloud.ovh.net/Tunimillion?replicaSet=replicaset&tls=true&authSource=admin`
+//const MONGO_URL: string = `mongodb://tunimillions:zaWbn6HOhpCjGyf27v40@node1-bb35e9811732f4a0.database.cloud.ovh.net/Tunimillion?replicaSet=replicaset&tls=true&authSource=admin`
 const MONGO_DB_NAME: string = process.env.MONGO_DATABASE ?? 'test'
 const MONGO_PORT: number = +process.env.MONGO_PORT || 11049
 const MONGO_DB: string = process.env.MONGO_PORT ? 'chnirt-nest' : MLAB_DATABASE

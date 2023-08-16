@@ -2,6 +2,7 @@ import { CronJob } from 'cron'
 import { Logger } from '@nestjs/common'
 import { userLimitationCron } from 'utils/cronJobs/userLimitationsCron'
 import { docVerificationCron } from 'utils/cronJobs/docVerificationCron'
+import { accountReactivation } from 'utils/cronJobs/accountReactivationCron'	
 
 /**
  * Returns any.
@@ -62,6 +63,14 @@ export const cron = () => {
 		},
 		start: false
 	})
+
+	const reactivationJob = new CronJob({
+		cronTime: '0 8 * * *',
+		onTick: async () => {
+			await accountReactivation()
+		}
+	})
+	reactivationJob.start()
 	userLimitJob.start()
 	verificationJob.start()
 }

@@ -1,6 +1,7 @@
 input CreateUserNotificationInput {
 	userId: String
 	message: String
+	title: String
 }
 
 input UpdateUserNotificationInput {
@@ -12,6 +13,7 @@ type UserNotification {
 	_id: ID!
 	userId: String!
 	message: String!
+	title: String!
 	isOpen: Boolean!
 	createdAt: Date!
 	updatedAt: Date!

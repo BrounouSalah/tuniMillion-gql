@@ -21,6 +21,10 @@ type Type =
 	| 'forgotPassword'
 	| 'finalizeRegistration'
 	| 'sendEventInvitation'
+	| 'welcome'
+	| 'verification'
+	| 'gagnant'
+	| 'reactivation'
 
 /**
  * Returns any by send email.
@@ -109,6 +113,58 @@ export const sendMail = async (
 					// tslint:disable-next-line:quotemark
 					"If that doesn't work, copy and paste the following link in your browser:",
 				...common
+			},
+
+			welcome:{
+				link: `${TUNIMILLION_BASEURL}`,
+				subject: 'Bienvenue sur Tunimillions',
+				text1:`Félicitations pour avoir rejoint la communauté Tunimillions! Préparez-vous à vivre l'excitation des jeux de concours et à avoir la chance de gagner gros.
+				Nous vous souhaitons la meilleure des chances et espérons que chaque tirage vous rapproche du jackpot! N'hésitez pas à explorer nos jeux et à tenter votre chance.	
+				Jouez, amusez-vous et qui sait, vous pourriez être notre prochain grand gagnant!\n
+				"L'équipe Tunimillions". 
+				`,
+				button: 'Retour Vers Tunimillions',
+				...common
+			},
+			verification:{
+				link: `${TUNIMILLION_BASEURL}`,
+				subject: `Soyez au cœur de l'action sur Tunimillions! `,
+				text1: `Cher(e) utilisateur(trice),
+				Nous avons remarqué que vous n'avez pas encore vérifié votre compte Tunimillions. La vérification est une étape importante pour profiter pleinement de nos jeux de concours passionnants et pour garantir la sécurité de votre expérience.
+				Ne manquez pas l'opportunité de jouer et de gagner! Veuillez vérifier votre compte dès maintenant en envoyant votre  carte d’identité nationale et suivre les étapes à l’inscription.				
+				L'équipe Tunimillions est là pour vous aider à démarrer votre aventure de jeu en toute confiance. Jouez, amusez-vous et tentez votre chance pour gagner gros!				
+				Cordialement,
+				L'équipe Tunimillions .
+				`,
+				button: 'Retour Vers Tunimillions',
+				...common
+			},
+
+			reactivation:{
+				link: `${TUNIMILLION_BASEURL}`,
+				subject: `Action requise: Réactivez votre compte Tunimillions! `,
+				text1: `Cher utilisateur,
+				Nous espérons que vous allez bien. Nous avons remarqué que vous n'avez pas joué sur Tunimillions depuis un certain temps. Pour continuer à profiter de nos passionnants jeux de concours et pour éviter la désactivation de votre compte, nous vous encourageons à jouer à nouveau.				
+				Ne laissez pas les opportunités de gagner vous échapper! Connectez-vous dès maintenant et tentez votre chance.				
+				L'équipe Tunimillions. 
+				
+				`,
+				button: 'Retour Vers Tunimillions',
+				...common
+			},
+
+			gagnant:{
+				link: `${TUNIMILLION_BASEURL}`,
+				subject: `Félicitations, Vous avez gagné sur Tunimillions! `,
+				text1: `Cher(e) gagnant(e),
+				Nous sommes ravis de vous annoncer que vous avez remporté un prix sur Tunimillions! Votre chance a porté ses fruits et nous sommes enchantés d'être à vos côtés pour célébrer votre victoire.				
+				Contactez-nous dès maintenant pour réclamer votre récompense et en savoir plus sur les étapes à suivre. Votre succès fait partie de ce qui rend Tunimillions si spécial.				
+				Félicitations encore et continuez à jouer pour de futures victoires!				
+				Cordialement,
+				L'équipe Tunimillions. 				
+				`,
+				button: 'Retour Vers Tunimillions',
+				...common
 			}
 			// finalizeRegistration: {
 			// 	link: `${TUNIMILLION_BASEURL}/finalizeRegistration/?email=${user.local.email}&password=${token}`,
@@ -131,7 +187,7 @@ export const sendMail = async (
 		}
 
 		const htmlToSend = template(replacements[type])
-
+		
 		const mailOptions = {
 			from: NODEMAILER_USER, // sender address
 			to: user.local.email, // list of receivers
@@ -173,7 +229,7 @@ export const sendMail = async (
 			if (err) {
 				console.log(err)
 			} else {
-				// console.log('Message sent: ' + info.response)
+				 //console.log('Message sent: ' + info.response)
 			}
 		})
 
