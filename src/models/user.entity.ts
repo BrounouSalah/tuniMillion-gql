@@ -132,6 +132,10 @@ export class User {
 	@Expose()
 	@Column()
 	lastLoginDate: Date
+	
+	@Expose()
+	@Column()
+	isActive: boolean
 
 	@Expose()
 	@Column()
@@ -171,6 +175,7 @@ export class User {
 			this.userLimitationId = this.userLimitationId || ''
 			this.userRole = this.userRole || Roles.USER
 			this.favorites = this.favorites || []
+			this.isActive = this.isActive || true
 			this.createdAt = this.createdAt || new Date(Date.now())
 			this.updatedAt = this.updatedAt || new Date(Date.now())
 		}

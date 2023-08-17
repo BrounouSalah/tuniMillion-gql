@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common'
 import { userLimitationCron } from 'utils/cronJobs/userLimitationsCron'
 import { docVerificationCron } from 'utils/cronJobs/docVerificationCron'
 import { accountReactivation } from 'utils/cronJobs/accountReactivationCron'	
+import { deactivateAccount } from 'utils/cronJobs/deactivateAccountCron'
 
 /**
  * Returns any.
@@ -70,6 +71,14 @@ export const cron = () => {
 			await accountReactivation()
 		}
 	})
+
+	const deactivateAccountJob=new CronJob({
+		cronTime: '0 8 * * *',
+		onTick: async () => {
+			await deactivateAccount()
+		}
+	})
+	deactivateAccountJob.start()
 	reactivationJob.start()
 	userLimitJob.start()
 	verificationJob.start()
