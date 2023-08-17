@@ -80,6 +80,7 @@ input UpdateUserInput {
 	verification: Verification
 	gender: Gender
 	identityVerified: Boolean
+	isActive: Boolean
 }
 input AdminUpdateUserInput {
 	firstName: String!
@@ -219,6 +220,7 @@ type User {
 	verificationDoc: VerificationProcess!
 	notifications: [UserNotification]!
 	lastLogin: Date
+	
 }
 enum VerificationTypeFilter {
 	EMAIL
@@ -282,6 +284,9 @@ type Query {
 		@hasPermission(permission: "ADMIN")
 	getAllUsers: [User]!
 		@isAuthenticated
+	getUsersByLastLoginDate: [User]!
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 		
 }
 
@@ -326,7 +331,16 @@ type Mutation {
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
 	adminLogin(input: LoginUserInput!): LoginResponse
+
+	adminActivateUser(_id: ID!): User
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
+
+	adminDeactivateUser(_id: ID!): User
+		@isAuthenticated
+		@hasPermission(permission: "ADMIN")
 }
+
 
 type Subscription {
 	newUser: User @isAuthenticated

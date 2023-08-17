@@ -7,7 +7,7 @@ import {
 	ResolveProperty,
 	Parent
 } from '@nestjs/graphql'
-import { getMongoRepository } from 'typeorm'
+import { getMongoRepository, LessThan, MoreThan, MoreThanOrEqual } from 'typeorm'
 import {
 	ApolloError,
 	AuthenticationError,
@@ -669,7 +669,8 @@ export class UserResolver {
 					$set: {
 						...input,
 						address: input.address,
-						userVerificationData: input.verification
+						userVerificationData: input.verification,
+						isActive: input.isActive ?? user.isActive
 					}
 				},
 				{ returnOriginal: false }
@@ -785,25 +786,31 @@ export class UserResolver {
 		const { email, password, birthDate } = input
 		const user = await getMongoRepository(User).findOne({
 			where: {
-				'local.email': email.toLocaleLowerCase()
+				'local.email': email.toLocaleLowerCase(),
+				
 			}
 		})
 
 		if (user && (await comparePassword(password, user.local.password))) {
 			if (user.birthDate === birthDate) {
+				
+			  if (user.isActive===true) {
 				await getMongoRepository(User).findOneAndUpdate(
-					{ _id: user._id },
-					{ $set: { lastLoginDate: new Date() } },
-					{ returnOriginal: false }
-				)
-				return await tradeToken(user)
+				  { _id: user._id },
+				  { $set: { lastLoginDate: new Date() } },
+				  { returnOriginal: false }
+				);
+				return await tradeToken(user);
+			  } else {
+				throw new AuthenticationError('Your account is deactivated. You cannot login.');
+			  }
 			} else {
-				throw new AuthenticationError('Incorrect birthdate.')
+			  throw new AuthenticationError('Incorrect birthdate.');
 			}
-		}
+		  }
 		
-		throw new AuthenticationError('Login failed.')
-	}
+		  throw new AuthenticationError('Login failed.');
+		}
 
 	@Mutation()
 	async adminLogin(
@@ -1061,4 +1068,76 @@ export class UserResolver {
 			throw new ForbiddenError(error)
 		}
 	}
-}
+
+	@Query()
+	async getUsersByLastLoginDate(): Promise<User[]> {
+		try {
+		  const currentDate = new Date();
+		  const threeMonthsAgo = new Date();
+		  threeMonthsAgo.setMonth(currentDate.getMonth() - 3);
+	  
+		  const users = await getMongoRepository(User)
+			.aggregate([
+			  {
+				$match: {
+				  deletedAt: null,
+				  isActive: true,
+				  lastLoginDate: {
+					$lt: threeMonthsAgo,
+				  },
+				},
+			  },
+			])
+			.toArray();
+			 
+		 
+			return users	
+		  }
+		  catch (error) {
+			throw new ForbiddenError(error);
+		  }
+	  
+		  
+		}
+
+	@Mutation()
+	async adminActivateUser(@Args('_id') _id: string): Promise<User> {
+		try {
+			const user = await getMongoRepository(User).findOne({ _id })
+			if (!user) {
+				throw new ForbiddenError('User not found.')
+			}
+			user.isActive = true
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: user },
+				{ returnOriginal: false }
+			)
+			console.log(updateUser)
+			return updateUser.value
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+
+	@Mutation()
+	async adminDeactivateUser(@Args('_id') _id: string): Promise<User> {
+		try {
+			const user = await getMongoRepository(User).findOne({ _id })
+			if (!user) {
+				throw new ForbiddenError('User not found.')
+			}
+			user.isActive = false
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: user },
+				{ returnOriginal: false }
+			)
+			console.log(updateUser)
+			return updateUser.value
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+	  }
+
