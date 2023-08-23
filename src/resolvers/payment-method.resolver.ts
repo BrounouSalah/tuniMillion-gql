@@ -132,19 +132,17 @@ export class PaymentMethodResolver {
 				userId: currentUser._id
 			})
 		)
-		console.log('paymentMethod:', paymentMethod)
 
 		const userLimitation = await this.userLimitation.getUserLimitationByUserId(
 			currentUser._id
 		)
-		console.log('userLimitation', userLimitation)
 
 		const reste: number | null = userLimitation.rest
 		const limit: number = userLimitation.limit
 		const montantPaiement: number = paymentInput.amount.value
 
 		const newRest = compareValues(reste, montantPaiement, limit)
-		console.log('resultat', newRest)
+
 		if (newRest < 0) {
 			throw new ForbiddenError(
 				'Your payment amount exceeded the limit your can only play with ' +
@@ -152,7 +150,6 @@ export class PaymentMethodResolver {
 					' TND'
 			)
 		} else {
-			console.log('paymentMethod:', paymentMethodInput)
 			let runPayResponse
 			try {
 				runPayResponse = await firstValueFrom(
@@ -176,11 +173,12 @@ export class PaymentMethodResolver {
 					)
 				)
 			} catch (e) {
-				console.log(e.response)
+				throw new ForbiddenError(e.response.data.message)
 			}
 
-			if (runPayResponse && runPayResponse.status !== 200)
-				throw new ForbiddenError(runPayResponse.data)
+			if (runPayResponse && runPayResponse.status !== 200) {
+				throw new ForbiddenError(runPayResponse)
+			}
 
 			const updatePaymentMethod = await getMongoRepository(
 				PaymentMethod
@@ -195,7 +193,6 @@ export class PaymentMethodResolver {
 				},
 				{ returnOriginal: false }
 			)
-			console.log('updatePaymentMethod:', updatePaymentMethod)
 
 			return { id: runPayResponse.data.paymentId, url: runPayResponse.data.url }
 		}

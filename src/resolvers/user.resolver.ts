@@ -7,7 +7,12 @@ import {
 	ResolveProperty,
 	Parent
 } from '@nestjs/graphql'
-import { getMongoRepository, LessThan, MoreThan, MoreThanOrEqual } from 'typeorm'
+import {
+	getMongoRepository,
+	LessThan,
+	MoreThan,
+	MoreThanOrEqual
+} from 'typeorm'
 import {
 	ApolloError,
 	AuthenticationError,
@@ -40,7 +45,8 @@ import {
 	StatsResponse,
 	PaymentStatus,
 	Status,
-	Roles
+	Roles,
+	VerificationType
 } from '../generator/graphql.schema'
 import { generateToken, verifyToken, tradeToken } from '@auth'
 import { sendMail } from '@shared'
@@ -386,18 +392,17 @@ export class UserResolver {
 					verificationMessage: 'No Documents are uploaded to verify the account'
 				}
 				const input = {
-					title:"Verification de Compte!",
-					message:`Cher utilisateur,
+					title: 'Verification de Compte!',
+					message: `Cher utilisateur,
 					Pour profiter pleinement de Tunimillions, veuillez vérifier votre compte dès maintenant. Ne manquez pas l'excitation des jeux de loterie et les chances de gagner incroyables qui vous attendent!
 					"L'équipe Tunimillions".					
 					`,
-					userId:createdUser._id,
+					userId: createdUser._id
 				}
 				await this.notificationResolver.createUserNotification(input)
 				const emailToken = await generateToken(createdUser, 'emailToken')
 				await sendMail('welcome', createdUser, emailToken)
 				await sendMail('verification', createdUser, emailToken)
-				
 			}
 			const updateUser = await getMongoRepository(User).findOneAndUpdate(
 				{ _id: createdUser._id },
@@ -421,14 +426,14 @@ export class UserResolver {
 			// await sendSms(input.phoneNumber, emailToken)
 
 			// await sendMail('verifyEmail', createdUser, emailToken)
-			let notifInput={
-				title:"Bienvenue sur Tunimillions!",
-				message:`Félicitations pour votre inscription réussie! Vous êtes maintenant prêt à rejoindre l'action palpitante de nos jeux de concours.
+			let notifInput = {
+				title: 'Bienvenue sur Tunimillions!',
+				message: `Félicitations pour votre inscription réussie! Vous êtes maintenant prêt à rejoindre l'action palpitante de nos jeux de concours.
 				"L'équipe Tunimillions".
 				`,
-				userId:createdUser._id,
+				userId: createdUser._id
 			}
-			 await this.notificationResolver.createUserNotification(notifInput)
+			await this.notificationResolver.createUserNotification(notifInput)
 			return createdUser
 		} catch (error) {
 			throw new ApolloError(error)
@@ -610,7 +615,7 @@ export class UserResolver {
 				{ $set: { ...createdUser, walletId: wallet._id } },
 				{ returnOriginal: false }
 			)
-			
+
 			return createdUser
 		} catch (error) {
 			throw new ApolloError(error)
@@ -704,6 +709,68 @@ export class UserResolver {
 	}
 
 	@Mutation()
+	async updateUserDocs(
+		@Args('_id') _id: string,
+		@Args('files') files: any[],
+		@Args('filesType') filesType: VerificationType,
+		@Context('req') req: any
+	): Promise<boolean> {
+		try {
+			const user = await getMongoRepository(User).findOne({ _id })
+
+			if (!user) {
+				throw new ApolloError('User not found.')
+			}
+			const status = [
+				VerificationStatus.ACCEPTED,
+				VerificationStatus.PROCESSING
+			]
+			if (status.includes(user.verificationDoc.verificationStatus)) {
+				throw new ApolloError('Documents already uploaded')
+			}
+			if (filesType === VerificationType.CIN && files.length !== 3) {
+				throw new ApolloError('Need 3 images when type is CIN')
+			}
+			if (
+				(filesType === VerificationType.PASSPORT ||
+					filesType === VerificationType.PERMIS) &&
+				files.length !== 2
+			) {
+				throw new ApolloError('Need 2 images when type is PASSPORT or PERMIS')
+			}
+			const filePaths: string[] = []
+			const resolvedFiles = await Promise.all(files)
+
+			for (let file of resolvedFiles) {
+				const newFile = await this.fileResolver.uploadFileLocal(file, req)
+				filePaths.push(newFile.path)
+			}
+
+			user.userVerificationData.verificationImage = filePaths
+			user.verificationDoc = {
+				verificationStatus: VerificationStatus.PROCESSING,
+				verificationMessage: 'Your Files are being processed'
+			}
+			const updateUser = await getMongoRepository(User).findOneAndUpdate(
+				{ _id: user._id },
+				{ $set: user },
+				{ returnOriginal: false }
+			)
+			const notif = {
+				title: 'Vos Documents ont été telechargé!',
+				message: `Nous allons procéder à la vérification des documents que vous avez ajoutés. Nous vous informerons de l'avancement du processus dans les plus brefs délais.
+				"L'équipe Tunimillions".
+				`,
+				userId: user._id
+			}
+			await this.notificationResolver.createUserNotification(notif)
+			return updateUser ? true : false
+		} catch (error) {
+			throw new ApolloError(error)
+		}
+	}
+
+	@Mutation()
 	async updateUserAvatar(
 		@Args('_id') _id: string,
 		@Args('file') file: any,
@@ -786,31 +853,31 @@ export class UserResolver {
 		const { email, password, birthDate } = input
 		const user = await getMongoRepository(User).findOne({
 			where: {
-				'local.email': email.toLocaleLowerCase(),
-				
+				'local.email': email.toLocaleLowerCase()
 			}
 		})
 
 		if (user && (await comparePassword(password, user.local.password))) {
 			if (user.birthDate === birthDate) {
-				
-			  if (user.isActive===true) {
-				await getMongoRepository(User).findOneAndUpdate(
-				  { _id: user._id },
-				  { $set: { lastLoginDate: new Date() } },
-				  { returnOriginal: false }
-				);
-				return await tradeToken(user);
-			  } else {
-				throw new AuthenticationError('Your account is deactivated. You cannot login.');
-			  }
+				if (user.isActive === true) {
+					await getMongoRepository(User).findOneAndUpdate(
+						{ _id: user._id },
+						{ $set: { lastLoginDate: new Date() } },
+						{ returnOriginal: false }
+					)
+					return await tradeToken(user)
+				} else {
+					throw new AuthenticationError(
+						'Your account is deactivated. You cannot login.'
+					)
+				}
 			} else {
-			  throw new AuthenticationError('Incorrect birthdate.');
+				throw new AuthenticationError('Incorrect birthdate.')
 			}
-		  }
-		
-		  throw new AuthenticationError('Login failed.');
 		}
+
+		throw new AuthenticationError('Login failed.')
+	}
 
 	@Mutation()
 	async adminLogin(
@@ -1072,33 +1139,29 @@ export class UserResolver {
 	@Query()
 	async getUsersByLastLoginDate(): Promise<User[]> {
 		try {
-		  const currentDate = new Date();
-		  const threeMonthsAgo = new Date();
-		  threeMonthsAgo.setMonth(currentDate.getMonth() - 3);
-	  
-		  const users = await getMongoRepository(User)
-			.aggregate([
-			  {
-				$match: {
-				  deletedAt: null,
-				  isActive: true,
-				  lastLoginDate: {
-					$lt: threeMonthsAgo,
-				  },
-				},
-			  },
-			])
-			.toArray();
-			 
-		 
-			return users	
-		  }
-		  catch (error) {
-			throw new ForbiddenError(error);
-		  }
-	  
-		  
+			const currentDate = new Date()
+			const threeMonthsAgo = new Date()
+			threeMonthsAgo.setMonth(currentDate.getMonth() - 3)
+
+			const users = await getMongoRepository(User)
+				.aggregate([
+					{
+						$match: {
+							deletedAt: null,
+							isActive: true,
+							lastLoginDate: {
+								$lt: threeMonthsAgo
+							}
+						}
+					}
+				])
+				.toArray()
+
+			return users
+		} catch (error) {
+			throw new ForbiddenError(error)
 		}
+	}
 
 	@Mutation()
 	async adminActivateUser(@Args('_id') _id: string): Promise<User> {
@@ -1139,5 +1202,4 @@ export class UserResolver {
 			throw new ApolloError(error)
 		}
 	}
-	  }
-
+}

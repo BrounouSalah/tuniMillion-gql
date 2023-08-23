@@ -220,7 +220,6 @@ type User {
 	verificationDoc: VerificationProcess!
 	notifications: [UserNotification]!
 	lastLogin: Date
-	
 }
 enum VerificationTypeFilter {
 	EMAIL
@@ -282,12 +281,10 @@ type Query {
 	adminStats: StatsResponse!
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
-	getAllUsers: [User]!
-		@isAuthenticated
+	getAllUsers: [User]! @isAuthenticated
 	getUsersByLastLoginDate: [User]!
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
-		
 }
 
 type Mutation {
@@ -300,6 +297,11 @@ type Mutation {
 		input: UpdateUserInput! @validate(schema: "updateUserRegister")
 	): Boolean @isAuthenticated
 	updateUserAvatar(_id: ID!, file: Upload!): Boolean @isAuthenticated
+	updateUserDocs(
+		_id: ID!
+		files: [Upload]!
+		filesType: VerificationType
+	): Boolean @isAuthenticated
 	verifyEmail(emailToken: String!): Boolean
 	login(
 		input: LoginUserInput! @validate(schema: "loginUserRegister")
@@ -340,7 +342,6 @@ type Mutation {
 		@isAuthenticated
 		@hasPermission(permission: "ADMIN")
 }
-
 
 type Subscription {
 	newUser: User @isAuthenticated

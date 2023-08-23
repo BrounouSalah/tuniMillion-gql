@@ -11,7 +11,6 @@ import { ApolloError } from 'apollo-server-core'
 export class FileResolver {
 	constructor() {}
 
-
 	@Mutation()
 	async uploadFileLocal(
 		@Args('file') file: any,
@@ -19,6 +18,12 @@ export class FileResolver {
 	): Promise<any> {
 		const { filename, createReadStream, mimetype } = file
 		const convertFilename = `${uuid.v1()}.${mimetype.split('/')[1]}`
+		const fileExtension = mimetype.split('/')[1]
+		const validExtensions = ['jpeg', 'jpg', 'png']
+
+		if (!validExtensions.includes(fileExtension)) {
+			throw new ApolloError('Invalid File Type')
+		}
 		let path
 		path = await new Promise(async (resolve, reject) =>
 			createReadStream(file).pipe(
