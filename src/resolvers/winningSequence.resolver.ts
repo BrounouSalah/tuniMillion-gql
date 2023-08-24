@@ -33,7 +33,6 @@ import { generateToken } from '@auth'
 import { sendMail } from '@shared'
 import { UserResolver } from './user.resolver'
 
-
 export class WinningSequenceResolver {
 	constructor(
 		@Inject(forwardRef(() => GrilleResolver))
@@ -80,19 +79,20 @@ export class WinningSequenceResolver {
 				PaymentStatus.PAID
 			)
 		const winningCode = GetRandomCombination(paidGrilles)
-		const winningAmout = totalCagnote.totalCAG_CUMM * 0.14
-		const winningCodeWallet = await this.walletResolver.getWalletByUserId(
-			winningCode.userId
-		)
-		await getMongoRepository(AmountOfWallet).findOneAndUpdate(
-			{ _id: winningCodeWallet._id },
-			{
-				$set: {
-					totalAmount: winningCodeWallet.totalAmount + winningAmout
-				}
-			},
-			{ returnOriginal: false }
-		)
+		/// this is for updating MyMillion Code user wallet
+		//const winningAmout = totalCagnote.totalCAG_CUMM * 0.14
+		// const winningCodeWallet = await this.walletResolver.getWalletByUserId(
+		// 	winningCode.userId
+		// )
+		// await getMongoRepository(AmountOfWallet).findOneAndUpdate(
+		// 	{ _id: winningCodeWallet._id },
+		// 	{
+		// 		$set: {
+		// 			totalAmount: winningCodeWallet.totalAmount + winningAmout
+		// 		}
+		// 	},
+		// 	{ returnOriginal: false }
+		// )
 		const winningCod = {
 			tunimillionCode: winningCode.winningCode,
 			userId: winningCode.userId,
@@ -105,78 +105,131 @@ export class WinningSequenceResolver {
 				winningCode: winningCod
 			})
 		)
+
+		const jackpotWinners: any[] = []
+		const winners: any[] = []
+		const losers: any[] = []
+
 		for (const grille of paidGrilles) {
-			
 			const result = compareGrille(grille, response)
-			if (
-				result.grilleStatus === Status.WIN ||
-				result.grilleStatus === Status.JACKPOT
-			) {
-				const userWallet = await this.walletResolver.getWalletByUserId(
-					grille.userId
-				)
 
-				const updateWallet = await getMongoRepository(
-					AmountOfWallet
-				).findOneAndUpdate(
-					{ _id: userWallet._id },
-					{
-						$set: {
-							totalAmount:
-								userWallet.totalAmount +
-								calculateMoneyAmout(
-									totalCagnote.totalCAG_CUMM,
-									result.winningNumbers.length,
-									result.winningStars.length
-								)
-							// inCommingTransactions: wallet.inCommingTransactions
-						}
-					},
-					{ returnOriginal: false }
-				)
-				const input ={
-					title:"Félicitations! Vous avez gagné sur Tunimillions!",
-					message:`Cher(e) gagnant(e),
-					Bravo pour votre victoire! Contactez-nous pour réclamer votre prix et continuez à jouer pour plus de chances et de succès.
-					"L'équipe Tunimillions".
-					`,
-					userId:grille.userId
-				}
-					await this.notificationResolver.createUserNotification(input)
-					const user= await this.userResolver.user(grille.userId)
-					const emailToken = await generateToken(user, 'emailToken')
-					await sendMail('gagnant', user, emailToken)
+			// Update the grille's status
+			await getMongoRepository(Grille).findOneAndUpdate(
+				{ _id: grille._id },
+				{ $set: { status: result.grilleStatus } },
+				{ returnOriginal: false }
+			)
 
+			switch (result.grilleStatus) {
+				case Status.JACKPOT:
+					jackpotWinners.push(grille)
+					break
+				case Status.WIN:
+					winners.push(grille)
+					break
+				default:
+					losers.push(grille)
+					break
 			}
-			const singleGrille = await getMongoRepository(Grille).findOne({
-				_id: grille._id
-			})
-			if (!singleGrille) {
-				throw new ForbiddenError('Grille not found.')
-			}
-			const data = {
-				...singleGrille,
-				winningSequenceId: response._id,
-				winningNumbers: result.winningNumbers,
-				winningStars: result.winningStars,
-				status: result.grilleStatus,
+		}
 
-				winningPrice: calculateMoneyAmout(
+		// Process jackpot winners
+		if (jackpotWinners.length > 0) {
+			const jackpotAmountPerWinner =
+				totalCagnote.totalCAG_CUMM / jackpotWinners.length
+
+			for (const grille of jackpotWinners) {
+				const result = compareGrille(grille, response)
+				await this.updateGrille(
+					grille,
+					result,
+					response,
+					jackpotAmountPerWinner
+				)
+				await this.updateUserWallet(grille.userId, jackpotAmountPerWinner)
+				await this.notifyUser(grille.userId)
+			}
+
+			// Update other grilles with 0 amount
+			for (const grille of [...winners, ...losers]) {
+				const result = compareGrille(grille, response)
+				await this.updateGrille(grille, result, response, 0)
+			}
+		} else if (winners.length > 0) {
+			// Process regular winners
+			for (const grille of winners) {
+				const result = compareGrille(grille, response)
+				const winningAmount = calculateMoneyAmout(
 					totalCagnote.totalCAG_CUMM,
 					result.winningNumbers.length,
 					result.winningStars.length
 				)
+				await this.updateGrille(grille, result, response, winningAmount)
+				await this.updateUserWallet(grille.userId, winningAmount)
+				await this.notifyUser(grille.userId)
 			}
 
-			await getMongoRepository(Grille).findOneAndUpdate(
-				{ _id: grille._id },
-				{ $set: { ...data } },
-				{ returnOriginal: false }
-			)
+			// Update losers with 0 amount
+			for (const grille of losers) {
+				const result = compareGrille(grille, response)
+				await this.updateGrille(grille, result, response, 0)
+			}
+		} else {
+			// No winners or jackpot winners, so just update losers with 0 amount
+			for (const grille of losers) {
+				const result = compareGrille(grille, response)
+				await this.updateGrille(grille, result, response, 0)
+			}
 		}
+
 		return response
 	}
+	async updateGrille(
+		grille: any,
+		result,
+		response: any,
+		winningAmount: number
+	) {
+		const data = {
+			...grille,
+			winningSequenceId: response._id,
+			winningNumbers: result.winningNumbers,
+			winningStars: result.winningStars,
+			status: result.grilleStatus,
+			winningPrice: winningAmount
+		}
 
+		await getMongoRepository(Grille).findOneAndUpdate(
+			{ _id: grille._id },
+			{ $set: { ...data } },
+			{ returnOriginal: false }
+		)
+	}
+	async updateUserWallet(userId: string, amount: number) {
+		console.log('*******', userId)
+		const userWallet = await this.walletResolver.getWalletByUserId(userId)
+		console.log('wallet*******', userWallet)
+		await getMongoRepository(AmountOfWallet).findOneAndUpdate(
+			{ _id: userWallet._id },
+			{ $set: { totalAmount: userWallet.totalAmount + amount } },
+			{ returnOriginal: false }
+		)
+	}
+	async notifyUser(userId: string) {
+		const input = {
+			title: 'Félicitations! Vous avez gagné sur Tunimillions!',
+			message: `Cher(e) gagnant(e),
+			Bravo pour votre victoire! Contactez-nous pour réclamer votre prix et continuez à jouer pour plus de chances et de succès.
+			"L'équipe Tunimillions".`,
+			userId: userId
+		}
+
+		await this.notificationResolver.createUserNotification(input)
+
+		const user = await this.userResolver.user(userId)
+		const emailToken = await generateToken(user, 'emailToken')
+		await sendMail('gagnant', user, emailToken)
+	}
 	@Query()
 	async getStaticWinningSequence(
 		@Args('_id') _id: string
