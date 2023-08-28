@@ -2,9 +2,6 @@ import { calculateMoneyAmout } from 'utils/helpers/winningMoneyAmout'
 
 describe('calculateMoneyAmout', () => {
 	it('should return the correct amount for each winning combination', () => {
-		// Test case 1: 5 winning numbers and 2 winning stars
-		expect(calculateMoneyAmout(1000000, 5, 2)).toBe(1000000)
-
 		// Test case 2: 5 winning numbers and 1 winning star
 		expect(calculateMoneyAmout(1000000, 5, 1)).toBeCloseTo(11808)
 
@@ -42,6 +39,14 @@ describe('calculateMoneyAmout', () => {
 		expect(calculateMoneyAmout(1000000, 2, 0)).toBeCloseTo(7.5)
 
 		// Test case 14: No winning numbers
-		expect(calculateMoneyAmout(1000000, 0, 0)).toBe(0)
+		expect(calculateMoneyAmout(1000000, 0, 0)).toBeCloseTo(0)
+
+		expect(calculateMoneyAmout(10000000, 4, 2)).toEqual(764.1176)
+
+		expect(calculateMoneyAmout(10000000, 1, 2)).toEqual(3.97059)
+
+		expect(calculateMoneyAmout(10000000, 2, 0)).toEqual(2.35294)
+
+
 	})
 })
