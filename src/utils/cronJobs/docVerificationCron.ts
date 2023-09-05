@@ -41,7 +41,7 @@ export async function docVerificationCron() {
 				title:"Verification de Compte!",
 				userId: user._id,
 				message: `Cher utilisateur,
-				Pour profiter pleinement de Tunimillions, veuillez vérifier votre compte dès maintenant. Ne manquez pas l'excitation des jeux de loterie et les chances de gagner incroyables qui vous attendent!
+				Pour profiter pleinement de Tunimillions, veuillez vérifier votre compte dès maintenant. Ne manquez pas l'excitation des jeux de concours et les chances de gagner incroyables qui vous attendent!
 				"L'équipe Tunimillions".
 				`
 			})
