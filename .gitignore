@@ -4,7 +4,7 @@ uploads
 photos
 data
 backup
-
+mongo-db
 # Dependency directories
 node_modules/
 

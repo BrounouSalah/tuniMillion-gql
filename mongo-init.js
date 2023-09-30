@@ -1,12 +1,10 @@
-db.createUser(
-    {
-        user: "root",
-        pwd: "exemple",
-        roles: [
-            {
-                role: "readWrite",
-                db: "Tunimillion"
-            }
-        ]
-    }
-);
+db.createUser({
+	user: 'admin',
+	pwd: 'rootpassword',
+	roles: [
+		{
+			role: 'root',
+			db: 'admin'
+		}
+	]
+})
