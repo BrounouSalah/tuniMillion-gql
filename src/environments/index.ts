@@ -49,7 +49,6 @@ const MONGO_DB_NAME: string = process.env.MONGO_DATABASE ?? 'test'
 const MONGO_PORT: number = +process.env.MONGO_PORT || 11049
 const MONGO_DB: string = process.env.MONGO_PORT ? 'chnirt-nest' : MLAB_DATABASE
 const MONGO_URL = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/Tunimillion?authSource=admin`
-console.log(MONGO_URL)
 
 // jsonwebtoken
 const ISSUER: string = process.env.ISSUER || 'Chnirt corp'
